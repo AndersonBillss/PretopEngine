@@ -1,5 +1,5 @@
 from utils.cmd import cmd 
-from constants.build import BUILD_DIR
+from shared.constants import BUILD_DIR
 import sys
 
 DAWN_SRC = "third_party/dawn"

@@ -1,5 +1,5 @@
 from utils.cmd import cmd 
-from constants.build import BUILD_DIR
+from shared.constants import BUILD_DIR
 from codegen.gen_sources import gen_sources
 
 ENGINE_OUT = f"{BUILD_DIR}/engine"
