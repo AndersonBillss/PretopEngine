@@ -1,7 +1,11 @@
 #include "NATIVE_glfwWindow.hpp"
 #include <iostream>
 #include <chrono>
-#include <glfw3webgpu.h>
+
+#define WIN32_LEAN_AND_MEAN
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <glfw/glfw3native.h>
+#include <windows.h>
 
 GlfwWindow::~GlfwWindow()
 {
@@ -53,5 +57,18 @@ bool GlfwWindow::isInitialized()
 
 WGPUSurface GlfwWindow::getSurface(WGPUInstance instance)
 {
-    return glfwCreateWindowWGPUSurface(instance, this->_win);
+    HWND hwnd = glfwGetWin32Window(this->_win);
+    HINSTANCE hinstance = GetModuleHandle(NULL);
+
+    WGPUSurfaceSourceWindowsHWND fromWindowsHWND;
+    fromWindowsHWND.chain.sType = WGPUSType_SurfaceSourceWindowsHWND;
+    fromWindowsHWND.chain.next = NULL;
+    fromWindowsHWND.hinstance = hinstance;
+    fromWindowsHWND.hwnd = hwnd;
+
+    WGPUSurfaceDescriptor surfaceDescriptor;
+    surfaceDescriptor.nextInChain = &fromWindowsHWND.chain;
+    surfaceDescriptor.label = WGPU_STRING_VIEW_INIT;
+
+    return wgpuInstanceCreateSurface(instance, &surfaceDescriptor);
 }

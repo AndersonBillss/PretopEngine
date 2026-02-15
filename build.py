@@ -151,7 +151,6 @@ def execute_build(build_command):
     else:
         build_fn = COMMANDS[sys.argv[1]]
         print(build_command)
-        print("BEFORE")
         try:
             build_fn()
         except KeyboardInterrupt:

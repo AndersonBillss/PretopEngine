@@ -278,8 +278,30 @@ int main(int, char **)
   std::cout << "Command submitted." << std::endl;
 
   auto window = WindowFactory::createWindow("My Window");
+  std::cout << "Getting surface...\n";
   auto surface = window->getSurface(instance);
+  std::cout << "Got surface!\n";
   WGPUSurfaceConfiguration surfaceConfig = WGPU_SURFACE_CONFIGURATION_INIT;
+  surfaceConfig.width = 640;
+  surfaceConfig.height = 480;
+
+  // Get the preferred texture format for the GPU
+  std::cout << "Looking for available formats" << std::endl;
+  WGPUSurfaceTexture surfaceTexture = WGPU_SURFACE_TEXTURE_INIT;
+  WGPUSurfaceCapabilities surfaceCapabilities;
+  wgpuSurfaceGetCapabilities(surface, adapter, &surfaceCapabilities);
+  std::cout << "Found " << surfaceCapabilities.formatCount << " formats" << std::endl;
+  for (int i = 0; i < surfaceCapabilities.formatCount; i++)
+  {
+    std::cout << "SURFACE CAPABILITY: " << std::hex << surfaceCapabilities.formats[i] << std::endl;
+  }
+
+  surfaceConfig.viewFormatCount = 0;
+  surfaceConfig.viewFormats = nullptr;
+  surfaceConfig.usage = WGPUTextureUsage_RenderAttachment;
+  surfaceConfig.device = device;
+  surfaceConfig.presentMode = WGPUPresentMode_Fifo;
+  surfaceConfig.alphaMode = WGPUCompositeAlphaMode_Auto;
   wgpuSurfaceConfigure(surface, &surfaceConfig);
 
   window->setOnTick([](double dt)
@@ -292,7 +314,7 @@ int main(int, char **)
     wgpuDeviceRelease(device);
     wgpuAdapterRelease(adapter);
     wgpuInstanceRelease(instance); });
-  window->run();
+  // window->run();
 
   return 0;
 }
