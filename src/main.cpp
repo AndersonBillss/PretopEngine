@@ -296,6 +296,10 @@ int main(int, char **)
     std::cout << "SURFACE CAPABILITY: " << std::hex << surfaceCapabilities.formats[i] << std::endl;
   }
 
+  // The first format in the list is the preffered format.
+  // see https://webgpu-native.github.io/webgpu-headers/Surfaces.html#Surface-Creation
+  surfaceConfig.format = surfaceCapabilities.formats[0];
+  wgpuSurfaceCapabilitiesFreeMembers(surfaceCapabilities);
   surfaceConfig.viewFormatCount = 0;
   surfaceConfig.viewFormats = nullptr;
   surfaceConfig.usage = WGPUTextureUsage_RenderAttachment;
