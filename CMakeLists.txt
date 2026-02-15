@@ -35,20 +35,8 @@ else()
   find_package(Dawn CONFIG REQUIRED)
   find_package(Threads REQUIRED)
 
-  add_library(glfw3webgpu
-    third_party/glfw3webgpu/glfw3webgpu.c
-  )
-  target_include_directories(glfw3webgpu PUBLIC
-    third_party/glfw3webgpu
-  )
-  target_link_libraries(glfw3webgpu PUBLIC 
-    dawn::webgpu_dawn
-    glfw
-  )
-
   target_link_libraries(ab_engine PRIVATE
     dawn::webgpu_dawn
     glfw
-    glfw3webgpu
   )
 endif()
