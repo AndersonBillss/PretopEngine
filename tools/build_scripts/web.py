@@ -1,6 +1,7 @@
 from utils.cmd import cmd
 from shared.constants import BUILD_DIR
 from codegen.gen_sources import gen_sources
+from server.server import run_server
 import sys
 
 ENGINE_WEB_OUT = f"{BUILD_DIR}/web-engine"
@@ -27,11 +28,4 @@ def build_web_debug():
 def run_web_debug():
     build_web_debug()
     print("Running engine at http://localhost:8000/ab_engine.html")
-    try:
-        result = cmd(
-            [sys.executable, "-m", "http.server", "--directory", ENGINE_WEB_OUT, "8000"]
-        )
-        return result
-    except KeyboardInterrupt:
-        print("Closing down server")
-        return None
+    run_server()
