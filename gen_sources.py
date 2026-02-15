@@ -41,9 +41,7 @@ def generate_rule(sources, label) -> str:
         if i != 0:
             concat_files += "\n"
         concat_files += f"  {filepath}"
-    result = f"""set({label}
-{concat_files}
-)"""
+    result = f"set({label}\n{concat_files}\n)"
     return result
 
 
