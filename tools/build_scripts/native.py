@@ -5,7 +5,7 @@ from codegen.gen_sources import gen_sources
 ENGINE_OUT = f"{BUILD_DIR}/engine"
 
 # Native engine commands
-def build_engine_debug():
+def build_native_debug():
     gen_sources()
     if (
         cmd(
@@ -30,6 +30,6 @@ def build_engine_debug():
     return cmd(["cmake", "--build", ENGINE_OUT])
 
 
-def run_engine_debug():
-    build_engine_debug()
+def run_native_debug():
+    build_native_debug()
     return cmd(["build/engine/ab_engine.exe"])

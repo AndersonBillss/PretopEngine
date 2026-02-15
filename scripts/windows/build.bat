@@ -2,4 +2,4 @@
 call "%~dp0shared\load-msvc.bat" || exit /b 1
 call "%~dp0shared\enter-root-dir.bat" || exit /b 1
 
-python tools/build.py build-engine-debug
+python tools/build.py build-native-debug
