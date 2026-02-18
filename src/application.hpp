@@ -12,4 +12,10 @@ private:
     void getAdapter();
     void getQueue();
     void createEncoder();
+
+    WGPUInstance _instance;
+    WGPUAdapter _adapter;
+    WGPUDevice _device;
+    WGPUQueue _queue;
+    WGPUSurface _windowSurface;
 };
