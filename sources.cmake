@@ -1,5 +1,6 @@
 # Auto-generated code, do not edit
 set(AB_ENGINE_SOURCES
+  src/application.cpp
   src/main.cpp
   src/printStringView.cpp
   src/requestAdapter.cpp
