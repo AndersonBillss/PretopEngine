@@ -8,19 +8,19 @@ void Application::setSurfaceTexture(WGPUTexture &tex)
 {
 }
 
-void Application::getInstance()
+void Application::createInstance()
 {
 }
 
-void Application::getDevice()
+void Application::createDevice()
 {
 }
 
-void Application::getAdapter()
+void Application::createAdapter()
 {
 }
 
-void Application::getQueue()
+void Application::createQueue()
 {
 }
 

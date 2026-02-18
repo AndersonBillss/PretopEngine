@@ -7,10 +7,10 @@ public:
     void setSurfaceTexture(WGPUTexture &tex);
 
 private:
-    void getInstance();
-    void getDevice();
-    void getAdapter();
-    void getQueue();
+    void createInstance();
+    void createDevice();
+    void createAdapter();
+    void createQueue();
     void createEncoder();
 
     WGPUInstance _instance;
