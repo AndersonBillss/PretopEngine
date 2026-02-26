@@ -81,7 +81,6 @@ void Application::createInstance()
 
 void Application::createDevice()
 {
-    std::cout << "CREATEDEVICE1" << std::endl;
     WGPUDeviceDescriptor deviceDescriptor = WGPU_DEVICE_DESCRIPTOR_INIT;
     WGPUDeviceLostCallbackInfo deviceLostCb = {
         /* nextInChain */ nullptr,
@@ -92,7 +91,6 @@ void Application::createDevice()
     };
     deviceDescriptor.deviceLostCallbackInfo = deviceLostCb;
 
-    std::cout << "CREATEDEVICE2" << std::endl;
     WGPUUncapturedErrorCallbackInfo uncapturedCb = {
         /* nextInChain */ nullptr,
         /* callback */ onDeviceUncapturedError,
@@ -101,7 +99,6 @@ void Application::createDevice()
     };
     deviceDescriptor.uncapturedErrorCallbackInfo = uncapturedCb;
 
-    std::cout << "CREATEDEVICE3" << std::endl;
     this->_device = requestDeviceSync(this->_instance, this->_adapter, &deviceDescriptor);
 }
 

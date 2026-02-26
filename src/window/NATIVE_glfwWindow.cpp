@@ -22,7 +22,7 @@ GlfwWindow::GlfwWindow(int width, int height, std::string title) : Window(width,
         std::cerr << "Failed to initialize GLFW" << std::endl;
         exit(-1);
     }
-    _win = glfwCreateWindow(width, height, "GLFW Window", nullptr, nullptr);
+    _win = glfwCreateWindow(width, height, this->title_.c_str(), nullptr, nullptr);
 }
 
 GlfwWindow::GlfwWindow(std::string title) : GlfwWindow(default_width, default_height, title) {}
