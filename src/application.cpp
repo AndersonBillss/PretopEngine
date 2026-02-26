@@ -17,35 +17,48 @@ void onDeviceUncapturedError(WGPUDevice const *device, WGPUErrorType type, WGPUS
 
 Application::Application()
 {
+    createInstance();
+    createAdapter();
+    createDevice();
+    createQueue();
 }
 
-void Application::setWindowSurface(Window &win)
+void Application::setWindowSurface(Window *win)
 {
-  WGPUSurfaceConfiguration surfaceConfig = WGPU_SURFACE_CONFIGURATION_INIT;
-  WGPUSurface surface = win.getSurface(this->_instance);
+    WGPUSurfaceConfiguration surfaceConfig = WGPU_SURFACE_CONFIGURATION_INIT;
+    WGPUSurface surface = win->getSurface(this->_instance);
 
-  // Get the preferred texture format for the GPU
-  std::cout << "Looking for available formats" << std::endl;
-  WGPUSurfaceTexture surfaceTexture = WGPU_SURFACE_TEXTURE_INIT;
-  WGPUSurfaceCapabilities surfaceCapabilities;
-  wgpuSurfaceGetCapabilities(surface, this->_adapter, &surfaceCapabilities);
-  std::cout << "Found " << surfaceCapabilities.formatCount << " formats" << std::endl;
-  for (int i = 0; i < surfaceCapabilities.formatCount; i++)
-  {
-    std::cout << "SURFACE CAPABILITY: " << std::hex << surfaceCapabilities.formats[i] << std::endl;
-  }
+    // Get the preferred texture format for the GPU
+    std::cout << "Looking for available formats" << std::endl;
+    WGPUSurfaceTexture surfaceTexture = WGPU_SURFACE_TEXTURE_INIT;
+    WGPUSurfaceCapabilities surfaceCapabilities;
+    wgpuSurfaceGetCapabilities(surface, this->_adapter, &surfaceCapabilities);
+    std::cout << "Found " << surfaceCapabilities.formatCount << " formats" << std::endl;
+    for (int i = 0; i < surfaceCapabilities.formatCount; i++)
+    {
+        std::cout << "SURFACE CAPABILITY: " << std::hex << surfaceCapabilities.formats[i] << std::endl;
+    }
 
-  // The first format in the list is the preffered format.
-  // see https://webgpu-native.github.io/webgpu-headers/Surfaces.html#Surface-Creation
-  surfaceConfig.format = surfaceCapabilities.formats[0];
-  wgpuSurfaceCapabilitiesFreeMembers(surfaceCapabilities);
-  surfaceConfig.viewFormatCount = 0;
-  surfaceConfig.viewFormats = nullptr;
-  surfaceConfig.usage = WGPUTextureUsage_RenderAttachment;
-  surfaceConfig.device = this->_device;
-  surfaceConfig.presentMode = WGPUPresentMode_Fifo;
-  surfaceConfig.alphaMode = WGPUCompositeAlphaMode_Auto;
-  wgpuSurfaceConfigure(surface, &surfaceConfig);
+    // The first format in the list is the preffered format.
+    // see https://webgpu-native.github.io/webgpu-headers/Surfaces.html#Surface-Creation
+    surfaceConfig.format = surfaceCapabilities.formats[0];
+    wgpuSurfaceCapabilitiesFreeMembers(surfaceCapabilities);
+    surfaceConfig.viewFormatCount = 0;
+    surfaceConfig.viewFormats = nullptr;
+    surfaceConfig.usage = WGPUTextureUsage_RenderAttachment;
+    surfaceConfig.device = this->_device;
+    surfaceConfig.presentMode = WGPUPresentMode_Fifo;
+    surfaceConfig.alphaMode = WGPUCompositeAlphaMode_Auto;
+    wgpuSurfaceConfigure(surface, &surfaceConfig);
+
+    win->setOnExit([surface, this]()
+                   {
+    wgpuSurfaceUnconfigure(surface);
+    wgpuSurfaceRelease(surface);
+    wgpuQueueRelease(this->_queue);
+    wgpuDeviceRelease(this->_device);
+    wgpuAdapterRelease(this->_adapter);
+    wgpuInstanceRelease(this->_instance); });
 }
 
 void Application::createInstance()
@@ -68,6 +81,7 @@ void Application::createInstance()
 
 void Application::createDevice()
 {
+    std::cout << "CREATEDEVICE1" << std::endl;
     WGPUDeviceDescriptor deviceDescriptor = WGPU_DEVICE_DESCRIPTOR_INIT;
     WGPUDeviceLostCallbackInfo deviceLostCb = {
         /* nextInChain */ nullptr,
@@ -78,6 +92,7 @@ void Application::createDevice()
     };
     deviceDescriptor.deviceLostCallbackInfo = deviceLostCb;
 
+    std::cout << "CREATEDEVICE2" << std::endl;
     WGPUUncapturedErrorCallbackInfo uncapturedCb = {
         /* nextInChain */ nullptr,
         /* callback */ onDeviceUncapturedError,
@@ -86,6 +101,7 @@ void Application::createDevice()
     };
     deviceDescriptor.uncapturedErrorCallbackInfo = uncapturedCb;
 
+    std::cout << "CREATEDEVICE3" << std::endl;
     this->_device = requestDeviceSync(this->_instance, this->_adapter, &deviceDescriptor);
 }
 
@@ -133,6 +149,16 @@ Application *Application::inspectInstance()
 
 Application *Application::inspectDevice()
 {
+    WGPULimits limits = WGPU_LIMITS_INIT;
+    bool success = wgpuDeviceGetLimits(this->_device, &limits) == WGPUStatus_Success;
+    if (success)
+    {
+        std::cout << "\nDevice limits:" << std::endl;
+        std::cout << " - maxTextureDimension1D: " << limits.maxTextureDimension1D << std::endl;
+        std::cout << " - maxTextureDimension2D: " << limits.maxTextureDimension2D << std::endl;
+        std::cout << " - maxTextureDimension3D: " << limits.maxTextureDimension3D << std::endl;
+        std::cout << " - maxTextureArrayLayers: " << limits.maxTextureArrayLayers << std::endl;
+    }
     return this;
 }
 

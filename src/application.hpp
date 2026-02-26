@@ -5,7 +5,7 @@ class Application
 {
 public:
     Application();
-    void setWindowSurface(Window &win);
+    void setWindowSurface(Window *win);
 
 private:
     void createInstance();
