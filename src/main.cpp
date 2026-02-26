@@ -279,7 +279,7 @@ int main(int, char **)
 
   auto window = WindowFactory::createWindow("My Window");
   std::cout << "Getting surface...\n";
-  auto surface = window->getSurface(instance);
+  WGPUSurface surface = window->getSurface(instance);
   std::cout << "Got surface!\n";
   WGPUSurfaceConfiguration surfaceConfig = WGPU_SURFACE_CONFIGURATION_INIT;
   surfaceConfig.width = 640;

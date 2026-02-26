@@ -1,17 +1,22 @@
+#include "window/window.hpp"
 #include <webgpu/webgpu.h>
 
 class Application
 {
 public:
     Application();
-    void setSurfaceTexture(WGPUTexture &tex);
+    void setWindowSurface(Window &win);
 
 private:
     void createInstance();
     void createDevice();
     void createAdapter();
     void createQueue();
-    void createEncoder();
+
+    Application *inspectInstance();
+    Application *inspectDevice();
+    Application *inspectAdapter();
+    Application *inspectQueue();
 
     WGPUInstance _instance;
     WGPUAdapter _adapter;
