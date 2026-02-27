@@ -15,7 +15,6 @@ public:
     Application *inspectQueue();
 
 private:
-    void createDevice();
     void createQueue();
 
     bool _logQueueCommands;

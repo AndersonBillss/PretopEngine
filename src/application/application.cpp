@@ -3,18 +3,8 @@
 #include "../printStringView.hpp"
 #include "application.hpp"
 #include "createInstance.hpp"
-#include "../requestDevice.hpp"
-#include "../requestAdapter.hpp"
-
-void onDeviceLost(WGPUDevice const *device, WGPUDeviceLostReason reason, WGPUStringView message, void *, void *)
-{
-    if (reason != WGPUDeviceLostReason::WGPUDeviceLostReason_Destroyed)
-        std::cout << "WGPU device lost: " << message << std::endl;
-}
-void onDeviceUncapturedError(WGPUDevice const *device, WGPUErrorType type, WGPUStringView message, void *, void *)
-{
-    std::cout << "WGPU device error: " << message << std::endl;
-}
+#include "createDevice.hpp"
+#include "requestAdapter.hpp"
 
 Application::Application()
 {
@@ -22,7 +12,7 @@ Application::Application()
     this->_instance = createInstance();
     WGPURequestAdapterOptions adapterOpts = WGPU_REQUEST_ADAPTER_OPTIONS_INIT;
     this->_adapter = requestAdapterSync(this->_instance, &adapterOpts);
-    createDevice();
+    this->_device = createDevice(_instance, _adapter);
     createQueue();
 }
 
@@ -116,29 +106,6 @@ void Application::setWindow(Window *win)
                        wgpuSurfacePresent(this->_windowSurface);
 #endif
                    });
-}
-
-void Application::createDevice()
-{
-    WGPUDeviceDescriptor deviceDescriptor = WGPU_DEVICE_DESCRIPTOR_INIT;
-    WGPUDeviceLostCallbackInfo deviceLostCb = {
-        /* nextInChain */ nullptr,
-        /* mode */ WGPUCallbackMode_AllowSpontaneous,
-        /* callback */ onDeviceLost,
-        /* userdata1 */ nullptr,
-        /* userdata2 */ nullptr,
-    };
-    deviceDescriptor.deviceLostCallbackInfo = deviceLostCb;
-
-    WGPUUncapturedErrorCallbackInfo uncapturedCb = {
-        /* nextInChain */ nullptr,
-        /* callback */ onDeviceUncapturedError,
-        /* userdata1 */ nullptr,
-        /* userdata2 */ nullptr,
-    };
-    deviceDescriptor.uncapturedErrorCallbackInfo = uncapturedCb;
-
-    this->_device = requestDeviceSync(this->_instance, this->_adapter, &deviceDescriptor);
 }
 
 void Application::createQueue()
