@@ -1,4 +1,4 @@
-#include "window/window.hpp"
+#include "../window/window.hpp"
 #include <webgpu/webgpu.h>
 
 class Application
@@ -14,9 +14,7 @@ public:
     Application *inspectAdapter();
     Application *inspectQueue();
 
-
 private:
-    void createInstance();
     void createDevice();
     void createAdapter();
     void createQueue();

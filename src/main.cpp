@@ -4,7 +4,7 @@
 #include "requestDevice.hpp"
 #include "printStringView.hpp"
 #include "window/windowFactory.hpp"
-#include "application.hpp"
+#include "application/application.hpp"
 
 int main(int, char **)
 {

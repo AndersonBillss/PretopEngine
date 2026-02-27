@@ -1,9 +1,10 @@
 #include <iostream>
 #include <unordered_map>
-#include "printStringView.hpp"
+#include "../printStringView.hpp"
 #include "application.hpp"
-#include "requestDevice.hpp"
-#include "requestAdapter.hpp"
+#include "createInstance.hpp"
+#include "../requestDevice.hpp"
+#include "../requestAdapter.hpp"
 
 void onDeviceLost(WGPUDevice const *device, WGPUDeviceLostReason reason, WGPUStringView message, void *, void *)
 {
@@ -18,7 +19,7 @@ void onDeviceUncapturedError(WGPUDevice const *device, WGPUErrorType type, WGPUS
 Application::Application()
 {
     this->_logQueueCommands = false;
-    createInstance();
+    this->_instance = createInstance();
     createAdapter();
     createDevice();
     createQueue();
@@ -116,24 +117,6 @@ void Application::setWindow(Window *win)
                    });
 }
 
-void Application::createInstance()
-{
-    WGPUInstanceDescriptor desc = {};
-    desc.nextInChain = nullptr;
-    WGPUInstanceFeatureName features[] = {WGPUInstanceFeatureName_TimedWaitAny};
-    desc.requiredFeatureCount = 1;
-    desc.requiredFeatures = features;
-
-    // We create the instance using this descriptor
-    this->_instance = wgpuCreateInstance(&desc);
-
-    if (!this->_instance)
-    {
-        std::cerr << "Could not initialize WebGPU!" << std::endl;
-        exit(1);
-    }
-}
-
 void Application::createDevice()
 {
     WGPUDeviceDescriptor deviceDescriptor = WGPU_DEVICE_DESCRIPTOR_INIT;
@@ -171,7 +154,6 @@ void Application::createQueue()
     WGPUQueueWorkDoneCallback onQueueWorkDone = [](WGPUQueueWorkDoneStatus status, WGPUStringView message, void *data, void *)
     {
         auto self = static_cast<Application *>(data);
-        std::cout << "LOG QUEUE COMMANDS: " << self->_logQueueCommands << std::endl;
         if (self->_logQueueCommands)
         {
             std::unordered_map<WGPUQueueWorkDoneStatus, std::string> statusToString = {
@@ -201,7 +183,6 @@ void Application::createQueue()
 
 void Application::logQueueCommands()
 {
-    std::cout << "LOGGING QUEUE COMMANDS" << std::endl;
     this->_logQueueCommands = true;
 }
 
