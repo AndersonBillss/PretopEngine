@@ -16,7 +16,6 @@ public:
 
 private:
     void createDevice();
-    void createAdapter();
     void createQueue();
 
     bool _logQueueCommands;

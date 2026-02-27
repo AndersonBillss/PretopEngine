@@ -20,7 +20,8 @@ Application::Application()
 {
     this->_logQueueCommands = false;
     this->_instance = createInstance();
-    createAdapter();
+    WGPURequestAdapterOptions adapterOpts = WGPU_REQUEST_ADAPTER_OPTIONS_INIT;
+    this->_adapter = requestAdapterSync(this->_instance, &adapterOpts);
     createDevice();
     createQueue();
 }
@@ -138,13 +139,6 @@ void Application::createDevice()
     deviceDescriptor.uncapturedErrorCallbackInfo = uncapturedCb;
 
     this->_device = requestDeviceSync(this->_instance, this->_adapter, &deviceDescriptor);
-}
-
-void Application::createAdapter()
-{
-    WGPURequestAdapterOptions adapterOpts = {};
-    adapterOpts.nextInChain = nullptr;
-    this->_adapter = requestAdapterSync(this->_instance, &adapterOpts);
 }
 
 void Application::createQueue()
