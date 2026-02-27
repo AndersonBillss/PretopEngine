@@ -13,9 +13,6 @@ int main(int, char **)
   Application application;
   auto window = WindowFactory::createWindow("My Window");
   application.setWindowSurface(window.get());
-
-  window->setOnTick([](double dt)
-                    { std::cout << "DeltaTime: " << dt << std::endl; });
   window->run();
 
   return 0;
