@@ -10,8 +10,9 @@ int main(int, char **)
 {
   std::cout << "Hello, WebGPU!!" << std::endl;
 
-  Application application;
   auto window = WindowFactory::createWindow("My Window");
+  Application application;
+  application.logQueueCommands();
   application.setWindow(window.get());
   window->run();
 

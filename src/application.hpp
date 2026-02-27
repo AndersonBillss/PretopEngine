@@ -7,6 +7,13 @@ public:
     Application();
     void setWindow(Window *win);
     WGPUTextureView getNextSurfaceTextureView();
+    void logQueueCommands();
+
+    Application *inspectInstance();
+    Application *inspectDevice();
+    Application *inspectAdapter();
+    Application *inspectQueue();
+
 
 private:
     void createInstance();
@@ -14,11 +21,7 @@ private:
     void createAdapter();
     void createQueue();
 
-    Application *inspectInstance();
-    Application *inspectDevice();
-    Application *inspectAdapter();
-    Application *inspectQueue();
-
+    bool _logQueueCommands;
     WGPUInstance _instance;
     WGPUAdapter _adapter;
     WGPUDevice _device;

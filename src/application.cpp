@@ -17,6 +17,7 @@ void onDeviceUncapturedError(WGPUDevice const *device, WGPUErrorType type, WGPUS
 
 Application::Application()
 {
+    this->_logQueueCommands = false;
     createInstance();
     createAdapter();
     createDevice();
@@ -29,16 +30,10 @@ void Application::setWindow(Window *win)
     WGPUSurfaceConfiguration surfaceConfig = WGPU_SURFACE_CONFIGURATION_INIT;
     this->_windowSurface = win->getSurface(this->_instance);
 
-    // Get the preferred texture format for the GPU
     std::cout << "Looking for available formats" << std::endl;
     WGPUSurfaceTexture surfaceTexture = WGPU_SURFACE_TEXTURE_INIT;
     WGPUSurfaceCapabilities surfaceCapabilities;
     wgpuSurfaceGetCapabilities(this->_windowSurface, this->_adapter, &surfaceCapabilities);
-    std::cout << "Found " << surfaceCapabilities.formatCount << " formats" << std::endl;
-    for (int i = 0; i < surfaceCapabilities.formatCount; i++)
-    {
-        std::cout << "SURFACE CAPABILITY: " << std::hex << surfaceCapabilities.formats[i] << std::endl;
-    }
 
     // The first format in the list is the preffered format.
     // see https://webgpu-native.github.io/webgpu-headers/Surfaces.html#Surface-Creation
@@ -112,7 +107,7 @@ void Application::setWindow(Window *win)
                        wgpuQueueSubmit(this->_queue, 1, &command);
                        wgpuCommandBufferRelease(command);
                        std::cout << "Command submitted." << std::endl;
-                       ;
+
                        // At the end of the frame
                        wgpuTextureViewRelease(targetView);
 #ifndef __EMSCRIPTEN__
@@ -173,30 +168,41 @@ void Application::createQueue()
 {
     this->_queue = wgpuDeviceGetQueue(this->_device);
 
-    WGPUQueueWorkDoneCallback onQueueWorkDone = [](WGPUQueueWorkDoneStatus status, WGPUStringView message, void *, void *)
+    WGPUQueueWorkDoneCallback onQueueWorkDone = [](WGPUQueueWorkDoneStatus status, WGPUStringView message, void *data, void *)
     {
-        std::unordered_map<WGPUQueueWorkDoneStatus, std::string> statusToString = {
-            {WGPUQueueWorkDoneStatus_Success, "WGPUQueueWorkDoneStatus_Success"},
-            {WGPUQueueWorkDoneStatus_CallbackCancelled, "WGPUQueueWorkDoneStatus_CallbackCancelled"},
-            {WGPUQueueWorkDoneStatus_Error, "WGPUQueueWorkDoneStatus_Error"},
-        };
-        std::string stringifiedStatus = "Unknown";
-        auto it = statusToString.find(status);
-        if (it != statusToString.end())
+        auto self = static_cast<Application *>(data);
+        std::cout << "LOG QUEUE COMMANDS: " << self->_logQueueCommands << std::endl;
+        if (self->_logQueueCommands)
         {
-            stringifiedStatus = it->second;
+            std::unordered_map<WGPUQueueWorkDoneStatus, std::string> statusToString = {
+                {WGPUQueueWorkDoneStatus_Success, "WGPUQueueWorkDoneStatus_Success"},
+                {WGPUQueueWorkDoneStatus_CallbackCancelled, "WGPUQueueWorkDoneStatus_CallbackCancelled"},
+                {WGPUQueueWorkDoneStatus_Error, "WGPUQueueWorkDoneStatus_Error"},
+            };
+            std::string stringifiedStatus = "Unknown";
+            auto it = statusToString.find(status);
+            if (it != statusToString.end())
+            {
+                stringifiedStatus = it->second;
+            }
+            std::cout << "Queued work finished with status: " << stringifiedStatus << std::endl;
+            std::cout << message << std::endl;
         }
-        std::cout << "Queued work finished with status: " << stringifiedStatus << std::endl;
-        std::cout << message << std::endl;
     };
 
     WGPUQueueWorkDoneCallbackInfo workQueueWorkDoneCb = {
         /* nextInChain */ nullptr,
         /* mode */ WGPUCallbackMode_AllowSpontaneous,
         /* callback */ onQueueWorkDone,
-        /* userdata1 */ nullptr,
+        /* userdata1 */ this,
         /* userdata2 */ nullptr};
     wgpuQueueOnSubmittedWorkDone(this->_queue, workQueueWorkDoneCb);
+}
+
+void Application::logQueueCommands()
+{
+    std::cout << "LOGGING QUEUE COMMANDS" << std::endl;
+    this->_logQueueCommands = true;
 }
 
 Application *Application::inspectInstance()
