@@ -12,7 +12,7 @@ int main(int, char **)
 
   Application application;
   auto window = WindowFactory::createWindow("My Window");
-  application.setWindowSurface(window.get());
+  application.setWindow(window.get());
   window->run();
 
   return 0;

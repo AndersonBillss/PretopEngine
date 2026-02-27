@@ -5,7 +5,7 @@ class Application
 {
 public:
     Application();
-    void setWindowSurface(Window *win);
+    void setWindow(Window *win);
     WGPUTextureView getNextSurfaceTextureView();
 
 private:
@@ -24,4 +24,5 @@ private:
     WGPUDevice _device;
     WGPUQueue _queue;
     WGPUSurface _windowSurface;
+    Window *_window;
 };

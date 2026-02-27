@@ -23,8 +23,9 @@ Application::Application()
     createQueue();
 }
 
-void Application::setWindowSurface(Window *win)
+void Application::setWindow(Window *win)
 {
+    this->_window = win;
     WGPUSurfaceConfiguration surfaceConfig = WGPU_SURFACE_CONFIGURATION_INIT;
     this->_windowSurface = win->getSurface(this->_instance);
 
@@ -64,6 +65,7 @@ void Application::setWindowSurface(Window *win)
 
     win->setOnTick([this](double dt)
                    {
+                       std::cout << "DeltaTime: " << dt << std::endl;
                        WGPUTextureView targetView = getNextSurfaceTextureView();
                        if (!targetView)
                            return;
