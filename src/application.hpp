@@ -6,6 +6,7 @@ class Application
 public:
     Application();
     void setWindowSurface(Window *win);
+    WGPUTextureView getNextSurfaceTextureView();
 
 private:
     void createInstance();
