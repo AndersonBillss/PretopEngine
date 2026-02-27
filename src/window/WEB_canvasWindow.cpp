@@ -14,8 +14,8 @@ CanvasWindow::~CanvasWindow()
 
 CanvasWindow::CanvasWindow(int width, int height, std::string title) : Window(width, height, title)
 {
-    this->width_ = width;
-    this->height_ = height;
+    this->width = width;
+    this->height = height;
     this->title_ = std::move(title);
     std::cout << "Renaming window: " << this->title_ << std::endl;
     setDocumentTitle(this->title_.c_str());

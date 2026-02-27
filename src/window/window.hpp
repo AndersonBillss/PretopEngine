@@ -11,7 +11,7 @@ public:
 
     virtual ~Window() = default;
     Window(int width, int height, std::string title)
-        : width_(width), height_(height), title_(std::move(title)) {}
+        : width(width), height(height), title_(std::move(title)) {}
 
     Window(std::string title)
         : Window(default_width, default_height, std::move(title)) {}
@@ -22,9 +22,10 @@ public:
     virtual void run() = 0;
     virtual WGPUSurface getSurface(WGPUInstance instance) = 0;
 
+    int width = 0;
+    int height = 0;
+
 protected:
-    int width_ = 0;
-    int height_ = 0;
     std::string title_;
     static constexpr int default_width = 800;
     static constexpr int default_height = 600;
