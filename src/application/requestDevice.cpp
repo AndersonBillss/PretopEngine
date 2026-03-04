@@ -1,6 +1,6 @@
 #include <iostream>
 #include "requestDevice.hpp"
-#include "printStringView.hpp"
+#include "../printStringView.hpp"
 
 WGPUDevice requestDeviceSync(
     WGPUInstance instance,

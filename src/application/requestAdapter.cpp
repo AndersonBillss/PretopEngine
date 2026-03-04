@@ -1,6 +1,6 @@
 #include "requestAdapter.hpp"
 #include <iostream>
-#include "printStringView.hpp"
+#include "../printStringView.hpp"
 
 WGPUAdapter requestAdapterSync(
     WGPUInstance instance,

@@ -1,7 +1,5 @@
 #include <iostream>
 #include <unordered_map>
-#include "requestAdapter.hpp"
-#include "requestDevice.hpp"
 #include "printStringView.hpp"
 #include "window/windowFactory.hpp"
 #include "application/application.hpp"

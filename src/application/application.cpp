@@ -24,7 +24,7 @@ void Application::setWindow(Window *win)
 
     std::cout << "Looking for available formats" << std::endl;
     WGPUSurfaceTexture surfaceTexture = WGPU_SURFACE_TEXTURE_INIT;
-    WGPUSurfaceCapabilities surfaceCapabilities;
+    WGPUSurfaceCapabilities surfaceCapabilities = WGPU_SURFACE_CAPABILITIES_INIT;
     wgpuSurfaceGetCapabilities(this->_windowSurface, this->_adapter, &surfaceCapabilities);
 
     // The first format in the list is the preffered format.
@@ -32,7 +32,6 @@ void Application::setWindow(Window *win)
     surfaceConfig.format = surfaceCapabilities.formats[0];
     wgpuSurfaceCapabilitiesFreeMembers(surfaceCapabilities);
     surfaceConfig.viewFormatCount = 0;
-    surfaceConfig.viewFormats = nullptr;
     surfaceConfig.usage = WGPUTextureUsage_RenderAttachment;
     surfaceConfig.device = this->_device;
     surfaceConfig.presentMode = WGPUPresentMode_Fifo;
