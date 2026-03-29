@@ -1,10 +1,11 @@
 #pragma once
 #include <webgpu/webgpu.h>
+#include "appInstance.hpp"
 
 class AppAdapter
 {
 public:
-    AppAdapter(WGPUInstance instance);
+    AppAdapter(AppInstance instance);
     WGPUAdapter wgpuAdapter;
 
 private:

@@ -1,12 +1,13 @@
 #pragma once
 #include <webgpu/webgpu.h>
 #include "appAdapter.hpp"
+#include "appInstance.hpp"
 
 class AppDevice
 {
 public:
     WGPUDevice wgpuDevice;
-    AppDevice(WGPUInstance instance, AppAdapter adapter);
+    AppDevice(AppInstance instance, AppAdapter adapter);
 
 private:
     WGPUDevice requestDeviceSync(

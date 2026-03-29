@@ -2,6 +2,7 @@
 #include <webgpu/webgpu.h>
 #include "appAdapter.hpp"
 #include "appDevice.hpp"
+#include "appInstance.hpp"
 
 class Application
 {
@@ -20,7 +21,7 @@ private:
     void createQueue();
 
     bool _logQueueCommands;
-    WGPUInstance _instance;
+    AppInstance _instance;
     AppAdapter _adapter;
     AppDevice _device;
     WGPUQueue _queue;

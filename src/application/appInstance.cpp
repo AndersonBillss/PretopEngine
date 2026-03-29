@@ -1,7 +1,12 @@
-#include "createInstance.hpp"
+#include "appInstance.hpp"
 #include <iostream>
 
-WGPUInstance createInstance()
+AppInstance::AppInstance()
+{
+    this->wgpuInstance = createInstance();
+}
+
+WGPUInstance AppInstance::createInstance()
 {
     WGPUInstanceDescriptor desc = {};
     desc.nextInChain = nullptr;

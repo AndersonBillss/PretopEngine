@@ -4,8 +4,8 @@ set(AB_ENGINE_SOURCES
   src/printStringView.cpp
   src/application/appAdapter.cpp
   src/application/appDevice.cpp
+  src/application/appInstance.cpp
   src/application/application.cpp
-  src/application/createInstance.cpp
   src/window/windowFactory.cpp
 )
 set(AB_ENGINE_SOURCES_NATIVE

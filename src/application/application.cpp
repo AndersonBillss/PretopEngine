@@ -2,10 +2,9 @@
 #include <unordered_map>
 #include "../printStringView.hpp"
 #include "application.hpp"
-#include "createInstance.hpp"
 
 Application::Application() : _logQueueCommands(false),
-                             _instance(createInstance()),
+                             _instance(AppInstance()),
                              _adapter(AppAdapter(_instance)),
                              _device(AppDevice(_instance, _adapter))
 {
@@ -16,7 +15,7 @@ void Application::setWindow(Window *win)
 {
     this->_window = win;
     WGPUSurfaceConfiguration surfaceConfig = WGPU_SURFACE_CONFIGURATION_INIT;
-    this->_windowSurface = win->getSurface(this->_instance);
+    this->_windowSurface = win->getSurface(this->_instance.wgpuInstance);
 
     std::cout << "Looking for available formats" << std::endl;
     WGPUSurfaceTexture surfaceTexture = WGPU_SURFACE_TEXTURE_INIT;
@@ -43,7 +42,7 @@ void Application::setWindow(Window *win)
     wgpuSurfaceRelease(this->_windowSurface);
     wgpuDeviceRelease(this->_device.wgpuDevice);
     wgpuAdapterRelease(this->_adapter.wgpuAdapter);
-    wgpuInstanceRelease(this->_instance); });
+    wgpuInstanceRelease(this->_instance.wgpuInstance); });
 
     win->setOnTick([this](double dt)
                    {

@@ -2,10 +2,10 @@
 #include <iostream>
 #include "../printStringView.hpp"
 
-AppDevice::AppDevice(WGPUInstance instance, AppAdapter adapter)
+AppDevice::AppDevice(AppInstance instance, AppAdapter adapter)
 {
-    WGPUDeviceDescriptor desc = createDeviceDescriptor(instance, adapter.wgpuAdapter);
-    wgpuDevice = requestDeviceSync(instance, adapter.wgpuAdapter, &desc);
+    WGPUDeviceDescriptor desc = createDeviceDescriptor(instance.wgpuInstance, adapter.wgpuAdapter);
+    wgpuDevice = requestDeviceSync(instance.wgpuInstance, adapter.wgpuAdapter, &desc);
 }
 
 

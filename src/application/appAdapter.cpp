@@ -2,10 +2,10 @@
 #include <iostream>
 #include "../printStringView.hpp"
 
-AppAdapter::AppAdapter(WGPUInstance instance)
+AppAdapter::AppAdapter(AppInstance instance)
 {
     WGPURequestAdapterOptions adapterOpts = WGPU_REQUEST_ADAPTER_OPTIONS_INIT;
-    this->wgpuAdapter = requestAdapterSync(instance, &adapterOpts);
+    this->wgpuAdapter = requestAdapterSync(instance.wgpuInstance, &adapterOpts);
 }
 
 WGPUAdapter AppAdapter::requestAdapterSync(WGPUInstance instance, WGPURequestAdapterOptions const *options)
