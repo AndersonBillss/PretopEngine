@@ -1,10 +1,14 @@
-#include "requestAdapter.hpp"
+#include "appAdapter.hpp"
 #include <iostream>
 #include "../printStringView.hpp"
 
-WGPUAdapter requestAdapterSync(
-    WGPUInstance instance,
-    WGPURequestAdapterOptions const *options)
+AppAdapter::AppAdapter(WGPUInstance instance)
+{
+    WGPURequestAdapterOptions adapterOpts = WGPU_REQUEST_ADAPTER_OPTIONS_INIT;
+    this->wgpuAdapter = requestAdapterSync(instance, &adapterOpts);
+}
+
+WGPUAdapter AppAdapter::requestAdapterSync(WGPUInstance instance, WGPURequestAdapterOptions const *options)
 {
     WGPUAdapter adapter = nullptr;
 

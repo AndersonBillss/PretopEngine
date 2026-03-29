@@ -1,5 +1,7 @@
 #include "../window/window.hpp"
 #include <webgpu/webgpu.h>
+#include "appAdapter.hpp"
+#include "appDevice.hpp"
 
 class Application
 {
@@ -19,8 +21,8 @@ private:
 
     bool _logQueueCommands;
     WGPUInstance _instance;
-    WGPUAdapter _adapter;
-    WGPUDevice _device;
+    AppAdapter _adapter;
+    AppDevice _device;
     WGPUQueue _queue;
     WGPUSurface _windowSurface;
     Window *_window;

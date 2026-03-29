@@ -2,11 +2,10 @@
 set(AB_ENGINE_SOURCES
   src/main.cpp
   src/printStringView.cpp
+  src/application/appAdapter.cpp
+  src/application/appDevice.cpp
   src/application/application.cpp
-  src/application/createDevice.cpp
   src/application/createInstance.cpp
-  src/application/requestAdapter.cpp
-  src/application/requestDevice.cpp
   src/window/windowFactory.cpp
 )
 set(AB_ENGINE_SOURCES_NATIVE

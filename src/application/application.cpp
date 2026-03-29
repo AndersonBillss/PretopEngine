@@ -3,16 +3,12 @@
 #include "../printStringView.hpp"
 #include "application.hpp"
 #include "createInstance.hpp"
-#include "createDevice.hpp"
-#include "requestAdapter.hpp"
 
-Application::Application()
+Application::Application() : _logQueueCommands(false),
+                             _instance(createInstance()),
+                             _adapter(AppAdapter(_instance)),
+                             _device(AppDevice(_instance, _adapter))
 {
-    this->_logQueueCommands = false;
-    this->_instance = createInstance();
-    WGPURequestAdapterOptions adapterOpts = WGPU_REQUEST_ADAPTER_OPTIONS_INIT;
-    this->_adapter = requestAdapterSync(this->_instance, &adapterOpts);
-    this->_device = createDevice(_instance, _adapter);
     createQueue();
 }
 
@@ -25,7 +21,7 @@ void Application::setWindow(Window *win)
     std::cout << "Looking for available formats" << std::endl;
     WGPUSurfaceTexture surfaceTexture = WGPU_SURFACE_TEXTURE_INIT;
     WGPUSurfaceCapabilities surfaceCapabilities = WGPU_SURFACE_CAPABILITIES_INIT;
-    wgpuSurfaceGetCapabilities(this->_windowSurface, this->_adapter, &surfaceCapabilities);
+    wgpuSurfaceGetCapabilities(this->_windowSurface, this->_adapter.wgpuAdapter, &surfaceCapabilities);
 
     // The first format in the list is the preffered format.
     // see https://webgpu-native.github.io/webgpu-headers/Surfaces.html#Surface-Creation
@@ -33,7 +29,7 @@ void Application::setWindow(Window *win)
     wgpuSurfaceCapabilitiesFreeMembers(surfaceCapabilities);
     surfaceConfig.viewFormatCount = 0;
     surfaceConfig.usage = WGPUTextureUsage_RenderAttachment;
-    surfaceConfig.device = this->_device;
+    surfaceConfig.device = this->_device.wgpuDevice;
     surfaceConfig.presentMode = WGPUPresentMode_Fifo;
     surfaceConfig.alphaMode = WGPUCompositeAlphaMode_Auto;
     surfaceConfig.width = win->width;
@@ -45,8 +41,8 @@ void Application::setWindow(Window *win)
     wgpuSurfaceUnconfigure(this->_windowSurface);
     wgpuQueueRelease(this->_queue);
     wgpuSurfaceRelease(this->_windowSurface);
-    wgpuDeviceRelease(this->_device);
-    wgpuAdapterRelease(this->_adapter);
+    wgpuDeviceRelease(this->_device.wgpuDevice);
+    wgpuAdapterRelease(this->_adapter.wgpuAdapter);
     wgpuInstanceRelease(this->_instance); });
 
     win->setOnTick([this](double dt)
@@ -61,7 +57,7 @@ void Application::setWindow(Window *win)
                        encoderDesc.nextInChain = nullptr;
                        std::string encoderLabel = "My command encoder";
                        encoderDesc.label = {encoderLabel.c_str(), encoderLabel.size()};
-                       WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(this->_device, &encoderDesc);
+                       WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(this->_device.wgpuDevice, &encoderDesc);
 
                        // Create the render pass that clears the screen with our color
                        WGPURenderPassDescriptor renderPassDesc = {};
@@ -109,7 +105,7 @@ void Application::setWindow(Window *win)
 
 void Application::createQueue()
 {
-    this->_queue = wgpuDeviceGetQueue(this->_device);
+    this->_queue = wgpuDeviceGetQueue(this->_device.wgpuDevice);
 
     WGPUQueueWorkDoneCallback onQueueWorkDone = [](WGPUQueueWorkDoneStatus status, WGPUStringView message, void *data, void *)
     {
@@ -154,7 +150,7 @@ Application *Application::inspectInstance()
 Application *Application::inspectDevice()
 {
     WGPULimits limits = WGPU_LIMITS_INIT;
-    bool success = wgpuDeviceGetLimits(this->_device, &limits) == WGPUStatus_Success;
+    bool success = wgpuDeviceGetLimits(this->_device.wgpuDevice, &limits) == WGPUStatus_Success;
     if (success)
     {
         std::cout << "\nDevice limits:" << std::endl;
@@ -171,7 +167,7 @@ Application *Application::inspectAdapter()
     WGPULimits supportedLimits = {};
     supportedLimits.nextInChain = nullptr;
 
-    bool success = wgpuAdapterGetLimits(this->_adapter, &supportedLimits) == WGPUStatus_Success;
+    bool success = wgpuAdapterGetLimits(this->_adapter.wgpuAdapter, &supportedLimits) == WGPUStatus_Success;
 
     if (success)
     {
