@@ -8,6 +8,8 @@ public:
     AppAdapter(AppInstance instance);
     WGPUAdapter wgpuAdapter;
 
+    void inspect();
+
 private:
-    WGPUAdapter requestAdapterSync(WGPUInstance instance, WGPURequestAdapterOptions const *options);
+    WGPUAdapter _requestAdapterSync(WGPUInstance instance, WGPURequestAdapterOptions const *options);
 };

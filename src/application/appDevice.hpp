@@ -9,11 +9,13 @@ public:
     WGPUDevice wgpuDevice;
     AppDevice(AppInstance instance, AppAdapter adapter);
 
+    void inspect();
+
 private:
-    WGPUDevice requestDeviceSync(
+    WGPUDevice _requestDeviceSync(
         WGPUInstance instance,
         WGPUAdapter adapter,
         WGPUDeviceDescriptor const *descriptor);
 
-    WGPUDeviceDescriptor createDeviceDescriptor(WGPUInstance instance, WGPUAdapter adapter);
+    WGPUDeviceDescriptor _createDeviceDescriptor(WGPUInstance instance, WGPUAdapter adapter);
 };

@@ -4,12 +4,25 @@
 
 AppDevice::AppDevice(AppInstance instance, AppAdapter adapter)
 {
-    WGPUDeviceDescriptor desc = createDeviceDescriptor(instance.wgpuInstance, adapter.wgpuAdapter);
-    wgpuDevice = requestDeviceSync(instance.wgpuInstance, adapter.wgpuAdapter, &desc);
+    WGPUDeviceDescriptor desc = _createDeviceDescriptor(instance.wgpuInstance, adapter.wgpuAdapter);
+    wgpuDevice = _requestDeviceSync(instance.wgpuInstance, adapter.wgpuAdapter, &desc);
 }
 
+void AppDevice::inspect()
+{
+    WGPULimits limits = WGPU_LIMITS_INIT;
+    bool success = wgpuDeviceGetLimits(this->wgpuDevice, &limits) == WGPUStatus_Success;
+    if (success)
+    {
+        std::cout << "\nDevice limits:" << std::endl;
+        std::cout << " - maxTextureDimension1D: " << limits.maxTextureDimension1D << std::endl;
+        std::cout << " - maxTextureDimension2D: " << limits.maxTextureDimension2D << std::endl;
+        std::cout << " - maxTextureDimension3D: " << limits.maxTextureDimension3D << std::endl;
+        std::cout << " - maxTextureArrayLayers: " << limits.maxTextureArrayLayers << std::endl;
+    }
+}
 
-WGPUDevice AppDevice::requestDeviceSync(WGPUInstance instance, WGPUAdapter adapter, WGPUDeviceDescriptor const *descriptor)
+WGPUDevice AppDevice::_requestDeviceSync(WGPUInstance instance, WGPUAdapter adapter, WGPUDeviceDescriptor const *descriptor)
 {
     WGPUDevice device = nullptr;
 
@@ -57,7 +70,7 @@ void onDeviceUncapturedError(WGPUDevice const *device, WGPUErrorType type, WGPUS
 {
     std::cout << "WGPU device error: " << message << std::endl;
 }
-WGPUDeviceDescriptor AppDevice::createDeviceDescriptor(WGPUInstance instance, WGPUAdapter adapter)
+WGPUDeviceDescriptor AppDevice::_createDeviceDescriptor(WGPUInstance instance, WGPUAdapter adapter)
 {
     WGPUDeviceDescriptor deviceDescriptor = WGPU_DEVICE_DESCRIPTOR_INIT;
     WGPUDeviceLostCallbackInfo deviceLostCb = {
