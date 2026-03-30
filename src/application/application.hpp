@@ -1,16 +1,26 @@
-#include "../window/window.hpp"
+#include <memory>
 #include <webgpu/webgpu.h>
+#include "../window/window.hpp"
 #include "appAdapter.hpp"
 #include "appDevice.hpp"
 #include "appInstance.hpp"
+#include <functional>
 
 class Application
 {
 public:
+    using TickCallback = std::function<WGPUCommandBuffer(
+        double dt,
+        WGPUTextureView targetView,
+        WGPUCommandEncoder encoder)>;
+
     Application();
-    void setWindow(Window *win);
-    WGPUTextureView getNextSurfaceTextureView();
+
+    void run(TickCallback cb);
+
+    void setWindow(std::unique_ptr<Window> win);
     void logQueueCommands();
+    WGPUTextureView getNextSurfaceTextureView();
 
     Application *inspectInstance();
     Application *inspectDevice();
@@ -26,5 +36,5 @@ private:
     AppDevice _device;
     WGPUQueue _queue;
     WGPUSurface _windowSurface;
-    Window *_window;
+    std::unique_ptr<Window> _window;
 };

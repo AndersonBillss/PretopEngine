@@ -11,11 +11,39 @@ Application::Application() : _logQueueCommands(false),
     createQueue();
 }
 
-void Application::setWindow(Window *win)
+void Application::run(TickCallback cb)
 {
-    this->_window = win;
+    _window->setOnTick([this, cb](double dt)
+                       {
+                           WGPUTextureView targetView = getNextSurfaceTextureView();
+                           if (!targetView)
+                               return;
+
+                           // Create a command encoder for the draw call
+                           WGPUCommandEncoderDescriptor encoderDesc = {};
+                           encoderDesc.nextInChain = nullptr;
+                           std::string encoderLabel = "My command encoder";
+                           encoderDesc.label = {encoderLabel.c_str(), encoderLabel.size()};
+                           WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(this->_device.wgpuDevice, &encoderDesc);
+
+                           auto command = cb(dt, targetView, encoder);
+
+                           wgpuQueueSubmit(this->_queue, 1, &command);
+                           wgpuCommandBufferRelease(command);
+                           wgpuTextureViewRelease(targetView);
+#ifndef __EMSCRIPTEN__
+                           wgpuSurfacePresent(this->_windowSurface);
+#endif
+                       });
+    _window->run();
+}
+
+void Application::setWindow(std::unique_ptr<Window> win)
+{
+    this->_window = std::move(win);
     WGPUSurfaceConfiguration surfaceConfig = WGPU_SURFACE_CONFIGURATION_INIT;
-    this->_windowSurface = win->getSurface(this->_instance.wgpuInstance);
+    std::cout << this->_instance.wgpuInstance << std::endl;
+    this->_windowSurface = _window->getSurface(this->_instance.wgpuInstance);
 
     std::cout << "Looking for available formats" << std::endl;
     WGPUSurfaceTexture surfaceTexture = WGPU_SURFACE_TEXTURE_INIT;
@@ -31,75 +59,18 @@ void Application::setWindow(Window *win)
     surfaceConfig.device = this->_device.wgpuDevice;
     surfaceConfig.presentMode = WGPUPresentMode_Fifo;
     surfaceConfig.alphaMode = WGPUCompositeAlphaMode_Auto;
-    surfaceConfig.width = win->width;
-    surfaceConfig.height = win->height;
+    surfaceConfig.width = _window->width;
+    surfaceConfig.height = _window->height;
     wgpuSurfaceConfigure(this->_windowSurface, &surfaceConfig);
 
-    win->setOnExit([this]()
-                   {
+    _window->setOnExit([this]()
+                       {
     wgpuSurfaceUnconfigure(this->_windowSurface);
     wgpuQueueRelease(this->_queue);
     wgpuSurfaceRelease(this->_windowSurface);
     wgpuDeviceRelease(this->_device.wgpuDevice);
     wgpuAdapterRelease(this->_adapter.wgpuAdapter);
     wgpuInstanceRelease(this->_instance.wgpuInstance); });
-
-    win->setOnTick([this](double dt)
-                   {
-                       std::cout << "DeltaTime: " << dt << std::endl;
-                       WGPUTextureView targetView = getNextSurfaceTextureView();
-                       if (!targetView)
-                           return;
-
-                       // Create a command encoder for the draw call
-                       WGPUCommandEncoderDescriptor encoderDesc = {};
-                       encoderDesc.nextInChain = nullptr;
-                       std::string encoderLabel = "My command encoder";
-                       encoderDesc.label = {encoderLabel.c_str(), encoderLabel.size()};
-                       WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(this->_device.wgpuDevice, &encoderDesc);
-
-                       // Create the render pass that clears the screen with our color
-                       WGPURenderPassDescriptor renderPassDesc = {};
-                       renderPassDesc.nextInChain = nullptr;
-
-                       // The attachment part of the render pass descriptor describes the target texture of the pass
-                       WGPURenderPassColorAttachment renderPassColorAttachment = {};
-                       renderPassColorAttachment.view = targetView;
-                       renderPassColorAttachment.resolveTarget = nullptr;
-                       renderPassColorAttachment.loadOp = WGPULoadOp_Clear;
-                       renderPassColorAttachment.storeOp = WGPUStoreOp_Store;
-                       renderPassColorAttachment.clearValue = WGPUColor{0.9, 0.1, 0.2, 1.0};
-                       renderPassColorAttachment.depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
-
-                       renderPassDesc.colorAttachmentCount = 1;
-                       renderPassDesc.colorAttachments = &renderPassColorAttachment;
-                       renderPassDesc.depthStencilAttachment = nullptr;
-                       renderPassDesc.timestampWrites = nullptr;
-
-                       // Create the render pass and end it immediately (we only clear the screen but do not draw anything)
-                       WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(encoder, &renderPassDesc);
-                       wgpuRenderPassEncoderEnd(renderPass);
-                       wgpuRenderPassEncoderRelease(renderPass);
-
-                       // Finally encode and submit the render pass
-                       WGPUCommandBufferDescriptor cmdBufferDescriptor = {};
-                       cmdBufferDescriptor.nextInChain = nullptr;
-                       std::string cmdBufferLabel = "command buffer";
-                       cmdBufferDescriptor.label = {cmdBufferLabel.c_str(), cmdBufferLabel.size()};
-                       WGPUCommandBuffer command = wgpuCommandEncoderFinish(encoder, &cmdBufferDescriptor);
-                       wgpuCommandEncoderRelease(encoder);
-
-                       std::cout << "Submitting command..." << std::endl;
-                       wgpuQueueSubmit(this->_queue, 1, &command);
-                       wgpuCommandBufferRelease(command);
-                       std::cout << "Command submitted." << std::endl;
-
-                       // At the end of the frame
-                       wgpuTextureViewRelease(targetView);
-#ifndef __EMSCRIPTEN__
-                       wgpuSurfacePresent(this->_windowSurface);
-#endif
-                   });
 }
 
 void Application::createQueue()
