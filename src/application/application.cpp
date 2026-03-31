@@ -4,9 +4,9 @@
 #include "application.hpp"
 
 Application::Application() : _logQueueCommands(false),
-                             _instance(AppInstance()),
-                             _adapter(AppAdapter(_instance)),
-                             device(AppDevice(_instance, _adapter))
+                             instance(AppInstance()),
+                             _adapter(AppAdapter(instance)),
+                             device(AppDevice(instance, _adapter))
 {
     createQueue();
 }
@@ -42,7 +42,7 @@ void Application::setWindow(std::unique_ptr<Window> win)
 {
     this->_window = std::move(win);
     WGPUSurfaceConfiguration surfaceConfig = WGPU_SURFACE_CONFIGURATION_INIT;
-    this->_windowSurface = _window->getSurface(this->_instance.wgpuInstance);
+    this->_windowSurface = _window->getSurface(this->instance.wgpuInstance);
 
     WGPUSurfaceTexture surfaceTexture = WGPU_SURFACE_TEXTURE_INIT;
     WGPUSurfaceCapabilities surfaceCapabilities = WGPU_SURFACE_CAPABILITIES_INIT;
@@ -69,7 +69,7 @@ void Application::setWindow(std::unique_ptr<Window> win)
     wgpuSurfaceRelease(this->_windowSurface);
     wgpuDeviceRelease(this->device.wgpuDevice);
     wgpuAdapterRelease(this->_adapter.wgpuAdapter);
-    wgpuInstanceRelease(this->_instance.wgpuInstance); });
+    wgpuInstanceRelease(this->instance.wgpuInstance); });
 }
 
 void Application::createQueue()

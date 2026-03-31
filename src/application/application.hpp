@@ -28,11 +28,11 @@ public:
     Application *inspectAdapter();
     Application *inspectQueue();
 
+    AppInstance instance;
 private:
     void createQueue();
 
     bool _logQueueCommands;
-    AppInstance _instance;
     AppAdapter _adapter;
     WGPUQueue _queue;
     WGPUSurface _windowSurface;

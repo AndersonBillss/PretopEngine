@@ -11,24 +11,14 @@ void compilationCallbackInfo(
     void *_,
     void *__)
 {
-    const std::unordered_map<WGPUCompilationMessageType, std::string> msgTypesToString = {
-        {WGPUCompilationMessageType_Error, "Error"},
-        {WGPUCompilationMessageType_Warning, "Warning"},
-        {WGPUCompilationMessageType_Info, "Info"},
-    };
+    bool hasError = false;
     for (size_t i = 0; i < compilationInfo->messageCount; i++)
     {
-        auto msg = compilationInfo->messages[i];
-        auto it = msgTypesToString.find(msg.type);
-        if (it == msgTypesToString.end())
+        if (compilationInfo->messages[i].type == WGPUCompilationMessageType_Error)
         {
-            std::cout << "Unknown message:" << std::endl;
+            std::cerr << "Engine stopped due to Shader compilation error" << std::endl;
+            exit(1);
         }
-        else
-        {
-            std::cout << it->second << ":" << std::endl;
-        }
-        std::cout << msg.message << std::endl;
     }
 }
 
@@ -37,8 +27,6 @@ int main(int, char **)
     std::cout << "Hello, WebGPU!!" << std::endl;
 
     Application application;
-    application.logQueueCommands();
-    application.setWindow(WindowFactory::createWindow("My Window"));
 
     std::string shaderSource = R"(
         @vertex
@@ -73,6 +61,12 @@ int main(int, char **)
     callbackInfo.callback = compilationCallbackInfo;
     WGPUFuture compilationFuture = wgpuShaderModuleGetCompilationInfo(
         shaderModule, callbackInfo);
+
+    WGPUFutureWaitInfo waitInfo = {compilationFuture, 0};
+    wgpuInstanceWaitAny(application.instance.wgpuInstance, 1, &waitInfo, UINT64_MAX);
+
+    application.logQueueCommands();
+    application.setWindow(WindowFactory::createWindow("My Window"));
 
     WGPURenderPipelineDescriptor pipelineDesc = WGPU_RENDER_PIPELINE_DESCRIPTOR_INIT;
     pipelineDesc.primitive.topology = WGPUPrimitiveTopology_TriangleList;
