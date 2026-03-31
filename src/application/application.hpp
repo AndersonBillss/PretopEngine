@@ -12,7 +12,7 @@ public:
     using TickCallback = std::function<WGPUCommandBuffer(
         double dt,
         WGPUTextureView targetView,
-        WGPUCommandEncoder encoder)>;
+        AppDevice device)>;
 
     Application();
 
@@ -21,6 +21,7 @@ public:
     void setWindow(std::unique_ptr<Window> win);
     void logQueueCommands();
     WGPUTextureView getNextSurfaceTextureView();
+    WGPUTextureFormat windowFormat;
 
     Application *inspectInstance();
     Application *inspectDevice();

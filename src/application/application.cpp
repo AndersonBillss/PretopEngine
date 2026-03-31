@@ -26,7 +26,7 @@ void Application::run(TickCallback cb)
                            encoderDesc.label = {encoderLabel.c_str(), encoderLabel.size()};
                            WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(this->_device.wgpuDevice, &encoderDesc);
 
-                           auto command = cb(dt, targetView, encoder);
+                           auto command = cb(dt, targetView, _device);
 
                            wgpuQueueSubmit(this->_queue, 1, &command);
                            wgpuCommandBufferRelease(command);
@@ -42,10 +42,8 @@ void Application::setWindow(std::unique_ptr<Window> win)
 {
     this->_window = std::move(win);
     WGPUSurfaceConfiguration surfaceConfig = WGPU_SURFACE_CONFIGURATION_INIT;
-    std::cout << this->_instance.wgpuInstance << std::endl;
     this->_windowSurface = _window->getSurface(this->_instance.wgpuInstance);
 
-    std::cout << "Looking for available formats" << std::endl;
     WGPUSurfaceTexture surfaceTexture = WGPU_SURFACE_TEXTURE_INIT;
     WGPUSurfaceCapabilities surfaceCapabilities = WGPU_SURFACE_CAPABILITIES_INIT;
     wgpuSurfaceGetCapabilities(this->_windowSurface, this->_adapter.wgpuAdapter, &surfaceCapabilities);
@@ -53,6 +51,7 @@ void Application::setWindow(std::unique_ptr<Window> win)
     // The first format in the list is the preffered format.
     // see https://webgpu-native.github.io/webgpu-headers/Surfaces.html#Surface-Creation
     surfaceConfig.format = surfaceCapabilities.formats[0];
+    this->windowFormat = surfaceCapabilities.formats[0];
     wgpuSurfaceCapabilitiesFreeMembers(surfaceCapabilities);
     surfaceConfig.viewFormatCount = 0;
     surfaceConfig.usage = WGPUTextureUsage_RenderAttachment;
