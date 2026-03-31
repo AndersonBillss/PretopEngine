@@ -6,7 +6,7 @@
 Application::Application() : _logQueueCommands(false),
                              _instance(AppInstance()),
                              _adapter(AppAdapter(_instance)),
-                             _device(AppDevice(_instance, _adapter))
+                             device(AppDevice(_instance, _adapter))
 {
     createQueue();
 }
@@ -24,9 +24,9 @@ void Application::run(TickCallback cb)
                            encoderDesc.nextInChain = nullptr;
                            std::string encoderLabel = "My command encoder";
                            encoderDesc.label = {encoderLabel.c_str(), encoderLabel.size()};
-                           WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(this->_device.wgpuDevice, &encoderDesc);
+                           WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(this->device.wgpuDevice, &encoderDesc);
 
-                           auto command = cb(dt, targetView, _device);
+                           auto command = cb(dt, targetView, device);
 
                            wgpuQueueSubmit(this->_queue, 1, &command);
                            wgpuCommandBufferRelease(command);
@@ -55,7 +55,7 @@ void Application::setWindow(std::unique_ptr<Window> win)
     wgpuSurfaceCapabilitiesFreeMembers(surfaceCapabilities);
     surfaceConfig.viewFormatCount = 0;
     surfaceConfig.usage = WGPUTextureUsage_RenderAttachment;
-    surfaceConfig.device = this->_device.wgpuDevice;
+    surfaceConfig.device = this->device.wgpuDevice;
     surfaceConfig.presentMode = WGPUPresentMode_Fifo;
     surfaceConfig.alphaMode = WGPUCompositeAlphaMode_Auto;
     surfaceConfig.width = _window->width;
@@ -67,14 +67,14 @@ void Application::setWindow(std::unique_ptr<Window> win)
     wgpuSurfaceUnconfigure(this->_windowSurface);
     wgpuQueueRelease(this->_queue);
     wgpuSurfaceRelease(this->_windowSurface);
-    wgpuDeviceRelease(this->_device.wgpuDevice);
+    wgpuDeviceRelease(this->device.wgpuDevice);
     wgpuAdapterRelease(this->_adapter.wgpuAdapter);
     wgpuInstanceRelease(this->_instance.wgpuInstance); });
 }
 
 void Application::createQueue()
 {
-    this->_queue = wgpuDeviceGetQueue(this->_device.wgpuDevice);
+    this->_queue = wgpuDeviceGetQueue(this->device.wgpuDevice);
 
     WGPUQueueWorkDoneCallback onQueueWorkDone = [](WGPUQueueWorkDoneStatus status, WGPUStringView message, void *data, void *)
     {
@@ -118,7 +118,7 @@ Application *Application::inspectInstance()
 
 Application *Application::inspectDevice()
 {
-    this->_device.inspect();
+    this->device.inspect();
     return this;
 }
 

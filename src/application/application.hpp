@@ -34,8 +34,12 @@ private:
     bool _logQueueCommands;
     AppInstance _instance;
     AppAdapter _adapter;
-    AppDevice _device;
     WGPUQueue _queue;
     WGPUSurface _windowSurface;
     std::unique_ptr<Window> _window;
+
+public:
+    // This must go after the private section or else the initializer
+    // list order will order the constructors incorrectly
+    AppDevice device;
 };
