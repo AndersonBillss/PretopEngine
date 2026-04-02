@@ -4,23 +4,8 @@
 #include "window/windowFactory.hpp"
 #include "application/application.hpp"
 #include "application/appDevice.hpp"
-
-void compilationCallbackInfo(
-    WGPUCompilationInfoRequestStatus status,
-    struct WGPUCompilationInfo const *compilationInfo,
-    void *_,
-    void *__)
-{
-    bool hasError = false;
-    for (size_t i = 0; i < compilationInfo->messageCount; i++)
-    {
-        if (compilationInfo->messages[i].type == WGPUCompilationMessageType_Error)
-        {
-            std::cerr << "Engine stopped due to Shader compilation error" << std::endl;
-            exit(1);
-        }
-    }
-}
+#include "application/appShader.hpp"
+#include "application/appPipeline.hpp"
 
 int main(int, char **)
 {
@@ -47,64 +32,12 @@ int main(int, char **)
             return vec4f(0.0, 0.4, 1.0, 1.0);
         }
     )";
-    WGPUShaderSourceWGSL shaderWGSL = WGPU_SHADER_SOURCE_WGSL_INIT;
-    shaderWGSL.chain.sType = WGPUSType_ShaderSourceWGSL;
-    shaderWGSL.code = {shaderSource.c_str(), shaderSource.size()};
-
-    WGPUShaderModuleDescriptor shaderDesc = WGPU_SHADER_MODULE_DESCRIPTOR_INIT;
-    shaderDesc.nextInChain = &shaderWGSL.chain;
-
-    WGPUShaderModule shaderModule = wgpuDeviceCreateShaderModule(application.device.wgpuDevice, &shaderDesc);
-
-    WGPUCompilationInfoCallbackInfo callbackInfo = WGPU_COMPILATION_INFO_CALLBACK_INFO_INIT;
-    callbackInfo.mode = WGPUCallbackMode_WaitAnyOnly;
-    callbackInfo.callback = compilationCallbackInfo;
-    WGPUFuture compilationFuture = wgpuShaderModuleGetCompilationInfo(
-        shaderModule, callbackInfo);
-
-    WGPUFutureWaitInfo waitInfo = {compilationFuture, 0};
-    wgpuInstanceWaitAny(application.instance.wgpuInstance, 1, &waitInfo, UINT64_MAX);
+    AppShader shader = AppShader::pipeline(application, shaderSource);
 
     application.logQueueCommands();
     application.setWindow(WindowFactory::createWindow("My Window"));
 
-    WGPURenderPipelineDescriptor pipelineDesc = WGPU_RENDER_PIPELINE_DESCRIPTOR_INIT;
-    pipelineDesc.primitive.topology = WGPUPrimitiveTopology_TriangleList;
-    pipelineDesc.primitive.stripIndexFormat = WGPUIndexFormat_Undefined;
-    pipelineDesc.primitive.frontFace = WGPUFrontFace_CCW;
-    pipelineDesc.primitive.cullMode = WGPUCullMode_None;
-
-    WGPUFragmentState fragmentState = WGPU_FRAGMENT_STATE_INIT;
-    fragmentState.module = shaderModule;
-    std::string fragmentEntryPoint = "fs_main";
-    fragmentState.entryPoint = WGPUStringView{fragmentEntryPoint.c_str(), fragmentEntryPoint.size()};
-    fragmentState.constantCount = 0;
-    fragmentState.constants = nullptr;
-
-    pipelineDesc.vertex.module = shaderModule;
-    std::string vertexEntryPoint = "vs_main";
-    pipelineDesc.vertex.entryPoint = WGPUStringView{vertexEntryPoint.c_str(), vertexEntryPoint.size()};
-
-    WGPUBlendState blendState{};
-    blendState.color.srcFactor = WGPUBlendFactor_SrcAlpha;
-    blendState.color.dstFactor = WGPUBlendFactor_OneMinusSrcAlpha;
-    blendState.color.operation = WGPUBlendOperation_Add;
-
-    WGPUColorTargetState colorTarget = WGPU_COLOR_TARGET_STATE_INIT;
-    colorTarget.format = application.windowFormat;
-    colorTarget.blend = &blendState;
-    colorTarget.writeMask = WGPUColorWriteMask_All;
-
-    fragmentState.targetCount = 1;
-    fragmentState.targets = &colorTarget;
-
-    pipelineDesc.fragment = &fragmentState;
-
-    pipelineDesc.multisample.count = 1;
-    pipelineDesc.multisample.mask = ~0u;
-    pipelineDesc.multisample.alphaToCoverageEnabled = false;
-
-    WGPURenderPipeline pipeline = wgpuDeviceCreateRenderPipeline(application.device.wgpuDevice, &pipelineDesc);
+    AppPipeline pipeline(application, shader);
 
     application.run([&application, &pipeline](
                         double dt,
@@ -139,7 +72,7 @@ int main(int, char **)
                     WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(encoder, &renderPassDesc);
                     
                     // Select which render pipeline to use
-                    wgpuRenderPassEncoderSetPipeline(renderPass, pipeline);
+                    wgpuRenderPassEncoderSetPipeline(renderPass, pipeline.wgpuPipeline);
 
                     // Draw 1 instance of a 3-vertices shape
                     wgpuRenderPassEncoderDraw(renderPass, 3, 1, 0, 0);
@@ -157,7 +90,5 @@ int main(int, char **)
 
                     std::cout << "Submitting command..." << std::endl;
                     return command; });
-
-    wgpuRenderPipelineRelease(pipeline);
     return 0;
 }

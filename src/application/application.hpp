@@ -1,3 +1,4 @@
+#pragma once
 #include <memory>
 #include <webgpu/webgpu.h>
 #include "../window/window.hpp"

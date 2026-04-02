@@ -6,6 +6,8 @@ set(AB_ENGINE_SOURCES
   src/application/appDevice.cpp
   src/application/appInstance.cpp
   src/application/application.cpp
+  src/application/appPipeline.cpp
+  src/application/appShader.cpp
   src/window/windowFactory.cpp
 )
 set(AB_ENGINE_SOURCES_NATIVE
