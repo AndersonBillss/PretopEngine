@@ -3,6 +3,7 @@ set(AB_ENGINE_SOURCES
   src/main.cpp
   src/printStringView.cpp
   src/application/appAdapter.cpp
+  src/application/appCommand.cpp
   src/application/appDevice.cpp
   src/application/appInstance.cpp
   src/application/application.cpp

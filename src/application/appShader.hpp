@@ -1,10 +1,11 @@
 #pragma once
 #include <string>
-#include "application.hpp"
+#include "appDevice.hpp"
+#include "appInstance.hpp"
 
 class AppShader
 {
 public:
-    static AppShader pipeline(Application &app, std::string src);
+    static AppShader pipeline(AppDevice &device, AppInstance &instance, std::string src);
     WGPUShaderModule wgpuShader;
 };

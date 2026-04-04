@@ -1,19 +1,17 @@
 #pragma once
 #include <memory>
 #include <webgpu/webgpu.h>
+#include <functional>
 #include "../window/window.hpp"
 #include "appAdapter.hpp"
 #include "appDevice.hpp"
 #include "appInstance.hpp"
-#include <functional>
+#include "appCommand.hpp"
 
 class Application
 {
 public:
-    using TickCallback = std::function<WGPUCommandBuffer(
-        double dt,
-        WGPUTextureView targetView,
-        AppDevice device)>;
+    using TickCallback = std::function<AppCommand(double dt, WGPUTextureView targetView)>;
 
     Application();
 
@@ -30,6 +28,7 @@ public:
     Application *inspectQueue();
 
     AppInstance instance;
+
 private:
     void createQueue();
 

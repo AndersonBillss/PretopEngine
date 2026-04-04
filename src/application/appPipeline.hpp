@@ -1,12 +1,12 @@
 #pragma once
 #include <string>
-#include "application.hpp"
+#include "appDevice.hpp"
 #include "appShader.hpp"
 
 class AppPipeline
 {
 public:
-    AppPipeline(Application &app, AppShader shader);
+    AppPipeline(AppDevice device, AppShader shader, WGPUTextureFormat format);
     ~AppPipeline();
 
     WGPURenderPipeline wgpuPipeline;

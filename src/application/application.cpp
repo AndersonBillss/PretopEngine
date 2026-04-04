@@ -26,10 +26,10 @@ void Application::run(TickCallback cb)
                            encoderDesc.label = {encoderLabel.c_str(), encoderLabel.size()};
                            WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(this->device.wgpuDevice, &encoderDesc);
 
-                           auto command = cb(dt, targetView, device);
+                           auto command = cb(dt, targetView);
 
-                           wgpuQueueSubmit(this->_queue, 1, &command);
-                           wgpuCommandBufferRelease(command);
+                           wgpuQueueSubmit(this->_queue, 1, &command.wgpuCommand);
+                           wgpuCommandBufferRelease(command.wgpuCommand);
                            wgpuTextureViewRelease(targetView);
 #ifndef __EMSCRIPTEN__
                            wgpuSurfacePresent(this->_windowSurface);

@@ -1,6 +1,6 @@
 #include "appPipeline.hpp"
 
-AppPipeline::AppPipeline(Application &app, AppShader shader)
+AppPipeline::AppPipeline(AppDevice device, AppShader shader, WGPUTextureFormat format)
 {
     WGPURenderPipelineDescriptor pipelineDesc = WGPU_RENDER_PIPELINE_DESCRIPTOR_INIT;
     pipelineDesc.primitive.topology = WGPUPrimitiveTopology_TriangleList;
@@ -25,7 +25,7 @@ AppPipeline::AppPipeline(Application &app, AppShader shader)
     blendState.color.operation = WGPUBlendOperation_Add;
 
     WGPUColorTargetState colorTarget = WGPU_COLOR_TARGET_STATE_INIT;
-    colorTarget.format = app.windowFormat;
+    colorTarget.format = format;
     colorTarget.blend = &blendState;
     colorTarget.writeMask = WGPUColorWriteMask_All;
 
@@ -38,7 +38,7 @@ AppPipeline::AppPipeline(Application &app, AppShader shader)
     pipelineDesc.multisample.mask = ~0u;
     pipelineDesc.multisample.alphaToCoverageEnabled = false;
 
-    this->wgpuPipeline = wgpuDeviceCreateRenderPipeline(app.device.wgpuDevice, &pipelineDesc);
+    this->wgpuPipeline = wgpuDeviceCreateRenderPipeline(device.wgpuDevice, &pipelineDesc);
 }
 
 AppPipeline::~AppPipeline()
