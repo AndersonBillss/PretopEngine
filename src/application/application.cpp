@@ -8,7 +8,7 @@ Application::Application() : _logQueueCommands(false),
                              _adapter(AppAdapter(instance)),
                              device(AppDevice(instance, _adapter))
 {
-    createQueue();
+    _createQueue();
 }
 
 void Application::run(TickCallback cb)
@@ -72,7 +72,7 @@ void Application::setWindow(std::unique_ptr<Window> win)
     wgpuInstanceRelease(this->instance.wgpuInstance); });
 }
 
-void Application::createQueue()
+void Application::_createQueue()
 {
     this->_queue = wgpuDeviceGetQueue(this->device.wgpuDevice);
 

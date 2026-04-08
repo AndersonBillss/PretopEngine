@@ -30,7 +30,7 @@ public:
     AppInstance instance;
 
 private:
-    void createQueue();
+    void _createQueue();
 
     bool _logQueueCommands;
     AppAdapter _adapter;
