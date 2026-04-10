@@ -19,13 +19,6 @@ void Application::run(TickCallback cb)
                            if (!targetView)
                                return;
 
-                           // Create a command encoder for the draw call
-                           WGPUCommandEncoderDescriptor encoderDesc = {};
-                           encoderDesc.nextInChain = nullptr;
-                           std::string encoderLabel = "My command encoder";
-                           encoderDesc.label = {encoderLabel.c_str(), encoderLabel.size()};
-                           WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(this->device.wgpuDevice, &encoderDesc);
-
                            auto command = cb(dt, targetView);
 
                            wgpuQueueSubmit(this->_queue, 1, &command.wgpuCommand);
