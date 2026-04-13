@@ -6,12 +6,12 @@
 #include "appAdapter.hpp"
 #include "appDevice.hpp"
 #include "appInstance.hpp"
-#include "appCommand.hpp"
+#include "appCommandBuffer.hpp"
 
 class Application
 {
 public:
-    using TickCallback = std::function<AppCommand(double dt, WGPUTextureView targetView)>;
+    using TickCallback = std::function<AppCommandBuffer(double dt, WGPUTextureView targetView)>;
 
     Application();
 

@@ -21,8 +21,8 @@ void Application::run(TickCallback cb)
 
                            auto command = cb(dt, targetView);
 
-                           wgpuQueueSubmit(this->_queue, 1, &command.wgpuCommand);
-                           wgpuCommandBufferRelease(command.wgpuCommand);
+                           wgpuQueueSubmit(this->_queue, 1, &command.wgpuBuffer);
+                           wgpuCommandBufferRelease(command.wgpuBuffer);
                            wgpuTextureViewRelease(targetView);
 #ifndef __EMSCRIPTEN__
                            wgpuSurfacePresent(this->_windowSurface);

@@ -6,7 +6,8 @@
 #include "application/appDevice.hpp"
 #include "application/appShader.hpp"
 #include "application/appPipeline.hpp"
-#include "application/appCommand.hpp"
+#include "application/appCommandBuffer.hpp"
+#include "application/appRenderPassCommand.hpp"
 
 int main(int, char **)
 {
@@ -44,9 +45,12 @@ int main(int, char **)
                         double dt,
                         WGPUTextureView targetView)
                     {
+                        AppCommandBuffer commandBuffer(application.device);
                         std::cout << "DELTATIME: " << dt << std::endl;
-                        AppCommand command(application.device, pipeline, targetView);
+                        AppRenderPassCommand command(application.device, targetView);
+                        commandBuffer.addCommand(command, pipeline);
                         std::cout << "Submitting command..." << std::endl;
-                        return command; });
+                        commandBuffer.finish();
+                        return commandBuffer; });
     return 0;
 }

@@ -4,10 +4,12 @@ set(AB_ENGINE_SOURCES
   src/printStringView.cpp
   src/application/appAdapter.cpp
   src/application/appCommand.cpp
+  src/application/appCommandBuffer.cpp
   src/application/appDevice.cpp
   src/application/appInstance.cpp
   src/application/application.cpp
   src/application/appPipeline.cpp
+  src/application/appRenderPassCommand.cpp
   src/application/appShader.cpp
   src/window/windowFactory.cpp
 )
