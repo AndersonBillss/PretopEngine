@@ -7,6 +7,7 @@
 #include "appDevice.hpp"
 #include "appInstance.hpp"
 #include "appCommandBuffer.hpp"
+#include "appVertexBuffer.hpp"
 
 class Application
 {
@@ -17,7 +18,7 @@ public:
 
     void run(TickCallback cb);
 
-    void writeVertices(WGPUBuffer buf, const std::vector<float> &vertices);
+    void writeVertices(AppVertexBuffer<float> &buf);
     void setWindow(std::unique_ptr<Window> win);
     void logQueueCommands();
     WGPUTextureView getNextSurfaceTextureView();

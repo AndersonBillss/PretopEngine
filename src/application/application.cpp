@@ -31,9 +31,14 @@ void Application::run(TickCallback cb)
     _window->run();
 }
 
-void Application::writeVertices(WGPUBuffer buf, const std::vector<float> &vertices)
+void Application::writeVertices(AppVertexBuffer<float> &buf)
 {
-    wgpuQueueWriteBuffer(this->_queue, buf, 0, vertices.data(), vertices.size() * sizeof(float));
+    wgpuQueueWriteBuffer(
+        this->_queue,
+        buf.wgpuBuffer,
+        0,
+        buf.data(),
+        buf.size());
 }
 
 void Application::setWindow(std::unique_ptr<Window> win)

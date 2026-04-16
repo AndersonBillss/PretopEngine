@@ -10,6 +10,7 @@
 #include "application/appPipeline.hpp"
 #include "application/appCommandBuffer.hpp"
 #include "application/appRenderPassCommand.hpp"
+#include "application/appVertexBuffer.hpp"
 
 int main(int, char **)
 {
@@ -33,37 +34,30 @@ int main(int, char **)
     application.logQueueCommands();
     application.setWindow(WindowFactory::createWindow("My Window"));
 
-    WGPUBufferDescriptor bufferDesc = WGPU_BUFFER_DESCRIPTOR_INIT;
-    bufferDesc.nextInChain = nullptr;
-    const std::string bufferLabel = "Test buffer";
-    bufferDesc.label = WGPUStringView{bufferLabel.c_str(), bufferLabel.size()};
-    bufferDesc.usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex;
-    bufferDesc.size = 24;
-    bufferDesc.mappedAtCreation = false;
-    WGPUBuffer buffer1 = wgpuDeviceCreateBuffer(application.device.wgpuDevice, &bufferDesc);
+    AppVertexBuffer<float> buf(application.device,
+                               {{-0.5, -0.5},
+                                {+0.5, -0.5},
+                                {+0.0, +0.5},
 
-    std::vector<float> vertexData = {
-        -0.5, -0.5,
-        +0.5, -0.5,
-        +0.0, +0.5};
+                                {-0.55f, -0.5},
+                                {-0.05f, +0.5},
+                                {-0.55f, +0.5}});
 
-    AppPipeline pipeline(application.device, shader, application.windowFormat, buffer1);
+    AppPipeline pipeline(application.device, shader, application.windowFormat);
 
-    uint32_t vertexCount = static_cast<uint32_t>(vertexData.size() / 2);
-    application.writeVertices(buffer1, vertexData);
+    application.writeVertices(buf);
 
-    application.run([&application, &pipeline, &buffer1](
+    application.run([&application, &pipeline, &buf](
                         double dt,
                         WGPUTextureView targetView)
                     {
                         AppCommandBuffer commandBuffer(application.device);
                         std::cout << "DELTATIME: " << dt << std::endl;
                         AppRenderPassCommand command(application.device, targetView);
-                        commandBuffer.addCommand(command, pipeline, buffer1);
+                        commandBuffer.addCommand(command, pipeline, buf);
                         std::cout << "Submitting command..." << std::endl;
                         commandBuffer.finish();
                         return commandBuffer; });
 
-    wgpuBufferRelease(buffer1);
     return 0;
 }

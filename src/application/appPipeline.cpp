@@ -1,6 +1,6 @@
 #include "appPipeline.hpp"
 
-AppPipeline::AppPipeline(AppDevice device, AppShader shader, WGPUTextureFormat format, WGPUBuffer buf)
+AppPipeline::AppPipeline(AppDevice device, AppShader shader, WGPUTextureFormat format)
 {
     WGPUVertexAttribute positionAttrib;
     positionAttrib.shaderLocation = 0;
