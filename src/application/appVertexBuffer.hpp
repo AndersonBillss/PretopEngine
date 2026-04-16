@@ -17,9 +17,9 @@ public:
         {
             if (i == 0)
             {
-                this->_rowSize = row.size();
+                this->_stride = row.size();
             }
-            if (row.size() != this->_rowSize)
+            if (row.size() != this->_stride)
             {
                 throw std::invalid_argument("Malformed list provided");
             }
@@ -48,6 +48,18 @@ public:
     {
         return _vec.size() * sizeof(T);
     }
+    size_t vertexCount()
+    {
+        return _vec.size() / _stride;
+    }
+    size_t count()
+    {
+        return _vec.size();
+    }
+    size_t stride()
+    {
+        return _stride;
+    }
 
     void *data()
     {
@@ -57,6 +69,6 @@ public:
     WGPUBuffer wgpuBuffer;
 
 private:
-    size_t _rowSize;
     std::vector<T> _vec;
+    size_t _stride;
 };

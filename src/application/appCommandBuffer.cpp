@@ -29,7 +29,7 @@ void AppCommandBuffer::addCommand(AppRenderPassCommand &command, AppPipeline &pi
         0,
         wgpuBufferGetSize(vertexBuffer.wgpuBuffer));
 
-    wgpuRenderPassEncoderDraw(renderPass, 6, 1, 0, 0);
+    wgpuRenderPassEncoderDraw(renderPass, vertexBuffer.vertexCount(), 1, 0, 0);
 
     wgpuRenderPassEncoderEnd(renderPass);
     wgpuRenderPassEncoderRelease(renderPass);
