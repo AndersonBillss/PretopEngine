@@ -2,10 +2,16 @@
 #include <iostream>
 #include "../printStringView.hpp"
 
-AppDevice::AppDevice(AppInstance instance, AppAdapter adapter)
+AppDevice::AppDevice(const AppInstance &instance, const AppAdapter &adapter)
 {
-    WGPUDeviceDescriptor desc = _createDeviceDescriptor(instance.wgpuInstance, adapter.wgpuAdapter);
-    wgpuDevice = _requestDeviceSync(instance.wgpuInstance, adapter.wgpuAdapter, &desc);
+    WGPUDeviceDescriptor desc = _createDeviceDescriptor(instance, adapter);
+    WGPULimits requiredLimits = WGPU_LIMITS_INIT;
+    requiredLimits.maxVertexAttributes = 1;
+    requiredLimits.maxVertexBuffers = 1;
+    requiredLimits.maxBufferSize = 6 * 2 * sizeof(float);
+    requiredLimits.maxVertexBufferArrayStride = 2 * sizeof(float);
+    desc.requiredLimits = &requiredLimits;
+    wgpuDevice = _requestDeviceSync(instance, adapter, &desc);
 }
 
 void AppDevice::inspect()
@@ -22,7 +28,9 @@ void AppDevice::inspect()
     }
 }
 
-WGPUDevice AppDevice::_requestDeviceSync(WGPUInstance instance, WGPUAdapter adapter, WGPUDeviceDescriptor const *descriptor)
+WGPUDevice AppDevice::_requestDeviceSync(const AppInstance &instance,
+                                         const AppAdapter &adapter,
+                                         WGPUDeviceDescriptor const *descriptor)
 {
     WGPUDevice device = nullptr;
 
@@ -52,12 +60,12 @@ WGPUDevice AppDevice::_requestDeviceSync(WGPUInstance instance, WGPUAdapter adap
         /* userdata 2 */ nullptr,
     };
     WGPUFuture f = wgpuAdapterRequestDevice(
-        adapter,
+        adapter.wgpuAdapter,
         descriptor,
         info);
     WGPUFutureWaitInfo waitInfo = {f, 0};
 
-    WGPUWaitStatus status = wgpuInstanceWaitAny(instance, 1, &waitInfo, UINT64_MAX);
+    WGPUWaitStatus status = wgpuInstanceWaitAny(instance.wgpuInstance, 1, &waitInfo, UINT64_MAX);
     return device;
 }
 
@@ -70,7 +78,7 @@ void onDeviceUncapturedError(WGPUDevice const *device, WGPUErrorType type, WGPUS
 {
     std::cout << "WGPU device error: " << message << std::endl;
 }
-WGPUDeviceDescriptor AppDevice::_createDeviceDescriptor(WGPUInstance instance, WGPUAdapter adapter)
+WGPUDeviceDescriptor AppDevice::_createDeviceDescriptor(const AppInstance &instance, const AppAdapter &adapter)
 {
     WGPUDeviceDescriptor deviceDescriptor = WGPU_DEVICE_DESCRIPTOR_INIT;
     WGPUDeviceLostCallbackInfo deviceLostCb = {

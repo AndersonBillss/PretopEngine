@@ -8,7 +8,7 @@ class AppCommandBuffer
 public:
     AppCommandBuffer(AppDevice &device);
     ~AppCommandBuffer();
-    void addCommand(AppRenderPassCommand &command, AppPipeline &pipeline);
+    void addCommand(AppRenderPassCommand &command, AppPipeline &pipeline, WGPUBuffer vertexBuffer);
     void finish();
     WGPUCommandEncoder wgpuEncoder;
     WGPUCommandBuffer wgpuBuffer;

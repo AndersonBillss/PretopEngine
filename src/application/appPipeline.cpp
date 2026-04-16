@@ -1,12 +1,25 @@
 #include "appPipeline.hpp"
 
-AppPipeline::AppPipeline(AppDevice device, AppShader shader, WGPUTextureFormat format)
+AppPipeline::AppPipeline(AppDevice device, AppShader shader, WGPUTextureFormat format, WGPUBuffer buf)
 {
+    WGPUVertexAttribute positionAttrib;
+    positionAttrib.shaderLocation = 0;
+    positionAttrib.format = WGPUVertexFormat_Float32x2;
+    positionAttrib.offset = 0;
+
+    WGPUVertexBufferLayout vertexBufferLayout{};
+    vertexBufferLayout.attributeCount = 1;
+    vertexBufferLayout.attributes = &positionAttrib;
+    vertexBufferLayout.arrayStride = 2 * sizeof(float);
+    vertexBufferLayout.stepMode = WGPUVertexStepMode_Vertex;
+
     WGPURenderPipelineDescriptor pipelineDesc = WGPU_RENDER_PIPELINE_DESCRIPTOR_INIT;
     pipelineDesc.primitive.topology = WGPUPrimitiveTopology_TriangleList;
     pipelineDesc.primitive.stripIndexFormat = WGPUIndexFormat_Undefined;
     pipelineDesc.primitive.frontFace = WGPUFrontFace_CCW;
     pipelineDesc.primitive.cullMode = WGPUCullMode_None;
+    pipelineDesc.vertex.bufferCount = 1;
+    pipelineDesc.vertex.buffers = &vertexBufferLayout;
 
     WGPUFragmentState fragmentState = WGPU_FRAGMENT_STATE_INIT;
     fragmentState.module = shader.wgpuShader;

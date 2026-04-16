@@ -1,5 +1,7 @@
 #include <iostream>
 #include <unordered_map>
+#include <vector>
+
 #include "printStringView.hpp"
 #include "window/windowFactory.hpp"
 #include "application/application.hpp"
@@ -17,16 +19,8 @@ int main(int, char **)
 
     std::string shaderSource = R"(
         @vertex
-        fn vs_main(@builtin(vertex_index) in_vertex_index: u32) -> @builtin(position) vec4f {
-            var p = vec2f(0.0, 0.0);
-            if (in_vertex_index == 0u) {
-                p = vec2f(-0.5, -0.5);
-            } else if (in_vertex_index == 1u) {
-                p = vec2f(0.5, -0.5);
-            } else {
-                p = vec2f(0.0, 0.5);
-            }
-            return vec4f(p, 0.0, 1.0);
+        fn vs_main(@location(0) in_vertex_position: vec2f) -> @builtin(position) vec4f {
+            return vec4f(in_vertex_position, 0.0, 1.0);
         }
 
         @fragment
@@ -39,18 +33,37 @@ int main(int, char **)
     application.logQueueCommands();
     application.setWindow(WindowFactory::createWindow("My Window"));
 
-    AppPipeline pipeline(application.device, shader, application.windowFormat);
+    WGPUBufferDescriptor bufferDesc = WGPU_BUFFER_DESCRIPTOR_INIT;
+    bufferDesc.nextInChain = nullptr;
+    const std::string bufferLabel = "Test buffer";
+    bufferDesc.label = WGPUStringView{bufferLabel.c_str(), bufferLabel.size()};
+    bufferDesc.usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex;
+    bufferDesc.size = 24;
+    bufferDesc.mappedAtCreation = false;
+    WGPUBuffer buffer1 = wgpuDeviceCreateBuffer(application.device.wgpuDevice, &bufferDesc);
 
-    application.run([&application, &pipeline](
+    std::vector<float> vertexData = {
+        -0.5, -0.5,
+        +0.5, -0.5,
+        +0.0, +0.5};
+
+    AppPipeline pipeline(application.device, shader, application.windowFormat, buffer1);
+
+    uint32_t vertexCount = static_cast<uint32_t>(vertexData.size() / 2);
+    application.writeVertices(buffer1, vertexData);
+
+    application.run([&application, &pipeline, &buffer1](
                         double dt,
                         WGPUTextureView targetView)
                     {
                         AppCommandBuffer commandBuffer(application.device);
                         std::cout << "DELTATIME: " << dt << std::endl;
                         AppRenderPassCommand command(application.device, targetView);
-                        commandBuffer.addCommand(command, pipeline);
+                        commandBuffer.addCommand(command, pipeline, buffer1);
                         std::cout << "Submitting command..." << std::endl;
                         commandBuffer.finish();
                         return commandBuffer; });
+
+    wgpuBufferRelease(buffer1);
     return 0;
 }

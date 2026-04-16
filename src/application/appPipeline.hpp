@@ -6,7 +6,7 @@
 class AppPipeline
 {
 public:
-    AppPipeline(AppDevice device, AppShader shader, WGPUTextureFormat format);
+    AppPipeline(AppDevice device, AppShader shader, WGPUTextureFormat format, WGPUBuffer buf);
     ~AppPipeline();
 
     WGPURenderPipeline wgpuPipeline;

@@ -17,6 +17,7 @@ public:
 
     void run(TickCallback cb);
 
+    void writeVertices(WGPUBuffer buf, const std::vector<float> &vertices);
     void setWindow(std::unique_ptr<Window> win);
     void logQueueCommands();
     WGPUTextureView getNextSurfaceTextureView();

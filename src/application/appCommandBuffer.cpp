@@ -17,11 +17,13 @@ AppCommandBuffer::~AppCommandBuffer()
     wgpuCommandEncoderRelease(this->wgpuEncoder);
 }
 
-void AppCommandBuffer::addCommand(AppRenderPassCommand &command, AppPipeline &pipeline)
+void AppCommandBuffer::addCommand(AppRenderPassCommand &command, AppPipeline &pipeline, WGPUBuffer vertexBuffer)
 {
     WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(this->wgpuEncoder, &command.wgpuRenderPassDescriptor);
     // Select which render pipeline to use
     wgpuRenderPassEncoderSetPipeline(renderPass, pipeline.wgpuPipeline);
+
+    wgpuRenderPassEncoderSetVertexBuffer(renderPass, 0, vertexBuffer, 0, wgpuBufferGetSize(vertexBuffer));
 
     // Draw 1 instance of a 3-vertices shape
     wgpuRenderPassEncoderDraw(renderPass, 3, 1, 0, 0);
