@@ -6,10 +6,6 @@ AppDevice::AppDevice(const AppInstance &instance, const AppAdapter &adapter)
 {
     WGPUDeviceDescriptor desc = _createDeviceDescriptor(instance, adapter);
     WGPULimits requiredLimits = WGPU_LIMITS_INIT;
-    requiredLimits.maxVertexAttributes = 1;
-    requiredLimits.maxVertexBuffers = 1;
-    requiredLimits.maxBufferSize = 6 * 2 * sizeof(float);
-    requiredLimits.maxVertexBufferArrayStride = 2 * sizeof(float);
     desc.requiredLimits = &requiredLimits;
     wgpuDevice = _requestDeviceSync(instance, adapter, &desc);
 }
