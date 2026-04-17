@@ -7,19 +7,24 @@ AppPipeline::AppPipeline(
     WGPUTextureFormat format,
     std::vector<AppVertexBufferLayout> vertexLayout)
 {
-    WGPUVertexBufferLayout vertexBufferLayout{};
-    vertexBufferLayout.attributeCount = vertexLayout[0].wgpuAttrs.size();
-    vertexBufferLayout.attributes = vertexLayout[0].wgpuAttrs.data();
-    vertexBufferLayout.arrayStride = vertexLayout[0].arrayStride;
-    vertexBufferLayout.stepMode = WGPUVertexStepMode_Vertex;
+    std::vector<WGPUVertexBufferLayout> layouts = {};
+    for (const auto &layout : vertexLayout)
+    {
+        WGPUVertexBufferLayout vertexBufferLayout = WGPU_VERTEX_BUFFER_LAYOUT_INIT;
+        vertexBufferLayout.attributeCount = layout.wgpuAttrs.size();
+        vertexBufferLayout.attributes = layout.wgpuAttrs.data();
+        vertexBufferLayout.arrayStride = layout.arrayStride;
+        vertexBufferLayout.stepMode = WGPUVertexStepMode_Vertex;
+        layouts.push_back(vertexBufferLayout);
+    }
 
     WGPURenderPipelineDescriptor pipelineDesc = WGPU_RENDER_PIPELINE_DESCRIPTOR_INIT;
     pipelineDesc.primitive.topology = WGPUPrimitiveTopology_TriangleList;
     pipelineDesc.primitive.stripIndexFormat = WGPUIndexFormat_Undefined;
     pipelineDesc.primitive.frontFace = WGPUFrontFace_CCW;
     pipelineDesc.primitive.cullMode = WGPUCullMode_None;
-    pipelineDesc.vertex.bufferCount = 1;
-    pipelineDesc.vertex.buffers = &vertexBufferLayout;
+    pipelineDesc.vertex.bufferCount = layouts.size();
+    pipelineDesc.vertex.buffers = layouts.data();
 
     WGPUFragmentState fragmentState = WGPU_FRAGMENT_STATE_INIT;
     fragmentState.module = shader.wgpuShader;
