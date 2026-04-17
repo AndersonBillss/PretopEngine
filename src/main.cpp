@@ -11,6 +11,7 @@
 #include "application/appCommandBuffer.hpp"
 #include "application/appRenderPassCommand.hpp"
 #include "application/appVertexBuffer.hpp"
+#include "application/appVertexBufferLayout.hpp"
 
 int main(int, char **)
 {
@@ -89,7 +90,9 @@ int main(int, char **)
                                  {-0.05f, +0.5, 1.0, 0.0, 1.0},
                                  {-0.55f, +0.5, 0.0, 1.0, 1.0}});
 
-    AppPipeline pipeline(application.device, shader, application.windowFormat);
+    AppVertexBufferLayout bufferLayout = {{NumType::Float32, 0}, {NumType::Float32, 0, 0}};
+    std::vector<AppVertexBufferLayout> layouts = {bufferLayout};
+    AppPipeline pipeline(application.device, shader, application.windowFormat, layouts);
 
     application.writeVertices(buf2);
 

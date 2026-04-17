@@ -10,6 +10,7 @@ set(AB_ENGINE_SOURCES
   src/application/appPipeline.cpp
   src/application/appRenderPassCommand.cpp
   src/application/appShader.cpp
+  src/application/appVertexBufferLayout.cpp
   src/window/windowFactory.cpp
 )
 set(AB_ENGINE_SOURCES_NATIVE

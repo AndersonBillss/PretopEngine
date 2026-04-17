@@ -1,19 +1,16 @@
 #include "appPipeline.hpp"
+#include <iostream>
 
-AppPipeline::AppPipeline(AppDevice device, AppShader shader, WGPUTextureFormat format)
+AppPipeline::AppPipeline(
+    AppDevice device,
+    AppShader shader,
+    WGPUTextureFormat format,
+    std::vector<AppVertexBufferLayout> vertexLayout)
 {
-    WGPUVertexAttribute positionAttrs[2];
-    positionAttrs[0].shaderLocation = 0;
-    positionAttrs[0].format = WGPUVertexFormat_Float32x2;
-    positionAttrs[0].offset = 0;
-    positionAttrs[1].shaderLocation = 1;
-    positionAttrs[1].format = WGPUVertexFormat_Float32x3;
-    positionAttrs[1].offset = 2 * sizeof(float);
-
     WGPUVertexBufferLayout vertexBufferLayout{};
-    vertexBufferLayout.attributeCount = 2;
-    vertexBufferLayout.attributes = positionAttrs;
-    vertexBufferLayout.arrayStride = 5 * sizeof(float);
+    vertexBufferLayout.attributeCount = vertexLayout[0].wgpuAttrs.size();
+    vertexBufferLayout.attributes = vertexLayout[0].wgpuAttrs.data();
+    vertexBufferLayout.arrayStride = vertexLayout[0].arrayStride;
     vertexBufferLayout.stepMode = WGPUVertexStepMode_Vertex;
 
     WGPURenderPipelineDescriptor pipelineDesc = WGPU_RENDER_PIPELINE_DESCRIPTOR_INIT;
