@@ -106,6 +106,7 @@ int main(int, char **)
                         commandBuffer.addCommand(command, pipeline, buf2);
                         std::cout << "Submitting command..." << std::endl;
                         commandBuffer.finish();
+                        application.submitCommandBuffer(commandBuffer);
                         return commandBuffer; });
 
     return 0;

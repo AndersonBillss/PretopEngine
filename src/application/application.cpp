@@ -19,10 +19,8 @@ void Application::run(TickCallback cb)
                            if (!targetView)
                                return;
 
-                           auto command = cb(dt, targetView);
+                           cb(dt, targetView);
 
-                           wgpuQueueSubmit(this->_queue, 1, &command.wgpuBuffer);
-                           wgpuCommandBufferRelease(command.wgpuBuffer);
                            wgpuTextureViewRelease(targetView);
 #ifndef __EMSCRIPTEN__
                            wgpuSurfacePresent(this->_windowSurface);
@@ -39,6 +37,11 @@ void Application::writeVertices(AppVertexBuffer<float> &buf)
         0,
         buf.data(),
         buf.size());
+}
+
+void Application::submitCommandBuffer(AppCommandBuffer &buf)
+{
+    wgpuQueueSubmit(this->_queue, 1, &buf.wgpuBuffer);
 }
 
 void Application::setWindow(std::unique_ptr<Window> win)

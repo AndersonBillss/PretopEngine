@@ -12,13 +12,14 @@
 class Application
 {
 public:
-    using TickCallback = std::function<AppCommandBuffer(double dt, WGPUTextureView targetView)>;
+    using TickCallback = std::function<void(double dt, WGPUTextureView targetView)>;
 
     Application();
 
     void run(TickCallback cb);
 
     void writeVertices(AppVertexBuffer<float> &buf);
+    void submitCommandBuffer(AppCommandBuffer &buf);
     void setWindow(std::unique_ptr<Window> win);
     void logQueueCommands();
     WGPUTextureView getNextSurfaceTextureView();
