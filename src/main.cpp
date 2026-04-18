@@ -1,6 +1,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <vector>
+#include <memory>
 
 #include "printStringView.hpp"
 #include "window/windowFactory.hpp"
@@ -49,13 +50,13 @@ int main(int, char **)
     application.setWindow(WindowFactory::createWindow("My Window"));
 
     AppVertexBuffer<float> buf(application.device,
-                                {// x,  y,    r,   g,   b
-                                 {-0.5, -0.5, 1.0, 0.0, 0.0},
-                                 {+0.5, -0.5, 0.0, 1.0, 0.0},
-                                 {+0.0, +0.5, 0.0, 0.0, 1.0},
-                                 {-0.55f, -0.5, 1.0, 1.0, 0.0},
-                                 {-0.05f, +0.5, 1.0, 0.0, 1.0},
-                                 {-0.55f, +0.5, 0.0, 1.0, 1.0}});
+                               {// x,  y,    r,   g,   b
+                                {-0.5, -0.5, 1.0, 0.0, 0.0},
+                                {+0.5, -0.5, 0.0, 1.0, 0.0},
+                                {+0.0, +0.5, 0.0, 0.0, 1.0},
+                                {-0.55f, -0.5, 1.0, 1.0, 0.0},
+                                {-0.05f, +0.5, 1.0, 0.0, 1.0},
+                                {-0.55f, +0.5, 0.0, 1.0, 1.0}});
 
     AppVertexBufferLayout bufferLayout = {{NumType::Float32, 0}, {NumType::Float32, 0, 0}};
     std::vector<AppVertexBufferLayout> layouts = {bufferLayout};
@@ -70,7 +71,8 @@ int main(int, char **)
                         AppCommandBuffer commandBuffer(application.device);
                         std::cout << "DELTATIME: " << dt << std::endl;
                         AppRenderPassCommand command(application.device, targetView);
-                        commandBuffer.addCommand(command, pipeline, buf);
+                        std::vector<AppVertexBuffer<float>*> bufs = {&buf};
+                        commandBuffer.addCommand(command, pipeline, bufs);
                         std::cout << "Submitting command..." << std::endl;
                         commandBuffer.finish();
                         application.submitCommandBuffer(commandBuffer);

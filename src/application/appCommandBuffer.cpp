@@ -1,5 +1,6 @@
 #include "appCommandBuffer.hpp"
 #include <string>
+#include <iostream>
 
 const std::string cmdBufferLabel = "command buffer";
 
@@ -17,19 +18,25 @@ AppCommandBuffer::~AppCommandBuffer()
     wgpuCommandEncoderRelease(this->wgpuEncoder);
 }
 
-void AppCommandBuffer::addCommand(AppRenderPassCommand &command, AppPipeline &pipeline, AppVertexBuffer<float> &vertexBuffer)
+void AppCommandBuffer::addCommand(
+    AppRenderPassCommand &command,
+    AppPipeline &pipeline,
+    std::vector<AppVertexBuffer<float> *> &vertexBuffers)
 {
     WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(this->wgpuEncoder, &command.wgpuRenderPassDescriptor);
     wgpuRenderPassEncoderSetPipeline(renderPass, pipeline.wgpuPipeline);
 
-    wgpuRenderPassEncoderSetVertexBuffer(
-        renderPass,
-        0,
-        vertexBuffer.wgpuBuffer,
-        0,
-        wgpuBufferGetSize(vertexBuffer.wgpuBuffer));
-
-    wgpuRenderPassEncoderDraw(renderPass, vertexBuffer.vertexCount(), 1, 0, 0);
+    for (size_t i = 0; i < vertexBuffers.size(); i++)
+    {
+        auto buf = vertexBuffers[i];
+        wgpuRenderPassEncoderSetVertexBuffer(
+            renderPass,
+            0,
+            buf->wgpuBuffer,
+            0,
+            wgpuBufferGetSize(buf->wgpuBuffer));
+    }
+    wgpuRenderPassEncoderDraw(renderPass, vertexBuffers[0]->vertexCount(), 1, 0, 0);
 
     wgpuRenderPassEncoderEnd(renderPass);
     wgpuRenderPassEncoderRelease(renderPass);
