@@ -2,6 +2,7 @@
 #include <memory>
 #include <webgpu/webgpu.h>
 #include <functional>
+#include <initializer_list>
 #include "../window/window.hpp"
 #include "appAdapter.hpp"
 #include "appDevice.hpp"
@@ -18,7 +19,7 @@ public:
 
     void run(TickCallback cb);
 
-    void writeVertices(AppVertexBuffer<float> &buf);
+    void writeVertices(std::initializer_list<AppVertexBuffer<float> *> &bufs);
     void submitCommandBuffer(AppCommandBuffer &buf);
     void setWindow(std::unique_ptr<Window> win);
     void logQueueCommands();

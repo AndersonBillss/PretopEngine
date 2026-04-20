@@ -31,7 +31,7 @@ void AppCommandBuffer::addCommand(
         auto buf = vertexBuffers[i];
         wgpuRenderPassEncoderSetVertexBuffer(
             renderPass,
-            0,
+            i,
             buf->wgpuBuffer,
             0,
             wgpuBufferGetSize(buf->wgpuBuffer));

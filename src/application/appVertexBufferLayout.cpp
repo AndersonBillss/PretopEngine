@@ -2,9 +2,9 @@
 #include <stdexcept>
 #include <unordered_map>
 
-AppVertexBufferLayout::AppVertexBufferLayout(std::initializer_list<std::initializer_list<unsigned char>> shape)
+AppVertexBufferLayout::AppVertexBufferLayout(std::initializer_list<std::initializer_list<unsigned char>> shape, size_t startLayout)
 {
-    size_t i = 0;
+    size_t i = startLayout;
     size_t totalOffset = 0;
     for (const auto &attrShape : shape)
     {
@@ -27,6 +27,7 @@ AppVertexBufferLayout::AppVertexBufferLayout(std::initializer_list<std::initiali
         wgpuAttrs.push_back(attr);
         i++;
     }
+    this->endLayout = i;
     this->arrayStride = totalOffset;
 }
 

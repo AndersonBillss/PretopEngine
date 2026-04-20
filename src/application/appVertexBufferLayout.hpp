@@ -23,9 +23,10 @@ enum NumType
 class AppVertexBufferLayout
 {
 public:
-    AppVertexBufferLayout(std::initializer_list<std::initializer_list<unsigned char>> shape);
+    AppVertexBufferLayout(std::initializer_list<std::initializer_list<unsigned char>> shape, size_t startLayout = 0);
     std::vector<WGPUVertexAttribute> wgpuAttrs;
     size_t arrayStride;
+    size_t endLayout;
 
 private:
     WGPUVertexFormat getFmt(unsigned char attrType, size_t attrSize);

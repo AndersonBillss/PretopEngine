@@ -29,14 +29,17 @@ void Application::run(TickCallback cb)
     _window->run();
 }
 
-void Application::writeVertices(AppVertexBuffer<float> &buf)
+void Application::writeVertices(std::initializer_list<AppVertexBuffer<float> *> &bufs)
 {
-    wgpuQueueWriteBuffer(
-        this->_queue,
-        buf.wgpuBuffer,
-        0,
-        buf.data(),
-        buf.size());
+    for (const auto buf : bufs)
+    {
+        wgpuQueueWriteBuffer(
+            this->_queue,
+            buf->wgpuBuffer,
+            0,
+            buf->data(),
+            buf->size());
+    }
 }
 
 void Application::submitCommandBuffer(AppCommandBuffer &buf)
