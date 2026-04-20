@@ -66,8 +66,8 @@ int main(int, char **)
                                  {1.0, 0.0, 1.0},
                                  {0.0, 1.0, 1.0}});
 
-    AppVertexBufferLayout bufferLayout1 = {{NumType::Float32, 0}};
-    AppVertexBufferLayout bufferLayout2({{NumType::Float32, 0, 0}}, bufferLayout1.endLayout);
+    AppVertexBufferLayout bufferLayout1({LayoutType::Float32x2}, 0);
+    AppVertexBufferLayout bufferLayout2({LayoutType::Float32x3}, bufferLayout1.endLayout);
     std::vector<AppVertexBufferLayout> layouts = {bufferLayout1, bufferLayout2};
     AppPipeline pipeline(application.device, shader, application.windowFormat, layouts);
 

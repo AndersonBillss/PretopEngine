@@ -3,32 +3,57 @@
 #include <vector>
 #include <webgpu/webgpu.h>
 
-enum NumType
+enum LayoutType
 {
-    Default = 0,
     Uint8,
-    int8,
+    Uint8x2,
+    Uint8x4,
     Sint8,
+    Sint8x2,
+    Sint8x4,
     Unorm8,
+    Unorm8x2,
+    Unorm8x4,
     Snorm8,
+    Snorm8x2,
+    Snorm8x4,
     Uint16,
+    Uint16x2,
+    Uint16x4,
     Sint16,
+    Sint16x2,
+    Sint16x4,
     Unorm16,
+    Unorm16x2,
+    Unorm16x4,
     Snorm16,
+    Snorm16x2,
+    Snorm16x4,
     Float16,
+    Float16x2,
+    Float16x4,
     Float32,
+    Float32x2,
+    Float32x3,
+    Float32x4,
     Uint32,
+    Uint32x2,
+    Uint32x3,
+    Uint32x4,
     Sint32,
+    Sint32x2,
+    Sint32x3,
+    Sint32x4,
 };
 class AppVertexBufferLayout
 {
 public:
-    AppVertexBufferLayout(std::initializer_list<std::initializer_list<unsigned char>> shape, size_t startLayout = 0);
+    AppVertexBufferLayout(std::initializer_list<LayoutType> shape, size_t startLayout);
     std::vector<WGPUVertexAttribute> wgpuAttrs;
     size_t arrayStride;
     size_t endLayout;
 
 private:
-    WGPUVertexFormat getFmt(unsigned char attrType, size_t attrSize);
-    size_t getSize(size_t numType);
+    WGPUVertexFormat getFmt(LayoutType attrType);
+    size_t getSize(LayoutType numType);
 };
