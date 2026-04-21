@@ -12,7 +12,7 @@
 #include "application/appCommandBuffer.hpp"
 #include "application/appRenderPassCommand.hpp"
 #include "application/appVertexBuffer.hpp"
-#include "application/appVertexBufferLayout.hpp"
+#include "application/appVertexLayout.hpp"
 
 int main(int, char **)
 {
@@ -66,10 +66,8 @@ int main(int, char **)
                                  {1.0, 0.0, 1.0},
                                  {0.0, 1.0, 1.0}});
 
-    AppVertexBufferLayout bufferLayout1({LayoutType::Float32x2}, 0);
-    AppVertexBufferLayout bufferLayout2({LayoutType::Float32x3}, bufferLayout1.endLayout);
-    std::vector<AppVertexBufferLayout> layouts = {bufferLayout1, bufferLayout2};
-    AppPipeline pipeline(application.device, shader, application.windowFormat, layouts);
+    AppVertexLayout layout = {{LayoutType::Float32x2}, {LayoutType::Float32x3}};
+    AppPipeline pipeline(application.device, shader, application.windowFormat, layout);
 
     application.writeVertices(std::initializer_list<AppVertexBuffer<float> *>{&buf1, &buf2});
 

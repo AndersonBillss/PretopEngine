@@ -1,14 +1,13 @@
 #include "appPipeline.hpp"
-#include <iostream>
 
 AppPipeline::AppPipeline(
     AppDevice device,
     AppShader shader,
     WGPUTextureFormat format,
-    std::vector<AppVertexBufferLayout> vertexLayout)
+    AppVertexLayout &vertexLayout)
 {
     std::vector<WGPUVertexBufferLayout> layouts = {};
-    for (const auto &layout : vertexLayout)
+    for (const auto &layout : vertexLayout.bufferLayouts)
     {
         WGPUVertexBufferLayout vertexBufferLayout = WGPU_VERTEX_BUFFER_LAYOUT_INIT;
         vertexBufferLayout.attributeCount = layout.wgpuAttrs.size();

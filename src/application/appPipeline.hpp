@@ -3,7 +3,7 @@
 #include <vector>
 #include "appDevice.hpp"
 #include "appShader.hpp"
-#include "appVertexBufferLayout.hpp"
+#include "appVertexLayout.hpp"
 
 class AppPipeline
 {
@@ -12,7 +12,7 @@ public:
         AppDevice device,
         AppShader shader,
         WGPUTextureFormat format,
-        std::vector<AppVertexBufferLayout> vertexLayout);
+        AppVertexLayout &vertexLayout);
     ~AppPipeline();
 
     WGPURenderPipeline wgpuPipeline;

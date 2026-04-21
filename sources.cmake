@@ -11,6 +11,7 @@ set(AB_ENGINE_SOURCES
   src/application/appRenderPassCommand.cpp
   src/application/appShader.cpp
   src/application/appVertexBufferLayout.cpp
+  src/application/appVertexLayout.cpp
   src/window/windowFactory.cpp
 )
 set(AB_ENGINE_SOURCES_NATIVE
