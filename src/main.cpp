@@ -49,36 +49,28 @@ int main(int, char **)
     application.logQueueCommands();
     application.setWindow(WindowFactory::createWindow("My Window"));
 
-    AppVertexBuffer<float> buf1(application.device,
-                                {// x,  y,    r,   g,   b
-                                 {-0.5, -0.5},
-                                 {+0.5, -0.5},
-                                 {+0.0, +0.5},
-                                 {-0.55f, -0.5},
-                                 {-0.05f, +0.5},
-                                 {-0.55f, +0.5}});
-    AppVertexBuffer<float> buf2(application.device,
-                                {// x,  y,    r,   g,   b
-                                 {1.0, 0.0, 0.0},
-                                 {0.0, 1.0, 0.0},
-                                 {0.0, 0.0, 1.0},
-                                 {1.0, 1.0, 0.0},
-                                 {1.0, 0.0, 1.0},
-                                 {0.0, 1.0, 1.0}});
+    AppVertexBuffer<float> buf(application.device,
+                               {// x,  y,    r,   g,   b
+                                {-0.5, -0.5, 1.0, 0.0, 0.0},
+                                {+0.5, -0.5, 0.0, 1.0, 0.0},
+                                {+0.0, +0.5, 0.0, 0.0, 1.0},
+                                {-0.55f, -0.5, 1.0, 1.0, 0.0},
+                                {-0.05f, +0.5, 1.0, 0.0, 1.0},
+                                {-0.55f, +0.5, 0.0, 1.0, 1.0}});
 
-    AppVertexLayout layout = {{LayoutType::Float32x2}, {LayoutType::Float32x3}};
+    AppVertexLayout layout = {{LayoutType::Float32x2, LayoutType::Float32x3}};
     AppPipeline pipeline(application.device, shader, application.windowFormat, layout);
 
-    application.writeVertices(std::initializer_list<AppVertexBuffer<float> *>{&buf1, &buf2});
+    application.writeVertices(std::initializer_list<AppVertexBuffer<float> *>{&buf});
 
-    application.run([&application, &pipeline, &buf1, &buf2](
+    application.run([&application, &pipeline, &buf](
                         double dt,
                         WGPUTextureView targetView)
                     {
                         AppCommandBuffer commandBuffer(application.device);
                         std::cout << "DELTATIME: " << dt << std::endl;
                         AppRenderPassCommand command(application.device, targetView);
-                        std::vector<AppVertexBuffer<float>*> bufs = {&buf1, &buf2};
+                        std::vector<AppVertexBuffer<float>*> bufs = {&buf};
                         commandBuffer.addCommand(command, pipeline, bufs);
                         std::cout << "Submitting command..." << std::endl;
                         commandBuffer.finish();
