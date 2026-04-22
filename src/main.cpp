@@ -50,13 +50,15 @@ int main(int, char **)
     application.setWindow(WindowFactory::createWindow("My Window"));
 
     AppVertexBuffer<float> buf(application.device,
-                               {// x,  y,    r,   g,   b
-                                {-0.5, -0.5, 1.0, 0.0, 0.0},
-                                {+0.5, -0.5, 0.0, 1.0, 0.0},
-                                {+0.0, +0.5, 0.0, 0.0, 1.0},
-                                {-0.55f, -0.5, 1.0, 1.0, 0.0},
-                                {-0.05f, +0.5, 1.0, 0.0, 1.0},
-                                {-0.55f, +0.5, 0.0, 1.0, 1.0}});
+                               {
+                                   // x,  y,    r,   g,   b
+                                   {-0.5, +0.5, 1.0, 0.0, 0.0},
+                                   {-0.5, -0.5, 0.0, 1.0, 0.0},
+                                   {+0.5, -0.5, 0.0, 0.0, 1.0},
+                                   {+0.5, -0.5, 0.0, 0.0, 1.0},
+                                   {+0.5, +0.5, 0.0, 1.0, 0.0},
+                                   {-0.5, +0.5, 1.0, 0.0, 0.0},
+                               });
 
     AppVertexLayout layout = {{LayoutType::Float32x2, LayoutType::Float32x3}};
     AppPipeline pipeline(application.device, shader, application.windowFormat, layout);
