@@ -17,7 +17,7 @@ Make sure the following tools are installed and available in your system `PATH`:
 
 ## Build Instructions
 
-### Option 1 — Visual Studio Community 2022
+### Option 1: Visual Studio Community 2022
 
 If you are using **Visual Studio Installer (Community 2022)**:
 
@@ -35,7 +35,7 @@ If you are using **Visual Studio Installer (Community 2022)**:
 
 ---
 
-### Option 2 — Other Visual Studio Versions
+### Option 2: Other Visual Studio Versions
 
 If you are using a different version of Visual Studio:
 
