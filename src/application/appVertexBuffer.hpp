@@ -29,6 +29,7 @@ public:
             }
             i++;
         }
+        // this->_vec.resize(ceilFour(this->_vec.size()));
 
         WGPUBufferDescriptor bufferDesc = WGPU_BUFFER_DESCRIPTOR_INIT;
         const std::string bufferLabel = "Test buffer";
@@ -71,4 +72,11 @@ public:
 private:
     std::vector<T> _vec;
     size_t _stride;
+
+    size_t ceilFour(size_t n)
+    {
+        size_t numBytes = n * sizeof(T);
+        size_t roundedUp = (numBytes + 3) & ~3;
+        return roundedUp / sizeof(T);
+    }
 };

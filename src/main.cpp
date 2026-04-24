@@ -35,7 +35,9 @@ int main(int, char **)
         @vertex
         fn vs_main(in: VertexInput) -> VertexOutput {
             var out: VertexOutput;
-            out.position = vec4f(in.position, 0.0, 1.0);
+            let ratio = 640.0 / 480.0; // The width and height of the target surface
+            let offset = vec2f(-0.6875, -0.463); // The offset that we want to apply to the position
+            out.position = vec4f(in.position.x + offset.x, (in.position.y + offset.y) * ratio, 0.0, 1.0);
             out.color = in.color;
             return out;
         }
@@ -52,15 +54,28 @@ int main(int, char **)
 
     AppVertexBuffer<float> buf(application.device,
                                {
-                                   // x,  y,    r,   g,   b
-                                   {-0.5, -0.5, 1.0, 0.0, 0.0},
-                                   {+0.5, -0.5, 0.0, 1.0, 0.0},
-                                   {+0.5, +0.5, 0.0, 0.0, 1.0},
-                                   {-0.5, +0.5, 1.0, 1.0, 0.0},
+                                   {0.5, 0.0, 0.0, 0.353, 0.612},
+                                   {1.0, 0.866, 0.0, 0.353, 0.612},
+                                   {0.0, 0.866, 0.0, 0.353, 0.612},
+                                   {0.75, 0.433, 0.0, 0.4, 0.7},
+                                   {1.25, 0.433, 0.0, 0.4, 0.7},
+                                   {1.0, 0.866, 0.0, 0.4, 0.7},
+                                   {1.0, 0.0, 0.0, 0.463, 0.8},
+                                   {1.25, 0.433, 0.0, 0.463, 0.8},
+                                   {0.75, 0.433, 0.0, 0.463, 0.8},
+                                   {1.25, 0.433, 0.0, 0.525, 0.91},
+                                   {1.375, 0.65, 0.0, 0.525, 0.91},
+                                   {1.125, 0.65, 0.0, 0.525, 0.91},
+                                   {1.125, 0.65, 0.0, 0.576, 1.0},
+                                   {1.375, 0.65, 0.0, 0.576, 1.0},
+                                   {1.25, 0.866, 0.0, 0.576, 1.0},
                                });
     AppIndexBuffer<uint16_t> indices(application.device, {
                                                              {0, 1, 2},
-                                                             {0, 2, 3},
+                                                             {3, 4, 5},
+                                                             {6, 7, 8},
+                                                             {9, 10, 11},
+                                                             {12, 13, 14},
                                                          });
 
     AppVertexLayout layout = {{LayoutType::Float32x2, LayoutType::Float32x3}};
