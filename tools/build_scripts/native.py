@@ -1,5 +1,5 @@
 from utils.cmd import cmd 
-from shared.constants import BUILD_DIR
+from shared.constants import BUILD_DIR, COMPILER_C, COMPILER_CPP, EXE_SUFFIX
 from codegen.gen_sources import gen_sources
 
 ENGINE_OUT = f"{BUILD_DIR}/engine"
@@ -17,8 +17,8 @@ def build_native_debug():
                 ENGINE_OUT,
                 "-G",
                 "Ninja",
-                "-DCMAKE_C_COMPILER=cl",
-                "-DCMAKE_CXX_COMPILER=cl",
+                f"-DCMAKE_C_COMPILER={COMPILER_C}",
+                f"-DCMAKE_CXX_COMPILER={COMPILER_CPP}",
                 "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
             ]
         ).returncode
@@ -32,4 +32,4 @@ def build_native_debug():
 
 def run_native_debug():
     build_native_debug()
-    return cmd(["build/engine/ab_engine.exe"])
+    return cmd([f"build/engine/ab_engine{EXE_SUFFIX}"])

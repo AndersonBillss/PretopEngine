@@ -29,7 +29,7 @@ void Application::run(TickCallback cb)
     _window->run();
 }
 
-void Application::writeVertices(std::initializer_list<AppVertexBuffer<float> *> &bufs)
+void Application::writeVertices(const std::initializer_list<AppVertexBuffer<float> *> &bufs)
 {
     for (const auto buf : bufs)
     {
@@ -42,7 +42,7 @@ void Application::writeVertices(std::initializer_list<AppVertexBuffer<float> *> 
     }
 }
 
-void Application::writeIndex(AppIndexBuffer<uint16_t> &buf)
+void Application::writeIndex(const AppIndexBuffer<uint16_t> &buf)
 {
     wgpuQueueWriteBuffer(
         this->_queue,
@@ -51,7 +51,7 @@ void Application::writeIndex(AppIndexBuffer<uint16_t> &buf)
         buf.data(),
         buf.size());
 }
-void Application::writeIndex(AppIndexBuffer<uint32_t> &buf)
+void Application::writeIndex(const AppIndexBuffer<uint32_t> &buf)
 {
     wgpuQueueWriteBuffer(
         this->_queue,

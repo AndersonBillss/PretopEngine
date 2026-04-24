@@ -2,10 +2,17 @@
 #include <iostream>
 #include <chrono>
 
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <glfw/glfw3native.h>
 #include <windows.h>
+#endif // _WIN32
+
+#ifdef __linux__
+#define GLFW_EXPOSE_NATIVE_WAYLAND
+#include <GLFW/glfw3native.h>
+#endif // __linux__
 
 GlfwWindow::~GlfwWindow()
 {
@@ -57,6 +64,7 @@ bool GlfwWindow::isInitialized()
 
 WGPUSurface GlfwWindow::getSurface(WGPUInstance instance)
 {
+#ifdef _WIN32
     HWND hwnd = glfwGetWin32Window(this->_win);
     HINSTANCE hinstance = GetModuleHandle(NULL);
 
@@ -71,4 +79,21 @@ WGPUSurface GlfwWindow::getSurface(WGPUInstance instance)
     surfaceDescriptor.label = WGPU_STRING_VIEW_INIT;
 
     return wgpuInstanceCreateSurface(instance, &surfaceDescriptor);
+#endif // _WIN32
+#ifdef __linux__
+    wl_surface *surface = glfwGetWaylandWindow(this->_win);
+    wl_display *display = glfwGetWaylandDisplay();
+
+    struct WGPUSurfaceSourceWaylandSurface fromWayland;
+    fromWayland.chain.sType = WGPUSType_SurfaceSourceWaylandSurface;
+    fromWayland.chain.next = NULL;
+    fromWayland.display = display;
+    fromWayland.surface = surface;
+
+    WGPUSurfaceDescriptor surfaceDescriptor;
+    surfaceDescriptor.nextInChain = &fromWayland.chain;
+    surfaceDescriptor.label = WGPU_STRING_VIEW_INIT;
+
+    return wgpuInstanceCreateSurface(instance, &surfaceDescriptor);
+#endif // __linux__
 }

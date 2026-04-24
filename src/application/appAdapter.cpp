@@ -158,7 +158,9 @@ WGPUAdapter AppAdapter::_requestAdapterSync(WGPUInstance instance, WGPURequestAd
     };
     WGPURequestAdapterOptions adapterOpts = {};
 #ifndef WEBGPU_BACKEND_EMSCRIPTEN
+#ifdef _WIN32
     adapterOpts.backendType = WGPUBackendType_D3D12;
+#endif // _WIN32
 #endif // !WEBGPU_BACKEND_EMSCRIPTEN
     WGPURequestAdapterCallbackInfo info = {
         /* nextInChain */ nullptr,

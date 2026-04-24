@@ -1,10 +1,15 @@
 from utils.cmd import cmd 
-from shared.constants import BUILD_DIR
+from shared.constants import BUILD_DIR, COMPILER_C, COMPILER_CPP
 import sys
+import platform
 
 DAWN_SRC = "third_party/dawn"
 DAWN_OUT_DEBUG = f"{BUILD_DIR}/dawn/debug"
 DAWN_INSTALL_DEBUG = f"{BUILD_DIR}/_install/dawn/debug"
+
+PLATFORM_SPECIFIC_FLAGS = []
+if platform.system() == "Linux":
+    PLATFORM_SPECIFIC_FLAGS = ["-DDAWN_USE_WAYLAND=ON"]
 
 
 # Dawn build commands
@@ -31,12 +36,12 @@ def dawn_debug_configure():
                 DAWN_OUT_DEBUG,
                 "-G",
                 "Ninja",
-                "-DCMAKE_C_COMPILER=cl",
-                "-DCMAKE_CXX_COMPILER=cl",
+                f"-DCMAKE_C_COMPILER={COMPILER_C}",
+                f"-DCMAKE_CXX_COMPILER={COMPILER_CPP}",
                 "-DCMAKE_BUILD_TYPE=Debug",
                 "-DDAWN_ENABLE_INSTALL=ON",
                 "-DDAWN_FORCE_SYSTEM_COMPONENT_LOAD=ON",
-            ]
+            ] + PLATFORM_SPECIFIC_FLAGS
         ).returncode
         != 0
     ):

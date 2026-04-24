@@ -44,24 +44,24 @@ public:
         wgpuBufferRelease(this->wgpuBuffer);
     }
 
-    size_t size()
+    size_t size() const
     {
         return _vec.size() * sizeof(T);
     }
-    size_t vertexCount()
+    size_t vertexCount() const
     {
         return _vec.size() / _stride;
     }
-    size_t count()
+    size_t count() const
     {
         return _vec.size();
     }
-    size_t stride()
+    size_t stride() const
     {
         return _stride;
     }
 
-    void *data()
+    const void *data() const
     {
         return _vec.data();
     }

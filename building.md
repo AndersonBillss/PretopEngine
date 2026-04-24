@@ -1,17 +1,18 @@
-# Building the Engine (Windows)
+## Note
 
-> Currently, only Windows is supported.
+- Always run build commands from the **project root directory**.
+
+# Building the Engine for Windows
 
 ## Prerequisites
 
 Make sure the following tools are installed and available in your system `PATH`:
 
-* **Go**
-* **Python** 
-* **MSVC Build Tools**
-
-  * Install via **Visual Studio Installer**
-  * Include the **Desktop development with C++** workload
+- **Go**
+- **Python**
+- **MSVC Build Tools**
+  - Install via **Visual Studio Installer**
+  - Include the **Desktop development with C++** workload
 
 ---
 
@@ -54,8 +55,38 @@ If you are using a different version of Visual Studio:
    python tools/build.py run-native-debug
    ```
 
----
+# Building the Engine for Linux 
 
-## Note
+## Prerequisites
 
-* Always run build commands from the **project root directory**.
+Make sure the following tools are installed and available in your system `PATH`:
+
+- **Go**
+- **Python**
+- **CMake**
+- **Ninja**
+
+Install the following dependencies:
+
+- **libxrandr-dev**
+- **libxinerama-dev**
+- **libxcursor-dev**
+- **libxi-dev**
+- **libwayland-dev**
+- **libxkbcommon-dev**
+- **mesa-common-dev**
+- **pkg-config**
+
+## Build instructions
+
+1. Run the setup build:
+
+   ```
+   python tools/build.py dawn-debug-setup
+   ```
+
+2. Run the engine:
+
+   ```
+   python tools/build.py run-native-debug
+   ```

@@ -20,9 +20,9 @@ public:
 
     void run(TickCallback cb);
 
-    void writeVertices(std::initializer_list<AppVertexBuffer<float> *> &bufs);
-    void writeIndex(AppIndexBuffer<uint16_t> &buf);
-    void writeIndex(AppIndexBuffer<uint32_t> &buf);
+    void writeVertices(const std::initializer_list<AppVertexBuffer<float> *> &bufs);
+    void writeIndex(const AppIndexBuffer<uint16_t> &buf);
+    void writeIndex(const AppIndexBuffer<uint32_t> &buf);
     void submitCommandBuffer(AppCommandBuffer &buf);
     void setWindow(std::unique_ptr<Window> win);
     void logQueueCommands();
