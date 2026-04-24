@@ -42,6 +42,59 @@ void AppCommandBuffer::addCommand(
     wgpuRenderPassEncoderRelease(renderPass);
 }
 
+void AppCommandBuffer::addCommand(
+    AppRenderPassCommand &command,
+    AppPipeline &pipeline,
+    std::vector<AppVertexBuffer<float> *> &vertexBuffers,
+    AppIndexBuffer<uint16_t> &indexBuffer)
+{
+    WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(this->wgpuEncoder, &command.wgpuRenderPassDescriptor);
+    wgpuRenderPassEncoderSetPipeline(renderPass, pipeline.wgpuPipeline);
+
+    for (size_t i = 0; i < vertexBuffers.size(); i++)
+    {
+        auto buf = vertexBuffers[i];
+        wgpuRenderPassEncoderSetVertexBuffer(
+            renderPass,
+            i,
+            buf->wgpuBuffer,
+            0,
+            wgpuBufferGetSize(buf->wgpuBuffer));
+    }
+    wgpuRenderPassEncoderSetIndexBuffer(
+        renderPass, indexBuffer.wgpuBuffer, WGPUIndexFormat_Uint16, 0, wgpuBufferGetSize(indexBuffer.wgpuBuffer));
+    wgpuRenderPassEncoderDrawIndexed(renderPass, indexBuffer.count(), 1, 0, 0, 0);
+
+    wgpuRenderPassEncoderEnd(renderPass);
+    wgpuRenderPassEncoderRelease(renderPass);
+}
+void AppCommandBuffer::addCommand(
+    AppRenderPassCommand &command,
+    AppPipeline &pipeline,
+    std::vector<AppVertexBuffer<float> *> &vertexBuffers,
+    AppIndexBuffer<uint32_t> &indexBuffer)
+{
+    WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(this->wgpuEncoder, &command.wgpuRenderPassDescriptor);
+    wgpuRenderPassEncoderSetPipeline(renderPass, pipeline.wgpuPipeline);
+
+    for (size_t i = 0; i < vertexBuffers.size(); i++)
+    {
+        auto buf = vertexBuffers[i];
+        wgpuRenderPassEncoderSetVertexBuffer(
+            renderPass,
+            i,
+            buf->wgpuBuffer,
+            0,
+            wgpuBufferGetSize(buf->wgpuBuffer));
+    }
+    wgpuRenderPassEncoderSetIndexBuffer(
+        renderPass, indexBuffer.wgpuBuffer, WGPUIndexFormat_Uint32, 0, wgpuBufferGetSize(indexBuffer.wgpuBuffer));
+    wgpuRenderPassEncoderDrawIndexed(renderPass, indexBuffer.count(), 1, 0, 0, 0);
+
+    wgpuRenderPassEncoderEnd(renderPass);
+    wgpuRenderPassEncoderRelease(renderPass);
+}
+
 void AppCommandBuffer::finish()
 {
     WGPUCommandBufferDescriptor cmdBufferDescriptor = {};

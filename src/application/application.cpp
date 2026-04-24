@@ -42,6 +42,25 @@ void Application::writeVertices(std::initializer_list<AppVertexBuffer<float> *> 
     }
 }
 
+void Application::writeIndex(AppIndexBuffer<uint16_t> &buf)
+{
+    wgpuQueueWriteBuffer(
+        this->_queue,
+        buf.wgpuBuffer,
+        0,
+        buf.data(),
+        buf.size());
+}
+void Application::writeIndex(AppIndexBuffer<uint32_t> &buf)
+{
+    wgpuQueueWriteBuffer(
+        this->_queue,
+        buf.wgpuBuffer,
+        0,
+        buf.data(),
+        buf.size());
+}
+
 void Application::submitCommandBuffer(AppCommandBuffer &buf)
 {
     wgpuQueueSubmit(this->_queue, 1, &buf.wgpuBuffer);
