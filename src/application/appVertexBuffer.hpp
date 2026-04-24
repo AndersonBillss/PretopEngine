@@ -34,7 +34,7 @@ public:
         const std::string bufferLabel = "Test buffer";
         bufferDesc.label = WGPUStringView{bufferLabel.c_str(), bufferLabel.size()};
         bufferDesc.usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex;
-        bufferDesc.size = this->size();
+        bufferDesc.size = this->numBytes();
         bufferDesc.mappedAtCreation = false;
         this->wgpuBuffer = wgpuDeviceCreateBuffer(device.wgpuDevice, &bufferDesc);
     }
@@ -44,7 +44,7 @@ public:
         wgpuBufferRelease(this->wgpuBuffer);
     }
 
-    size_t size() const
+    size_t numBytes() const
     {
         return _vec.size() * sizeof(T);
     }

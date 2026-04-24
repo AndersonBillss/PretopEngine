@@ -38,7 +38,7 @@ void Application::writeVertices(const std::initializer_list<AppVertexBuffer<floa
             buf->wgpuBuffer,
             0,
             buf->data(),
-            buf->size());
+            buf->numBytes());
     }
 }
 
@@ -49,7 +49,7 @@ void Application::writeIndex(const AppIndexBuffer<uint16_t> &buf)
         buf.wgpuBuffer,
         0,
         buf.data(),
-        buf.size());
+        buf.numBytes());
 }
 void Application::writeIndex(const AppIndexBuffer<uint32_t> &buf)
 {
@@ -58,7 +58,7 @@ void Application::writeIndex(const AppIndexBuffer<uint32_t> &buf)
         buf.wgpuBuffer,
         0,
         buf.data(),
-        buf.size());
+        buf.numBytes());
 }
 
 void Application::submitCommandBuffer(AppCommandBuffer &buf)
