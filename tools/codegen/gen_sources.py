@@ -35,7 +35,8 @@ class SourceTracker:
             self.src_targets[target] = [filepath]
 
 
-def generate_rule(sources, label) -> str:
+def generate_rule(sources: list[str], label) -> str:
+    sources.sort()
     concat_files = ""
     for i, filepath in enumerate(sources):
         if i != 0:
@@ -54,10 +55,15 @@ def gen_sources():
                 tracker.add_file(filepath)
 
     src_files_rule = generate_rule(tracker.src_files, RULE_PREFIX)
-    target_files_rules = [
-        generate_rule(tracker.src_targets[key], f"{RULE_PREFIX}_" + key)
-        for key in tracker.src_targets
-    ]
+    target_files_rules = []
+    for key in tracker.src_targets:
+        target_files_rules += [generate_rule(tracker.src_targets[key], f"{RULE_PREFIX}_" + key)]
+        
+    # target_files_rules = [
+    #     generate_rule(tracker.src_targets[key], f"{RULE_PREFIX}_" + key)
+    #     for key in tracker.src_targets
+    # ]
+    target_files_rules.sort()
 
     file_content = STARTING_COMMENT
     file_content += f"\n{src_files_rule}\n"

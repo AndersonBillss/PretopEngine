@@ -1,22 +1,22 @@
 # Auto-generated code, do not edit
 set(AB_ENGINE_SOURCES
+  src/application/appAdapter.cpp
+  src/application/appCommandBuffer.cpp
+  src/application/appDevice.cpp
+  src/application/appInstance.cpp
+  src/application/appPipeline.cpp
+  src/application/appRenderPassCommand.cpp
+  src/application/appShader.cpp
+  src/application/appVertexBufferLayout.cpp
+  src/application/appVertexLayout.cpp
+  src/application/application.cpp
   src/main.cpp
   src/printStringView.cpp
   src/window/windowFactory.cpp
-  src/application/appDevice.cpp
-  src/application/appCommandBuffer.cpp
-  src/application/application.cpp
-  src/application/appVertexLayout.cpp
-  src/application/appPipeline.cpp
-  src/application/appAdapter.cpp
-  src/application/appRenderPassCommand.cpp
-  src/application/appVertexBufferLayout.cpp
-  src/application/appShader.cpp
-  src/application/appInstance.cpp
-)
-set(AB_ENGINE_SOURCES_WEB
-  src/window/WEB_canvasWindow.cpp
 )
 set(AB_ENGINE_SOURCES_NATIVE
   src/window/NATIVE_glfwWindow.cpp
+)
+set(AB_ENGINE_SOURCES_WEB
+  src/window/WEB_canvasWindow.cpp
 )
