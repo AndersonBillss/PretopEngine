@@ -5,8 +5,7 @@
 #include "./appDevice.hpp"
 #include "./appRenderPassCommand.hpp"
 #include "./appPipeline.hpp"
-#include "appVertexBuffer.hpp"
-#include "appIndexBuffer.hpp"
+#include "appBuffer.hpp"
 
 class AppCommandBuffer
 {
@@ -16,17 +15,17 @@ public:
     void addCommand(
         AppRenderPassCommand &command,
         AppPipeline &pipeline,
-        std::vector<AppVertexBuffer<float> *> &vertexBuffers);
+        std::vector<AppBuffer<float> *> &vertexBuffers);
     void addCommand(
         AppRenderPassCommand &command,
         AppPipeline &pipeline,
-        std::vector<AppVertexBuffer<float> *> &vertexBuffers,
-        AppIndexBuffer<uint16_t> &indexBuffer);
+        std::vector<AppBuffer<float> *> &vertexBuffers,
+        AppBuffer<uint16_t> &indexBuffer);
     void addCommand(
         AppRenderPassCommand &command,
         AppPipeline &pipeline,
-        std::vector<AppVertexBuffer<float> *> &vertexBuffers,
-        AppIndexBuffer<uint32_t> &indexBuffer);
+        std::vector<AppBuffer<float> *> &vertexBuffers,
+        AppBuffer<uint32_t> &indexBuffer);
     void finish();
     WGPUCommandEncoder wgpuEncoder;
     WGPUCommandBuffer wgpuBuffer;

@@ -1,15 +1,13 @@
 #pragma once
+#include <cstdint>
+#include <type_traits>
 #include <webgpu/webgpu.h>
-#include <initializer_list>
-#include <vector>
-#include <stdexcept>
-#include "appDevice.hpp"
 
-template <class T>
-class AppVertexBuffer
+template <typename T>
+class AppBuffer
 {
 public:
-    AppVertexBuffer(AppDevice &device, std::initializer_list<std::initializer_list<T>> data)
+    AppBuffer(AppDevice &device, std::initializer_list<std::initializer_list<T>> data, WGPUBufferUsage usage)
     {
         this->_vec = std::vector<T>();
         size_t i = 0;
@@ -32,15 +30,15 @@ public:
         this->_vec.resize(ceilFour(this->_vec.size()));
 
         WGPUBufferDescriptor bufferDesc = WGPU_BUFFER_DESCRIPTOR_INIT;
-        const std::string bufferLabel = "Test buffer";
+        const std::string bufferLabel = "Test index buffer";
         bufferDesc.label = WGPUStringView{bufferLabel.c_str(), bufferLabel.size()};
-        bufferDesc.usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex;
+        bufferDesc.usage = WGPUBufferUsage_CopyDst | usage;
         bufferDesc.size = this->numBytes();
         bufferDesc.mappedAtCreation = false;
         this->wgpuBuffer = wgpuDeviceCreateBuffer(device.wgpuDevice, &bufferDesc);
     }
 
-    ~AppVertexBuffer()
+    ~AppBuffer()
     {
         wgpuBufferRelease(this->wgpuBuffer);
     }
@@ -49,15 +47,16 @@ public:
     {
         return _vec.size() * sizeof(T);
     }
-    size_t vertexCount() const
-    {
-        return _vec.size() / _stride;
-    }
     size_t count() const
     {
         return _vec.size();
     }
-    size_t stride() const
+
+    size_t numRows() const
+    {
+        return _vec.size() / _stride;
+    }
+    size_t stride()
     {
         return _stride;
     }

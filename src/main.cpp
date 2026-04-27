@@ -14,6 +14,7 @@
 #include "application/appVertexBuffer.hpp"
 #include "application/appVertexLayout.hpp"
 #include "application/appIndexBuffer.hpp"
+#include "application/appBuffer.hpp"
 
 int main(int, char **)
 {
@@ -52,36 +53,38 @@ int main(int, char **)
     application.logQueueCommands();
     application.setWindow(WindowFactory::createWindow("My Window"));
 
-    AppVertexBuffer<float> buf(application.device,
-                               {
-                                   {0.5, 0.0, 0.0, 0.353, 0.612},
-                                   {1.0, 0.866, 0.0, 0.353, 0.612},
-                                   {0.0, 0.866, 0.0, 0.353, 0.612},
-                                   {0.75, 0.433, 0.0, 0.4, 0.7},
-                                   {1.25, 0.433, 0.0, 0.4, 0.7},
-                                   {1.0, 0.866, 0.0, 0.4, 0.7},
-                                   {1.0, 0.0, 0.0, 0.463, 0.8},
-                                   {1.25, 0.433, 0.0, 0.463, 0.8},
-                                   {0.75, 0.433, 0.0, 0.463, 0.8},
-                                   {1.25, 0.433, 0.0, 0.525, 0.91},
-                                   {1.375, 0.65, 0.0, 0.525, 0.91},
-                                   {1.125, 0.65, 0.0, 0.525, 0.91},
-                                   {1.125, 0.65, 0.0, 0.576, 1.0},
-                                   {1.375, 0.65, 0.0, 0.576, 1.0},
-                                   {1.25, 0.866, 0.0, 0.576, 1.0},
-                               });
-    AppIndexBuffer<uint16_t> indices(application.device, {
-                                                             {0, 1, 2},
-                                                             {3, 4, 5},
-                                                             {6, 7, 8},
-                                                             {9, 10, 11},
-                                                             {12, 13, 14},
-                                                         });
+    AppBuffer<float> buf(application.device,
+                         {
+                             {0.5, 0.0, 0.0, 0.353, 0.612},
+                             {1.0, 0.866, 0.0, 0.353, 0.612},
+                             {0.0, 0.866, 0.0, 0.353, 0.612},
+                             {0.75, 0.433, 0.0, 0.4, 0.7},
+                             {1.25, 0.433, 0.0, 0.4, 0.7},
+                             {1.0, 0.866, 0.0, 0.4, 0.7},
+                             {1.0, 0.0, 0.0, 0.463, 0.8},
+                             {1.25, 0.433, 0.0, 0.463, 0.8},
+                             {0.75, 0.433, 0.0, 0.463, 0.8},
+                             {1.25, 0.433, 0.0, 0.525, 0.91},
+                             {1.375, 0.65, 0.0, 0.525, 0.91},
+                             {1.125, 0.65, 0.0, 0.525, 0.91},
+                             {1.125, 0.65, 0.0, 0.576, 1.0},
+                             {1.375, 0.65, 0.0, 0.576, 1.0},
+                             {1.25, 0.866, 0.0, 0.576, 1.0},
+                         },
+                         WGPUBufferUsage_Vertex);
+    AppBuffer<uint16_t> indices(application.device, {
+                                                        {0, 1, 2},
+                                                        {3, 4, 5},
+                                                        {6, 7, 8},
+                                                        {9, 10, 11},
+                                                        {12, 13, 14},
+                                                    },
+                                WGPUBufferUsage_Index);
 
     AppVertexLayout layout = {{LayoutType::Float32x2, LayoutType::Float32x3}};
     AppPipeline pipeline(application.device, shader, application.windowFormat, layout);
 
-    application.writeVertices(std::initializer_list<AppVertexBuffer<float> *>{&buf});
+    application.writeVertices(std::initializer_list<AppBuffer<float> *>{&buf});
     application.writeIndex(indices);
 
     application.run([&application, &pipeline, &buf, &indices](
@@ -91,7 +94,7 @@ int main(int, char **)
                         AppCommandBuffer commandBuffer(application.device);
                         std::cout << "DELTATIME: " << dt << std::endl;
                         AppRenderPassCommand command(application.device, targetView);
-                        std::vector<AppVertexBuffer<float>*> bufs = {&buf};
+                        std::vector<AppBuffer<float>*> bufs = {&buf};
                         commandBuffer.addCommand(command, pipeline, bufs, indices);
                         std::cout << "Submitting command..." << std::endl;
                         commandBuffer.finish();

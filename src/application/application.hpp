@@ -8,8 +8,7 @@
 #include "appDevice.hpp"
 #include "appInstance.hpp"
 #include "appCommandBuffer.hpp"
-#include "appVertexBuffer.hpp"
-#include "appIndexBuffer.hpp"
+#include "appBuffer.hpp"
 
 class Application
 {
@@ -20,9 +19,9 @@ public:
 
     void run(TickCallback cb);
 
-    void writeVertices(const std::initializer_list<AppVertexBuffer<float> *> &bufs);
-    void writeIndex(const AppIndexBuffer<uint16_t> &buf);
-    void writeIndex(const AppIndexBuffer<uint32_t> &buf);
+    void writeVertices(const std::initializer_list<AppBuffer<float> *> &bufs);
+    void writeIndex(const AppBuffer<uint16_t> &buf);
+    void writeIndex(const AppBuffer<uint32_t> &buf);
     void submitCommandBuffer(AppCommandBuffer &buf);
     void setWindow(std::unique_ptr<Window> win);
     void logQueueCommands();

@@ -21,7 +21,7 @@ AppCommandBuffer::~AppCommandBuffer()
 void AppCommandBuffer::addCommand(
     AppRenderPassCommand &command,
     AppPipeline &pipeline,
-    std::vector<AppVertexBuffer<float> *> &vertexBuffers)
+    std::vector<AppBuffer<float> *> &vertexBuffers)
 {
     WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(this->wgpuEncoder, &command.wgpuRenderPassDescriptor);
     wgpuRenderPassEncoderSetPipeline(renderPass, pipeline.wgpuPipeline);
@@ -36,7 +36,7 @@ void AppCommandBuffer::addCommand(
             0,
             wgpuBufferGetSize(buf->wgpuBuffer));
     }
-    wgpuRenderPassEncoderDraw(renderPass, vertexBuffers[0]->vertexCount(), 1, 0, 0);
+    wgpuRenderPassEncoderDraw(renderPass, vertexBuffers[0]->numRows(), 1, 0, 0);
 
     wgpuRenderPassEncoderEnd(renderPass);
     wgpuRenderPassEncoderRelease(renderPass);
@@ -45,8 +45,8 @@ void AppCommandBuffer::addCommand(
 void AppCommandBuffer::addCommand(
     AppRenderPassCommand &command,
     AppPipeline &pipeline,
-    std::vector<AppVertexBuffer<float> *> &vertexBuffers,
-    AppIndexBuffer<uint16_t> &indexBuffer)
+    std::vector<AppBuffer<float> *> &vertexBuffers,
+    AppBuffer<uint16_t> &indexBuffer)
 {
     WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(this->wgpuEncoder, &command.wgpuRenderPassDescriptor);
     wgpuRenderPassEncoderSetPipeline(renderPass, pipeline.wgpuPipeline);
@@ -71,8 +71,8 @@ void AppCommandBuffer::addCommand(
 void AppCommandBuffer::addCommand(
     AppRenderPassCommand &command,
     AppPipeline &pipeline,
-    std::vector<AppVertexBuffer<float> *> &vertexBuffers,
-    AppIndexBuffer<uint32_t> &indexBuffer)
+    std::vector<AppBuffer<float> *> &vertexBuffers,
+    AppBuffer<uint32_t> &indexBuffer)
 {
     WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(this->wgpuEncoder, &command.wgpuRenderPassDescriptor);
     wgpuRenderPassEncoderSetPipeline(renderPass, pipeline.wgpuPipeline);
