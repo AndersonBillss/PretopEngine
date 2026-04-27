@@ -11,9 +11,7 @@
 #include "application/appPipeline.hpp"
 #include "application/appCommandBuffer.hpp"
 #include "application/appRenderPassCommand.hpp"
-#include "application/appVertexBuffer.hpp"
 #include "application/appVertexLayout.hpp"
-#include "application/appIndexBuffer.hpp"
 #include "application/appBuffer.hpp"
 
 int main(int, char **)
