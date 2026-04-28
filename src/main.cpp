@@ -31,6 +31,8 @@ int main(int, char **)
             @location(0) color: vec3f,
         };
 
+        @group(0) @binding(0) var<uniform> uTime: f32;
+
         @vertex
         fn vs_main(in: VertexInput) -> VertexOutput {
             var out: VertexOutput;
@@ -79,13 +81,57 @@ int main(int, char **)
                                                     },
                                 WGPUBufferUsage_Index);
 
+    AppBuffer<float> uTime(application.device, {{1}}, WGPUBufferUsage_Uniform);
     AppVertexLayout layout = {{LayoutType::Float32x2, LayoutType::Float32x3}};
-    AppPipeline pipeline(application.device, shader, application.windowFormat, layout);
 
+    // Define binding layout
+    WGPUBindGroupLayoutEntry bindingLayout = WGPU_BIND_GROUP_LAYOUT_ENTRY_INIT;
+
+    // The binding index as used in the @binding attribute in the shader
+    bindingLayout.binding = 0;
+    bindingLayout.buffer.type = WGPUBufferBindingType_Uniform;
+    bindingLayout.buffer.minBindingSize = sizeof(float);
+
+    // The stage that needs to access this resource
+    bindingLayout.visibility = WGPUShaderStage_Vertex;
+    // Create a bind group layout
+    WGPUBindGroupLayoutDescriptor bindGroupLayoutDesc = WGPU_BIND_GROUP_LAYOUT_DESCRIPTOR_INIT;
+    bindGroupLayoutDesc.entryCount = 1;
+    bindGroupLayoutDesc.entries = &bindingLayout;
+    WGPUBindGroupLayout bindGroupLayout = wgpuDeviceCreateBindGroupLayout(application.device.wgpuDevice, &bindGroupLayoutDesc);
+
+    // Create the pipeline layout
+    WGPUPipelineLayoutDescriptor layoutDesc = WGPU_PIPELINE_LAYOUT_DESCRIPTOR_INIT;
+    layoutDesc.bindGroupLayoutCount = 1;
+    layoutDesc.bindGroupLayouts = &bindGroupLayout;
+    WGPUPipelineLayout pipelineLayout = wgpuDeviceCreatePipelineLayout(application.device.wgpuDevice, &layoutDesc);
+    AppPipeline pipeline(application.device, shader, application.windowFormat, layout, pipelineLayout);
+
+    WGPUBindGroupEntry binding = WGPU_BIND_GROUP_ENTRY_INIT;
+    // The index of the binding (the entries in bindGroupDesc can be in any order)
+    binding.binding = 0;
+    // The buffer it is actually bound to
+    binding.buffer = uTime.wgpuBuffer;
+    // We can specify an offset within the buffer, so that a single buffer can hold
+    // multiple uniform blocks.
+    binding.offset = 0;
+    // And we specify again the size of the buffer.
+    binding.size = sizeof(float);
+
+    // A bind group contains one or multiple bindings
+    WGPUBindGroupDescriptor bindGroupDesc = WGPU_BIND_GROUP_DESCRIPTOR_INIT;
+    bindGroupDesc.nextInChain = nullptr;
+    bindGroupDesc.layout = bindGroupLayout;
+    // There must be as many bindings as declared in the layout!
+    bindGroupDesc.entryCount = 1;
+    bindGroupDesc.entries = &binding;
+    WGPUBindGroup bindGroup = wgpuDeviceCreateBindGroup(application.device.wgpuDevice, &bindGroupDesc);
+
+    application.writeBuf(uTime);
     application.writeVertices(std::initializer_list<AppBuffer<float> *>{&buf});
     application.writeIndex(indices);
 
-    application.run([&application, &pipeline, &buf, &indices](
+    application.run([&application, &pipeline, &buf, &indices, &bindGroup](
                         double dt,
                         WGPUTextureView targetView)
                     {
@@ -93,11 +139,16 @@ int main(int, char **)
                         std::cout << "DELTATIME: " << dt << std::endl;
                         AppRenderPassCommand command(application.device, targetView);
                         std::vector<AppBuffer<float>*> bufs = {&buf};
-                        commandBuffer.addCommand(command, pipeline, bufs, indices);
+
+                        commandBuffer.addCommand(command, pipeline, bufs, indices, bindGroup);
                         std::cout << "Submitting command..." << std::endl;
                         commandBuffer.finish();
                         application.submitCommandBuffer(commandBuffer);
                         return commandBuffer; });
+
+    wgpuPipelineLayoutRelease(pipelineLayout);
+    wgpuBindGroupLayoutRelease(bindGroupLayout);
+    wgpuBindGroupRelease(bindGroup);
 
     return 0;
 }

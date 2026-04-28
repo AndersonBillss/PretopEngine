@@ -12,7 +12,8 @@ public:
         AppDevice device,
         AppShader shader,
         WGPUTextureFormat format,
-        AppVertexLayout &vertexLayout);
+        AppVertexLayout &vertexLayout,
+        WGPUPipelineLayout &pipelineLayout);
     ~AppPipeline();
 
     WGPURenderPipeline wgpuPipeline;

@@ -4,7 +4,8 @@ AppPipeline::AppPipeline(
     AppDevice device,
     AppShader shader,
     WGPUTextureFormat format,
-    AppVertexLayout &vertexLayout)
+    AppVertexLayout &vertexLayout,
+    WGPUPipelineLayout &pipelineLayout)
 {
     std::vector<WGPUVertexBufferLayout> layouts = {};
     for (const auto &layout : vertexLayout.bufferLayouts)
@@ -23,6 +24,7 @@ AppPipeline::AppPipeline(
     pipelineDesc.primitive.frontFace = WGPUFrontFace_CCW;
     pipelineDesc.primitive.cullMode = WGPUCullMode_None;
     pipelineDesc.vertex.bufferCount = layouts.size();
+    pipelineDesc.layout = pipelineLayout;
     pipelineDesc.vertex.buffers = layouts.data();
 
     WGPUFragmentState fragmentState = WGPU_FRAGMENT_STATE_INIT;

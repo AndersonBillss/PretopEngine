@@ -22,6 +22,16 @@ public:
     void writeVertices(const std::initializer_list<AppBuffer<float> *> &bufs);
     void writeIndex(const AppBuffer<uint16_t> &buf);
     void writeIndex(const AppBuffer<uint32_t> &buf);
+    template <class T>
+    void writeBuf(const AppBuffer<T> &buf)
+    {
+        wgpuQueueWriteBuffer(
+            this->_queue,
+            buf.wgpuBuffer,
+            0,
+            buf.data(),
+            buf.numBytes());
+    };
     void submitCommandBuffer(AppCommandBuffer &buf);
     void setWindow(std::unique_ptr<Window> win);
     void logQueueCommands();
