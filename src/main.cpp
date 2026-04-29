@@ -2,6 +2,8 @@
 #include <unordered_map>
 #include <vector>
 #include <memory>
+#include <chrono>
+#include <cmath>
 
 #include "printStringView.hpp"
 #include "window/windowFactory.hpp"
@@ -39,7 +41,8 @@ int main(int, char **)
             let ratio = 640.0 / 480.0; // The width and height of the target surface
             let offset = vec2f(-0.6875, -0.463); // The offset that we want to apply to the position
             out.position = vec4f(in.position.x + offset.x, (in.position.y + offset.y) * ratio, 0.0, 1.0);
-            out.color = in.color;
+            let brightness = (sin(uTime) + 1)  / 2;
+            out.color = vec3f(in.color.x, in.color.y, in.color.z * brightness);
             return out;
         }
 
@@ -81,7 +84,6 @@ int main(int, char **)
                                                     },
                                 WGPUBufferUsage_Index);
 
-    AppBuffer<float> uTime(application.device, {{1}}, WGPUBufferUsage_Uniform);
     AppVertexLayout layout = {{LayoutType::Float32x2, LayoutType::Float32x3}};
 
     // Define binding layout
@@ -107,6 +109,8 @@ int main(int, char **)
     WGPUPipelineLayout pipelineLayout = wgpuDeviceCreatePipelineLayout(application.device.wgpuDevice, &layoutDesc);
     AppPipeline pipeline(application.device, shader, application.windowFormat, layout, pipelineLayout);
 
+    AppBuffer<float> uTime(application.device, {{1}}, WGPUBufferUsage_Uniform);
+
     WGPUBindGroupEntry binding = WGPU_BIND_GROUP_ENTRY_INIT;
     // The index of the binding (the entries in bindGroupDesc can be in any order)
     binding.binding = 0;
@@ -131,10 +135,16 @@ int main(int, char **)
     application.writeVertices(std::initializer_list<AppBuffer<float> *>{&buf});
     application.writeIndex(indices);
 
-    application.run([&application, &pipeline, &buf, &indices, &bindGroup](
+    float seconds = 0;
+    application.run([&application, &pipeline, &buf, &indices, &bindGroup, &uTime, &seconds](
                         double dt,
                         WGPUTextureView targetView)
                     {
+                        seconds += dt;
+                        float *rawData = (float *)uTime.rawData();
+                        *rawData = seconds;
+                        application.writeBuf(uTime);
+
                         AppCommandBuffer commandBuffer(application.device);
                         std::cout << "DELTATIME: " << dt << std::endl;
                         AppRenderPassCommand command(application.device, targetView);
@@ -144,11 +154,12 @@ int main(int, char **)
                         std::cout << "Submitting command..." << std::endl;
                         commandBuffer.finish();
                         application.submitCommandBuffer(commandBuffer);
+
                         return commandBuffer; });
 
+    wgpuBindGroupRelease(bindGroup);
     wgpuPipelineLayoutRelease(pipelineLayout);
     wgpuBindGroupLayoutRelease(bindGroupLayout);
-    wgpuBindGroupRelease(bindGroup);
 
     return 0;
 }

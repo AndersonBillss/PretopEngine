@@ -66,6 +66,11 @@ public:
         return _vec.data();
     }
 
+    void *rawData() const
+    {
+        return (void *)_vec.data();
+    }
+
     WGPUBuffer wgpuBuffer;
 
 private:
