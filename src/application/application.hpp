@@ -19,9 +19,6 @@ public:
 
     void run(TickCallback cb);
 
-    void writeVertices(const std::initializer_list<AppBuffer<float> *> &bufs);
-    void writeIndex(const AppBuffer<uint16_t> &buf);
-    void writeIndex(const AppBuffer<uint32_t> &buf);
     template <class T>
     void writeBuf(const AppBuffer<T> &buf)
     {

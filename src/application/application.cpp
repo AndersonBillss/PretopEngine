@@ -29,38 +29,6 @@ void Application::run(TickCallback cb)
     _window->run();
 }
 
-void Application::writeVertices(const std::initializer_list<AppBuffer<float> *> &bufs)
-{
-    for (const auto buf : bufs)
-    {
-        wgpuQueueWriteBuffer(
-            this->_queue,
-            buf->wgpuBuffer,
-            0,
-            buf->data(),
-            buf->numBytes());
-    }
-}
-
-void Application::writeIndex(const AppBuffer<uint16_t> &buf)
-{
-    wgpuQueueWriteBuffer(
-        this->_queue,
-        buf.wgpuBuffer,
-        0,
-        buf.data(),
-        buf.numBytes());
-}
-void Application::writeIndex(const AppBuffer<uint32_t> &buf)
-{
-    wgpuQueueWriteBuffer(
-        this->_queue,
-        buf.wgpuBuffer,
-        0,
-        buf.data(),
-        buf.numBytes());
-}
-
 void Application::submitCommandBuffer(AppCommandBuffer &buf)
 {
     wgpuQueueSubmit(this->_queue, 1, &buf.wgpuBuffer);

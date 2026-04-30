@@ -132,8 +132,8 @@ int main(int, char **)
     WGPUBindGroup bindGroup = wgpuDeviceCreateBindGroup(application.device.wgpuDevice, &bindGroupDesc);
 
     application.writeBuf(uTime);
-    application.writeVertices(std::initializer_list<AppBuffer<float> *>{&buf});
-    application.writeIndex(indices);
+    application.writeBuf(buf);
+    application.writeBuf(indices);
 
     float seconds = 0;
     application.run([&application, &pipeline, &buf, &indices, &bindGroup, &uTime, &seconds](
