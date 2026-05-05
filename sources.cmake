@@ -1,6 +1,7 @@
 # Auto-generated code, do not edit
 set(AB_ENGINE_SOURCES
   src/application/appAdapter.cpp
+  src/application/appBindingLayout.cpp
   src/application/appCommandBuffer.cpp
   src/application/appDevice.cpp
   src/application/appInstance.cpp

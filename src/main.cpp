@@ -14,6 +14,7 @@
 #include "application/appCommandBuffer.hpp"
 #include "application/appRenderPassCommand.hpp"
 #include "application/appVertexLayout.hpp"
+#include "application/appBindingLayout.hpp"
 #include "application/appBuffer.hpp"
 
 int main(int, char **)
@@ -84,31 +85,9 @@ int main(int, char **)
                                                     },
                                 WGPUBufferUsage_Index);
 
-    AppVertexLayout layout = {{LayoutType::Float32x2, LayoutType::Float32x3}};
-
-    // Define binding layout
-    WGPUBindGroupLayoutEntry bindingLayout = WGPU_BIND_GROUP_LAYOUT_ENTRY_INIT;
-
-    // The binding index as used in the @binding attribute in the shader
-    bindingLayout.binding = 0;
-    bindingLayout.buffer.type = WGPUBufferBindingType_Uniform;
-    bindingLayout.buffer.minBindingSize = sizeof(float);
-
-    // The stage that needs to access this resource
-    bindingLayout.visibility = WGPUShaderStage_Vertex;
-    // Create a bind group layout
-    WGPUBindGroupLayoutDescriptor bindGroupLayoutDesc = WGPU_BIND_GROUP_LAYOUT_DESCRIPTOR_INIT;
-    bindGroupLayoutDesc.entryCount = 1;
-    bindGroupLayoutDesc.entries = &bindingLayout;
-    WGPUBindGroupLayout bindGroupLayout = wgpuDeviceCreateBindGroupLayout(application.device.wgpuDevice, &bindGroupLayoutDesc);
-
-    // Create the pipeline layout
-    WGPUPipelineLayoutDescriptor layoutDesc = WGPU_PIPELINE_LAYOUT_DESCRIPTOR_INIT;
-    layoutDesc.bindGroupLayoutCount = 1;
-    layoutDesc.bindGroupLayouts = &bindGroupLayout;
-    WGPUPipelineLayout pipelineLayout = wgpuDeviceCreatePipelineLayout(application.device.wgpuDevice, &layoutDesc);
-    AppPipeline pipeline(application.device, shader, application.windowFormat, layout, pipelineLayout);
-
+    AppVertexLayout vertexLayout = {{LayoutType::Float32x2, LayoutType::Float32x3}};
+    AppBindingLayout bindingLayout(application.device, {{sizeof(float)}});
+    AppPipeline pipeline(application.device, shader, application.windowFormat, vertexLayout, bindingLayout);
     AppBuffer<float> uTime(application.device, {{1}}, WGPUBufferUsage_Uniform);
 
     WGPUBindGroupEntry binding = WGPU_BIND_GROUP_ENTRY_INIT;
@@ -125,7 +104,7 @@ int main(int, char **)
     // A bind group contains one or multiple bindings
     WGPUBindGroupDescriptor bindGroupDesc = WGPU_BIND_GROUP_DESCRIPTOR_INIT;
     bindGroupDesc.nextInChain = nullptr;
-    bindGroupDesc.layout = bindGroupLayout;
+    bindGroupDesc.layout = bindingLayout.wgpuBindGroupLayouts[0];
     // There must be as many bindings as declared in the layout!
     bindGroupDesc.entryCount = 1;
     bindGroupDesc.entries = &binding;
@@ -158,8 +137,5 @@ int main(int, char **)
                         return commandBuffer; });
 
     wgpuBindGroupRelease(bindGroup);
-    wgpuPipelineLayoutRelease(pipelineLayout);
-    wgpuBindGroupLayoutRelease(bindGroupLayout);
-
     return 0;
 }

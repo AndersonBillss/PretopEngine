@@ -4,6 +4,7 @@
 #include "appDevice.hpp"
 #include "appShader.hpp"
 #include "appVertexLayout.hpp"
+#include "appBindingLayout.hpp"
 
 class AppPipeline
 {
@@ -13,7 +14,7 @@ public:
         AppShader shader,
         WGPUTextureFormat format,
         AppVertexLayout &vertexLayout,
-        WGPUPipelineLayout &pipelineLayout);
+        AppBindingLayout &pipelineLayout);
     ~AppPipeline();
 
     WGPURenderPipeline wgpuPipeline;
