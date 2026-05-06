@@ -2,14 +2,16 @@
 #include <cstdint>
 #include <type_traits>
 #include <webgpu/webgpu.h>
+#include <cstring>
 
-template <typename T>
 class AppBuffer
 {
 public:
+    template <typename T>
     AppBuffer(AppDevice &device, std::initializer_list<std::initializer_list<T>> data, WGPUBufferUsage usage)
     {
-        this->_vec = std::vector<T>();
+        std::vector<T> vec = std::vector<T>();
+        this->_unitSize = sizeof(T);
         size_t i = 0;
         for (auto &row : data)
         {
@@ -23,11 +25,14 @@ public:
             }
             for (auto &item : row)
             {
-                this->_vec.push_back(item);
+                vec.push_back(item);
             }
             i++;
         }
-        this->_vec.resize(ceilFour(this->_vec.size()));
+        vec.resize(_ceilFour(vec.size()));
+        this->_unitCount = vec.size();
+        this->_data = std::malloc(vec.size() * sizeof(T));
+        std::memcpy(this->_data, vec.data(), vec.size() * sizeof(T));
 
         WGPUBufferDescriptor bufferDesc = WGPU_BUFFER_DESCRIPTOR_INIT;
         const std::string bufferLabel = "Test index buffer";
@@ -40,21 +45,22 @@ public:
 
     ~AppBuffer()
     {
+        delete[] this->_data;
         wgpuBufferRelease(this->wgpuBuffer);
     }
 
     size_t numBytes() const
     {
-        return _vec.size() * sizeof(T);
+        return _unitCount * _unitSize;
     }
     size_t count() const
     {
-        return _vec.size();
+        return _unitCount;
     }
 
     size_t numRows() const
     {
-        return _vec.size() / _stride;
+        return this->_unitCount / _stride;
     }
     size_t stride()
     {
@@ -63,24 +69,26 @@ public:
 
     const void *data() const
     {
-        return _vec.data();
+        return this->_data;
     }
 
     void *rawData() const
     {
-        return (void *)_vec.data();
+        return this->_data;
     }
 
     WGPUBuffer wgpuBuffer;
 
 private:
-    std::vector<T> _vec;
+    void *_data;
+    size_t _unitSize;
+    size_t _unitCount;
     size_t _stride;
 
-    size_t ceilFour(size_t n)
+    size_t _ceilFour(size_t n)
     {
-        size_t numBytes = n * sizeof(T);
+        size_t numBytes = n * this->_unitSize;
         size_t roundedUp = (numBytes + 3) & ~3;
-        return roundedUp / sizeof(T);
+        return roundedUp / this->_unitSize;
     }
 };

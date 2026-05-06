@@ -19,8 +19,7 @@ public:
 
     void run(TickCallback cb);
 
-    template <class T>
-    void writeBuf(const AppBuffer<T> &buf)
+    void writeBuf(const AppBuffer &buf)
     {
         wgpuQueueWriteBuffer(
             this->_queue,

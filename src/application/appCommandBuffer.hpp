@@ -15,19 +15,13 @@ public:
     void addCommand(
         AppRenderPassCommand &command,
         AppPipeline &pipeline,
-        std::vector<AppBuffer<float> *> &vertexBuffers,
+        std::vector<AppBuffer *> &vertexBuffers,
         WGPUBindGroup &bindGroup);
     void addCommand(
         AppRenderPassCommand &command,
         AppPipeline &pipeline,
-        std::vector<AppBuffer<float> *> &vertexBuffers,
-        AppBuffer<uint16_t> &indexBuffer,
-        WGPUBindGroup &bindGroup);
-    void addCommand(
-        AppRenderPassCommand &command,
-        AppPipeline &pipeline,
-        std::vector<AppBuffer<float> *> &vertexBuffers,
-        AppBuffer<uint32_t> &indexBuffer,
+        std::vector<AppBuffer *> &vertexBuffers,
+        AppBuffer &indexBuffer,
         WGPUBindGroup &bindGroup);
     void finish();
     WGPUCommandEncoder wgpuEncoder;

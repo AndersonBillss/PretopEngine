@@ -57,38 +57,38 @@ int main(int, char **)
     application.logQueueCommands();
     application.setWindow(WindowFactory::createWindow("My Window"));
 
-    AppBuffer<float> buf(application.device,
-                         {
-                             {0.5, 0.0, 0.0, 0.353, 0.612},
-                             {1.0, 0.866, 0.0, 0.353, 0.612},
-                             {0.0, 0.866, 0.0, 0.353, 0.612},
-                             {0.75, 0.433, 0.0, 0.4, 0.7},
-                             {1.25, 0.433, 0.0, 0.4, 0.7},
-                             {1.0, 0.866, 0.0, 0.4, 0.7},
-                             {1.0, 0.0, 0.0, 0.463, 0.8},
-                             {1.25, 0.433, 0.0, 0.463, 0.8},
-                             {0.75, 0.433, 0.0, 0.463, 0.8},
-                             {1.25, 0.433, 0.0, 0.525, 0.91},
-                             {1.375, 0.65, 0.0, 0.525, 0.91},
-                             {1.125, 0.65, 0.0, 0.525, 0.91},
-                             {1.125, 0.65, 0.0, 0.576, 1.0},
-                             {1.375, 0.65, 0.0, 0.576, 1.0},
-                             {1.25, 0.866, 0.0, 0.576, 1.0},
-                         },
-                         WGPUBufferUsage_Vertex);
-    AppBuffer<uint16_t> indices(application.device, {
-                                                        {0, 1, 2},
-                                                        {3, 4, 5},
-                                                        {6, 7, 8},
-                                                        {9, 10, 11},
-                                                        {12, 13, 14},
-                                                    },
-                                WGPUBufferUsage_Index);
+    AppBuffer buf(application.device,
+                  std::initializer_list<std::initializer_list<float>>{
+                      {0.5, 0.0, 0.0, 0.353, 0.612},
+                      {1.0, 0.866, 0.0, 0.353, 0.612},
+                      {0.0, 0.866, 0.0, 0.353, 0.612},
+                      {0.75, 0.433, 0.0, 0.4, 0.7},
+                      {1.25, 0.433, 0.0, 0.4, 0.7},
+                      {1.0, 0.866, 0.0, 0.4, 0.7},
+                      {1.0, 0.0, 0.0, 0.463, 0.8},
+                      {1.25, 0.433, 0.0, 0.463, 0.8},
+                      {0.75, 0.433, 0.0, 0.463, 0.8},
+                      {1.25, 0.433, 0.0, 0.525, 0.91},
+                      {1.375, 0.65, 0.0, 0.525, 0.91},
+                      {1.125, 0.65, 0.0, 0.525, 0.91},
+                      {1.125, 0.65, 0.0, 0.576, 1.0},
+                      {1.375, 0.65, 0.0, 0.576, 1.0},
+                      {1.25, 0.866, 0.0, 0.576, 1.0},
+                  },
+                  WGPUBufferUsage_Vertex);
+    AppBuffer indices(application.device, std::initializer_list<std::initializer_list<uint16_t>>{
+                                              {0, 1, 2},
+                                              {3, 4, 5},
+                                              {6, 7, 8},
+                                              {9, 10, 11},
+                                              {12, 13, 14},
+                                          },
+                      WGPUBufferUsage_Index);
 
     AppVertexLayout vertexLayout = {{LayoutType::Float32x2, LayoutType::Float32x3}};
     AppBindingLayout bindingLayout(application.device, {{sizeof(float)}});
     AppPipeline pipeline(application.device, shader, application.windowFormat, vertexLayout, bindingLayout);
-    AppBuffer<float> uTime(application.device, {{1}}, WGPUBufferUsage_Uniform);
+    AppBuffer uTime(application.device, {{1.0f}}, WGPUBufferUsage_Uniform);
 
     WGPUBindGroupEntry binding = WGPU_BIND_GROUP_ENTRY_INIT;
     // The index of the binding (the entries in bindGroupDesc can be in any order)
@@ -127,7 +127,7 @@ int main(int, char **)
                         AppCommandBuffer commandBuffer(application.device);
                         std::cout << "DELTATIME: " << dt << std::endl;
                         AppRenderPassCommand command(application.device, targetView);
-                        std::vector<AppBuffer<float>*> bufs = {&buf};
+                        std::vector<AppBuffer*> bufs = {&buf};
 
                         commandBuffer.addCommand(command, pipeline, bufs, indices, bindGroup);
                         std::cout << "Submitting command..." << std::endl;

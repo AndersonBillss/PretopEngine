@@ -21,7 +21,7 @@ AppCommandBuffer::~AppCommandBuffer()
 void AppCommandBuffer::addCommand(
     AppRenderPassCommand &command,
     AppPipeline &pipeline,
-    std::vector<AppBuffer<float> *> &vertexBuffers,
+    std::vector<AppBuffer *> &vertexBuffers,
     WGPUBindGroup &bindGroup)
 {
     WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(this->wgpuEncoder, &command.wgpuRenderPassDescriptor);
@@ -47,8 +47,8 @@ void AppCommandBuffer::addCommand(
 void AppCommandBuffer::addCommand(
     AppRenderPassCommand &command,
     AppPipeline &pipeline,
-    std::vector<AppBuffer<float> *> &vertexBuffers,
-    AppBuffer<uint16_t> &indexBuffer,
+    std::vector<AppBuffer *> &vertexBuffers,
+    AppBuffer &indexBuffer,
     WGPUBindGroup &bindGroup)
 {
     WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(this->wgpuEncoder, &command.wgpuRenderPassDescriptor);
@@ -66,34 +66,6 @@ void AppCommandBuffer::addCommand(
     }
     wgpuRenderPassEncoderSetIndexBuffer(
         renderPass, indexBuffer.wgpuBuffer, WGPUIndexFormat_Uint16, 0, wgpuBufferGetSize(indexBuffer.wgpuBuffer));
-    wgpuRenderPassEncoderSetBindGroup(renderPass, 0, bindGroup, 0, nullptr);
-    wgpuRenderPassEncoderDrawIndexed(renderPass, indexBuffer.count(), 1, 0, 0, 0);
-
-    wgpuRenderPassEncoderEnd(renderPass);
-    wgpuRenderPassEncoderRelease(renderPass);
-}
-void AppCommandBuffer::addCommand(
-    AppRenderPassCommand &command,
-    AppPipeline &pipeline,
-    std::vector<AppBuffer<float> *> &vertexBuffers,
-    AppBuffer<uint32_t> &indexBuffer,
-    WGPUBindGroup &bindGroup)
-{
-    WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(this->wgpuEncoder, &command.wgpuRenderPassDescriptor);
-    wgpuRenderPassEncoderSetPipeline(renderPass, pipeline.wgpuPipeline);
-
-    for (size_t i = 0; i < vertexBuffers.size(); i++)
-    {
-        auto buf = vertexBuffers[i];
-        wgpuRenderPassEncoderSetVertexBuffer(
-            renderPass,
-            i,
-            buf->wgpuBuffer,
-            0,
-            wgpuBufferGetSize(buf->wgpuBuffer));
-    }
-    wgpuRenderPassEncoderSetIndexBuffer(
-        renderPass, indexBuffer.wgpuBuffer, WGPUIndexFormat_Uint32, 0, wgpuBufferGetSize(indexBuffer.wgpuBuffer));
     wgpuRenderPassEncoderSetBindGroup(renderPass, 0, bindGroup, 0, nullptr);
     wgpuRenderPassEncoderDrawIndexed(renderPass, indexBuffer.count(), 1, 0, 0, 0);
 
