@@ -16,6 +16,7 @@
 #include "application/appVertexLayout.hpp"
 #include "application/appBindingLayout.hpp"
 #include "application/appBuffer.hpp"
+#include "application/appBindGroup.hpp"
 
 int main(int, char **)
 {
@@ -57,7 +58,7 @@ int main(int, char **)
     application.logQueueCommands();
     application.setWindow(WindowFactory::createWindow("My Window"));
 
-    AppBuffer buf(application.device,
+    AppBuffer vertices(application.device,
                   std::initializer_list<std::initializer_list<float>>{
                       {0.5, 0.0, 0.0, 0.353, 0.612},
                       {1.0, 0.866, 0.0, 0.353, 0.612},
@@ -90,32 +91,14 @@ int main(int, char **)
     AppPipeline pipeline(application.device, shader, application.windowFormat, vertexLayout, bindingLayout);
     AppBuffer uTime(application.device, {{1.0f}}, WGPUBufferUsage_Uniform);
 
-    WGPUBindGroupEntry binding = WGPU_BIND_GROUP_ENTRY_INIT;
-    // The index of the binding (the entries in bindGroupDesc can be in any order)
-    binding.binding = 0;
-    // The buffer it is actually bound to
-    binding.buffer = uTime.wgpuBuffer;
-    // We can specify an offset within the buffer, so that a single buffer can hold
-    // multiple uniform blocks.
-    binding.offset = 0;
-    // And we specify again the size of the buffer.
-    binding.size = sizeof(float);
-
-    // A bind group contains one or multiple bindings
-    WGPUBindGroupDescriptor bindGroupDesc = WGPU_BIND_GROUP_DESCRIPTOR_INIT;
-    bindGroupDesc.nextInChain = nullptr;
-    bindGroupDesc.layout = bindingLayout.wgpuBindGroupLayouts[0];
-    // There must be as many bindings as declared in the layout!
-    bindGroupDesc.entryCount = 1;
-    bindGroupDesc.entries = &binding;
-    WGPUBindGroup bindGroup = wgpuDeviceCreateBindGroup(application.device.wgpuDevice, &bindGroupDesc);
+    AppBindGroup bindGroup(application.device, 0, bindingLayout.wgpuBindGroupLayouts[0], {&uTime});
 
     application.writeBuf(uTime);
-    application.writeBuf(buf);
+    application.writeBuf(vertices);
     application.writeBuf(indices);
 
     float seconds = 0;
-    application.run([&application, &pipeline, &buf, &indices, &bindGroup, &uTime, &seconds](
+    application.run([&application, &pipeline, &vertices, &indices, &bindGroup, &uTime, &seconds](
                         double dt,
                         WGPUTextureView targetView)
                     {
@@ -127,15 +110,14 @@ int main(int, char **)
                         AppCommandBuffer commandBuffer(application.device);
                         std::cout << "DELTATIME: " << dt << std::endl;
                         AppRenderPassCommand command(application.device, targetView);
-                        std::vector<AppBuffer*> bufs = {&buf};
+                        std::vector<AppBuffer*> bufs = {&vertices};
 
-                        commandBuffer.addCommand(command, pipeline, bufs, indices, bindGroup);
+                        commandBuffer.addCommand(command, pipeline, bufs, indices, bindGroup.wgpuBindGroup);
                         std::cout << "Submitting command..." << std::endl;
                         commandBuffer.finish();
                         application.submitCommandBuffer(commandBuffer);
 
                         return commandBuffer; });
 
-    wgpuBindGroupRelease(bindGroup);
     return 0;
 }
