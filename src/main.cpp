@@ -59,24 +59,24 @@ int main(int, char **)
     application.setWindow(WindowFactory::createWindow("My Window"));
 
     AppBuffer vertices(application.device,
-                  std::initializer_list<std::initializer_list<float>>{
-                      {0.5, 0.0, 0.0, 0.353, 0.612},
-                      {1.0, 0.866, 0.0, 0.353, 0.612},
-                      {0.0, 0.866, 0.0, 0.353, 0.612},
-                      {0.75, 0.433, 0.0, 0.4, 0.7},
-                      {1.25, 0.433, 0.0, 0.4, 0.7},
-                      {1.0, 0.866, 0.0, 0.4, 0.7},
-                      {1.0, 0.0, 0.0, 0.463, 0.8},
-                      {1.25, 0.433, 0.0, 0.463, 0.8},
-                      {0.75, 0.433, 0.0, 0.463, 0.8},
-                      {1.25, 0.433, 0.0, 0.525, 0.91},
-                      {1.375, 0.65, 0.0, 0.525, 0.91},
-                      {1.125, 0.65, 0.0, 0.525, 0.91},
-                      {1.125, 0.65, 0.0, 0.576, 1.0},
-                      {1.375, 0.65, 0.0, 0.576, 1.0},
-                      {1.25, 0.866, 0.0, 0.576, 1.0},
-                  },
-                  WGPUBufferUsage_Vertex);
+                       std::initializer_list<std::initializer_list<float>>{
+                           {0.5, 0.0, 0.0, 0.353, 0.612},
+                           {1.0, 0.866, 0.0, 0.353, 0.612},
+                           {0.0, 0.866, 0.0, 0.353, 0.612},
+                           {0.75, 0.433, 0.0, 0.4, 0.7},
+                           {1.25, 0.433, 0.0, 0.4, 0.7},
+                           {1.0, 0.866, 0.0, 0.4, 0.7},
+                           {1.0, 0.0, 0.0, 0.463, 0.8},
+                           {1.25, 0.433, 0.0, 0.463, 0.8},
+                           {0.75, 0.433, 0.0, 0.463, 0.8},
+                           {1.25, 0.433, 0.0, 0.525, 0.91},
+                           {1.375, 0.65, 0.0, 0.525, 0.91},
+                           {1.125, 0.65, 0.0, 0.525, 0.91},
+                           {1.125, 0.65, 0.0, 0.576, 1.0},
+                           {1.375, 0.65, 0.0, 0.576, 1.0},
+                           {1.25, 0.866, 0.0, 0.576, 1.0},
+                       },
+                       WGPUBufferUsage_Vertex);
     AppBuffer indices(application.device, std::initializer_list<std::initializer_list<uint16_t>>{
                                               {0, 1, 2},
                                               {3, 4, 5},
@@ -91,14 +91,14 @@ int main(int, char **)
     AppPipeline pipeline(application.device, shader, application.windowFormat, vertexLayout, bindingLayout);
     AppBuffer uTime(application.device, {{1.0f}}, WGPUBufferUsage_Uniform);
 
-    AppBindGroup bindGroup(application.device, 0, bindingLayout.wgpuBindGroupLayouts[0], {&uTime});
+    auto bindGroups = bindingLayout.createBindGroups(application.device, {{&uTime}});
 
     application.writeBuf(uTime);
     application.writeBuf(vertices);
     application.writeBuf(indices);
 
     float seconds = 0;
-    application.run([&application, &pipeline, &vertices, &indices, &bindGroup, &uTime, &seconds](
+    application.run([&application, &pipeline, &vertices, &indices, &bindGroups, &uTime, &seconds](
                         double dt,
                         WGPUTextureView targetView)
                     {
@@ -112,7 +112,7 @@ int main(int, char **)
                         AppRenderPassCommand command(application.device, targetView);
                         std::vector<AppBuffer*> bufs = {&vertices};
 
-                        commandBuffer.addCommand(command, pipeline, bufs, indices, bindGroup.wgpuBindGroup);
+                        commandBuffer.addCommand(command, pipeline, bufs, indices, bindGroups);
                         std::cout << "Submitting command..." << std::endl;
                         commandBuffer.finish();
                         application.submitCommandBuffer(commandBuffer);

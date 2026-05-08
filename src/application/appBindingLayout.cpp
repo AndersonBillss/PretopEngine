@@ -1,5 +1,4 @@
 #include "appBindingLayout.hpp"
-#include <vector>
 
 AppBindingLayout::AppBindingLayout(AppDevice &device, std::initializer_list<std::initializer_list<uint32_t>> sizes)
 {
@@ -37,4 +36,19 @@ AppBindingLayout::~AppBindingLayout()
     {
         wgpuBindGroupLayoutRelease(bindGroupLayout);
     }
+}
+
+std::vector<std::unique_ptr<AppBindGroup>> AppBindingLayout::createBindGroups(
+    AppDevice &device,
+    std::initializer_list<std::initializer_list<AppBuffer *>> bufs)
+{
+    std::vector<std::unique_ptr<AppBindGroup>> result;
+    size_t currIndex = 0;
+    for (const auto &buf : bufs)
+    {
+        result.push_back(
+            std::make_unique<AppBindGroup>(device, currIndex, this->wgpuBindGroupLayouts[currIndex], buf));
+        currIndex++;
+    }
+    return result;
 }
