@@ -42,9 +42,10 @@ int main(int, char **)
             var out: VertexOutput;
             let ratio = 640.0 / 480.0; // The width and height of the target surface
             let offset = vec2f(-0.6875, -0.463); // The offset that we want to apply to the position
-            out.position = vec4f(in.position.x + offset.x, (in.position.y + offset.y) * ratio, 0.0, 1.0);
-            let brightness = (sin(uTime) + 1)  / 2;
-            out.color = vec3f(in.color.x, in.color.y, in.color.z * brightness);
+            let offsetX = -cos(uTime) / 3;
+            let offsetY = sin(uTime) / 3;
+            out.position = vec4f(in.position.x + offset.x + offsetX, (in.position.y + offset.y + offsetY) * ratio, 0.0, 1.0);
+            out.color = vec3f(in.color.x, in.color.y, in.color.z);
             return out;
         }
 
