@@ -18,6 +18,13 @@
 #include "application/appBuffer.hpp"
 #include "application/appBindGroup.hpp"
 
+struct MyUniforms
+{
+    float color;
+    float time;
+    float _pad[2];
+};
+
 int main(int, char **)
 {
     std::cout << "Hello, WebGPU!!" << std::endl;
@@ -35,17 +42,22 @@ int main(int, char **)
             @location(0) color: vec3f,
         };
 
-        @group(0) @binding(0) var<uniform> uTime: f32;
+        struct MyUniforms {
+            color: f32,
+            time: f32,
+        };
+
+        @group(0) @binding(0) var<uniform> uMyUniforms: MyUniforms;
 
         @vertex
         fn vs_main(in: VertexInput) -> VertexOutput {
             var out: VertexOutput;
             let ratio = 640.0 / 480.0; // The width and height of the target surface
             let offset = vec2f(-0.6875, -0.463); // The offset that we want to apply to the position
-            let offsetX = -cos(uTime) / 3;
-            let offsetY = sin(uTime) / 3;
+            let offsetX = -cos(uMyUniforms.time) / 3;
+            let offsetY = sin(uMyUniforms.time) / 3;
             out.position = vec4f(in.position.x + offset.x + offsetX, (in.position.y + offset.y + offsetY) * ratio, 0.0, 1.0);
-            out.color = vec3f(in.color.x, in.color.y, in.color.z);
+            out.color = vec3f(in.color.x, in.color.y, in.color.z * uMyUniforms.color);
             return out;
         }
 
@@ -88,30 +100,30 @@ int main(int, char **)
                       WGPUBufferUsage_Index);
 
     AppVertexLayout vertexLayout = {{LayoutType::Float32x2, LayoutType::Float32x3}};
-    AppBindingLayout bindingLayout(application.device, {{sizeof(float)}});
+    AppBindingLayout bindingLayout(application.device, {{sizeof(MyUniforms)}});
     AppPipeline pipeline(application.device, shader, application.windowFormat, vertexLayout, bindingLayout);
-    AppBuffer uTime(application.device, {{1.0f}}, WGPUBufferUsage_Uniform);
+    AppBuffer myUniformBuffer(application.device, {{1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f}}, WGPUBufferUsage_Uniform);
+    auto bindGroups = bindingLayout.createBindGroups(application.device, {{&myUniformBuffer}});
 
-    auto bindGroups = bindingLayout.createBindGroups(application.device, {{&uTime}});
-
-    application.writeBuf(uTime);
+    application.writeBuf(myUniformBuffer);
     application.writeBuf(vertices);
     application.writeBuf(indices);
 
     float seconds = 0;
-    application.run([&application, &pipeline, &vertices, &indices, &bindGroups, &uTime, &seconds](
+    application.run([&application, &pipeline, &vertices, &indices, &bindGroups, &myUniformBuffer, &seconds](
                         double dt,
                         WGPUTextureView targetView)
                     {
                         seconds += dt;
-                        float *rawData = (float *)uTime.rawData();
-                        *rawData = seconds;
-                        application.writeBuf(uTime);
+                        MyUniforms *rawData = (MyUniforms *)myUniformBuffer.rawData();
+                        rawData->color = (sin(seconds * 2.32325) + 1) / 2;
+                        rawData->time = seconds;
+                        application.writeBuf(myUniformBuffer);
 
                         AppCommandBuffer commandBuffer(application.device);
                         std::cout << "DELTATIME: " << dt << std::endl;
                         AppRenderPassCommand command(application.device, targetView);
-                        std::vector<AppBuffer*> bufs = {&vertices};
+                        std::vector<AppBuffer *> bufs = {&vertices};
 
                         commandBuffer.addCommand(command, pipeline, bufs, indices, bindGroups);
                         std::cout << "Submitting command..." << std::endl;
