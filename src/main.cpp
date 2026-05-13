@@ -110,7 +110,7 @@ int main(int, char **)
     application.writeBuf(indices);
 
     float seconds = 0;
-    application.run([&application, &pipeline, &vertices, &indices, &bindGroups, &myUniformBuffer, &seconds](
+    application.run([&](
                         double dt,
                         WGPUTextureView targetView)
                     {
@@ -125,7 +125,7 @@ int main(int, char **)
                         AppRenderPassCommand command(application.device, targetView);
                         std::vector<AppBuffer *> bufs = {&vertices};
 
-                        commandBuffer.addCommand(command, pipeline, bufs, indices, bindGroups);
+                        commandBuffer.addCommand(command, pipeline, bufs, vertexLayout, indices, sizeof(uint16_t), bindGroups);
                         std::cout << "Submitting command..." << std::endl;
                         commandBuffer.finish();
                         application.submitCommandBuffer(commandBuffer);

@@ -18,12 +18,15 @@ public:
         AppRenderPassCommand &command,
         AppPipeline &pipeline,
         std::vector<AppBuffer *> &vertexBuffers,
+        AppVertexLayout &layout,
         std::vector<std::unique_ptr<AppBindGroup>> &bindGroups);
     void addCommand(
         AppRenderPassCommand &command,
         AppPipeline &pipeline,
         std::vector<AppBuffer *> &vertexBuffers,
+        AppVertexLayout &layout,
         AppBuffer &indexBuffer,
+        size_t indexBufferSize,
         std::vector<std::unique_ptr<AppBindGroup>> &bindGroups);
     void finish();
     WGPUCommandEncoder wgpuEncoder;

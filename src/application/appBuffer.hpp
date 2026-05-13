@@ -53,19 +53,19 @@ public:
     {
         return _unitCount * _unitSize;
     }
-    size_t count() const
-    {
-        return _unitCount;
-    }
+    // size_t count() const
+    // {
+    //     return _unitCount;
+    // }
 
-    size_t numRows() const
-    {
-        return this->_unitCount / _stride;
-    }
-    size_t stride()
-    {
-        return _stride;
-    }
+    // size_t numRows() const
+    // {
+    //     return this->_unitCount / _stride;
+    // }
+    // size_t stride()
+    // {
+    //     return _stride;
+    // }
 
     const void *data() const
     {
