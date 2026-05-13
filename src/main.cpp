@@ -102,7 +102,7 @@ int main(int, char **)
     AppVertexLayout vertexLayout = {{LayoutType::Float32x2, LayoutType::Float32x3}};
     AppBindingLayout bindingLayout(application.device, {{sizeof(MyUniforms)}});
     AppPipeline pipeline(application.device, shader, application.windowFormat, vertexLayout, bindingLayout);
-    AppBuffer myUniformBuffer(application.device, {{1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f}}, WGPUBufferUsage_Uniform);
+    AppBuffer myUniformBuffer(application.device, sizeof(MyUniforms), WGPUBufferUsage_Uniform);
     auto bindGroups = bindingLayout.createBindGroups(application.device, {{&myUniformBuffer}});
 
     application.writeBuf(myUniformBuffer);

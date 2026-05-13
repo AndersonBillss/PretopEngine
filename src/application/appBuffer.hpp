@@ -3,6 +3,7 @@
 #include <type_traits>
 #include <webgpu/webgpu.h>
 #include <cstring>
+#include <string>
 
 class AppBuffer
 {
@@ -44,6 +45,23 @@ public:
         this->wgpuBuffer = wgpuDeviceCreateBuffer(device.wgpuDevice, &bufferDesc);
     }
 
+    AppBuffer(AppDevice &device, size_t size, WGPUBufferUsage usage)
+    {
+        this->_numBytes = _ceilFour(size);
+        this->_data = std::malloc(size);
+        for(size_t i = 0; i < this->_numBytes; i++) {
+            *((unsigned char *)this->_data + i) = 0;
+        }
+
+        WGPUBufferDescriptor bufferDesc = WGPU_BUFFER_DESCRIPTOR_INIT;
+        const std::string bufferLabel = "Test index buffer";
+        bufferDesc.label = WGPUStringView{bufferLabel.c_str(), bufferLabel.size()};
+        bufferDesc.usage = WGPUBufferUsage_CopyDst | usage;
+        bufferDesc.size = this->numBytes();
+        bufferDesc.mappedAtCreation = false;
+        this->wgpuBuffer = wgpuDeviceCreateBuffer(device.wgpuDevice, &bufferDesc);
+    }
+
     ~AppBuffer()
     {
         delete[] this->_data;
@@ -74,7 +92,10 @@ private:
     size_t _ceilFour(size_t n, size_t unitSize)
     {
         size_t numBytes = n * unitSize;
-        size_t roundedUp = (numBytes + 3) & ~3;
+        size_t roundedUp = _ceilFour(numBytes);
         return roundedUp / unitSize;
+    }
+    size_t _ceilFour(size_t numBytes) {
+        return (numBytes + 3) & ~3;
     }
 };
