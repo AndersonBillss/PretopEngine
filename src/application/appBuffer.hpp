@@ -11,15 +11,15 @@ public:
     AppBuffer(AppDevice &device, std::initializer_list<std::initializer_list<T>> data, WGPUBufferUsage usage)
     {
         std::vector<T> vec = std::vector<T>();
-        this->_unitSize = sizeof(T);
         size_t i = 0;
+        size_t stride = 0;
         for (auto &row : data)
         {
             if (i == 0)
             {
-                this->_stride = row.size();
+                stride = row.size();
             }
-            if (row.size() != this->_stride)
+            if (row.size() != stride)
             {
                 throw std::invalid_argument("Malformed list provided");
             }
@@ -29,10 +29,11 @@ public:
             }
             i++;
         }
-        vec.resize(_ceilFour(vec.size()));
-        this->_unitCount = vec.size();
+        vec.resize(_ceilFour(vec.size(), sizeof(T)));
+        size_t unitCount = vec.size();
         this->_data = std::malloc(vec.size() * sizeof(T));
-        std::memcpy(this->_data, vec.data(), vec.size() * sizeof(T));
+        this->_numBytes = vec.size() * sizeof(T);
+        std::memcpy(this->_data, vec.data(), this->_numBytes);
 
         WGPUBufferDescriptor bufferDesc = WGPU_BUFFER_DESCRIPTOR_INIT;
         const std::string bufferLabel = "Test index buffer";
@@ -51,21 +52,8 @@ public:
 
     size_t numBytes() const
     {
-        return _unitCount * _unitSize;
+        return _numBytes;
     }
-    // size_t count() const
-    // {
-    //     return _unitCount;
-    // }
-
-    // size_t numRows() const
-    // {
-    //     return this->_unitCount / _stride;
-    // }
-    // size_t stride()
-    // {
-    //     return _stride;
-    // }
 
     const void *data() const
     {
@@ -81,14 +69,12 @@ public:
 
 private:
     void *_data;
-    size_t _unitSize;
-    size_t _unitCount;
-    size_t _stride;
+    size_t _numBytes;
 
-    size_t _ceilFour(size_t n)
+    size_t _ceilFour(size_t n, size_t unitSize)
     {
-        size_t numBytes = n * this->_unitSize;
+        size_t numBytes = n * unitSize;
         size_t roundedUp = (numBytes + 3) & ~3;
-        return roundedUp / this->_unitSize;
+        return roundedUp / unitSize;
     }
 };
