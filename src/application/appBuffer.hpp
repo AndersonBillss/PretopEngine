@@ -68,6 +68,11 @@ public:
         wgpuBufferRelease(this->wgpuBuffer);
     }
 
+    template <class T>
+    inline void set(T &data) {
+        memcpy(this->_data, &data, sizeof(T));
+    }
+
     size_t numBytes() const
     {
         return _numBytes;

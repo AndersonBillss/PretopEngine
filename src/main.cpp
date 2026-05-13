@@ -115,9 +115,10 @@ int main(int, char **)
                         WGPUTextureView targetView)
                     {
                         seconds += dt;
-                        MyUniforms *rawData = (MyUniforms *)myUniformBuffer.rawData();
-                        rawData->color = (sin(seconds * 2.32325) + 1) / 2;
-                        rawData->time = seconds;
+                        MyUniforms uniforms;
+                        uniforms.color = (sin(seconds * 2.32325) + 1) / 2;
+                        uniforms.time = seconds;
+                        myUniformBuffer.set(uniforms);
                         application.writeBuf(myUniformBuffer);
 
                         AppCommandBuffer commandBuffer(application.device);
