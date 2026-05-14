@@ -6,7 +6,11 @@
 #include <cmath>
 
 #include "printStringView.hpp"
+
 #include "window/windowFactory.hpp"
+
+#include "asset/getBytes.hpp"
+
 #include "application/application.hpp"
 #include "application/appDevice.hpp"
 #include "application/appShader.hpp"
