@@ -17,6 +17,7 @@ set(AB_ENGINE_SOURCES
   src/window/windowFactory.cpp
 )
 set(AB_ENGINE_SOURCES_NATIVE
+  src/asset/NATIVE_getBytes.cpp
   src/window/NATIVE_glfwWindow.cpp
 )
 set(AB_ENGINE_SOURCES_WEB

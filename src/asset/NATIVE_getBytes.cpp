@@ -1,11 +1,12 @@
+#include "NATIVE_getBytes.hpp"
 
-#include <cstddef>
 #include <fstream>
-#include <future>
 #include <stdexcept>
-#include <string>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
 
-inline std::vector<std::byte> readFileBytes(const std::string &path)
+std::vector<std::byte> readFileBytes(const std::string &path)
 {
     std::ifstream file(path, std::ios::binary | std::ios::ate);
     if (!file)
@@ -30,7 +31,7 @@ inline std::vector<std::byte> readFileBytes(const std::string &path)
     return bytes;
 }
 
-inline std::future<std::vector<std::byte>> getBytes(const std::string &path)
+std::future<std::vector<std::byte>> getBytes(const std::string &path)
 {
     return std::async(std::launch::async, [path]
                       { return readFileBytes(path); });

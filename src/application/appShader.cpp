@@ -1,4 +1,5 @@
 #include "appShader.hpp"
+#include "../asset/getBytes.hpp"
 #include <iostream>
 
 AppShader AppShader::pipeline(AppDevice &device, AppInstance &instance, std::string src)
@@ -23,7 +24,8 @@ AppShader AppShader::pipeline(AppDevice &device, AppInstance &instance, std::str
     AppShader result;
     WGPUShaderSourceWGSL shaderWGSL = WGPU_SHADER_SOURCE_WGSL_INIT;
     shaderWGSL.chain.sType = WGPUSType_ShaderSourceWGSL;
-    shaderWGSL.code = {src.c_str(), src.size()};
+    std::vector<std::byte> bytes = getBytes("assets/" + src).get();
+    shaderWGSL.code = {(char *)bytes.data(), bytes.size()};
 
     WGPUShaderModuleDescriptor shaderDesc = WGPU_SHADER_MODULE_DESCRIPTOR_INIT;
     shaderDesc.nextInChain = &shaderWGSL.chain;

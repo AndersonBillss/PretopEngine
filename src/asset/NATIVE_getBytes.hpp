@@ -2,5 +2,6 @@
 #include <vector>
 #include <cstddef>
 #include <string>
+#include <future>
 
-inline std::vector<std::byte> getBytes(const std::string &path);
+std::future<std::vector<std::byte>> getBytes(const std::string &path);
