@@ -12,12 +12,12 @@ set(AB_ENGINE_SOURCES
   src/application/appVertexBufferLayout.cpp
   src/application/appVertexLayout.cpp
   src/application/application.cpp
+  src/asset/readFileBytes.cpp
   src/main.cpp
   src/printStringView.cpp
   src/window/windowFactory.cpp
 )
 set(AB_ENGINE_SOURCES_NATIVE
-  src/asset/NATIVE_getBytes.cpp
   src/window/NATIVE_glfwWindow.cpp
 )
 set(AB_ENGINE_SOURCES_WEB

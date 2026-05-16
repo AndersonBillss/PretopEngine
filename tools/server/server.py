@@ -3,14 +3,23 @@ import socketserver
 import threading
 import webbrowser
 import sys
+import os
 
 PORT = 8000
-DIRECTORY = "build/web-engine"
+BUILD_DIRECTORY = "build/web-engine"
+ASSET_DIRECTORY = "assets"
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
+    def translate_path(self, path):
+        if path.startswith("/assets/"):
+            relative_path = path[len("/assets/"):]
+            return os.path.join(os.getcwd(), ASSET_DIRECTORY, relative_path)
+
+        return super().translate_path(path)
+
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=DIRECTORY, **kwargs)
+        super().__init__(*args, directory=BUILD_DIRECTORY, **kwargs)
 
 
 def run_server():
@@ -27,8 +36,10 @@ def server():
 def key_listener():
     while True:
         key = sys.stdin.read(1)
+
         if key.lower() == "o":
             webbrowser.open(f"http://localhost:{PORT}/ab_engine.html")
+
         elif key.lower() == "q":
             print("Exiting.")
             sys.exit(0)

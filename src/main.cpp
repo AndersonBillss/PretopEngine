@@ -9,8 +9,6 @@
 
 #include "window/windowFactory.hpp"
 
-#include "asset/getBytes.hpp"
-
 #include "application/application.hpp"
 #include "application/appDevice.hpp"
 #include "application/appShader.hpp"
@@ -37,7 +35,7 @@ int main(int, char **)
     application.logQueueCommands();
     application.setWindow(WindowFactory::createWindow("My Window"));
 
-    AppShader shader = AppShader::pipeline(application.device, application.instance, "shader.wgsl");
+    AppShader shader = AppShader::pipeline(application.device, application.instance, "shaders/shader.wgsl");
 
     AppBuffer vertices(application.device,
                        std::initializer_list<std::initializer_list<float>>{

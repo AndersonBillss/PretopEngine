@@ -4,6 +4,7 @@
 #include <webgpu/webgpu.h>
 #include <cstring>
 #include <string>
+#include <cstddef>
 
 class AppBuffer
 {
@@ -32,7 +33,7 @@ public:
         }
         vec.resize(_ceilFour(vec.size(), sizeof(T)));
         size_t unitCount = vec.size();
-        this->_data = std::malloc(vec.size() * sizeof(T));
+        this->_data = (std::byte *)std::malloc(vec.size() * sizeof(T));
         this->_numBytes = vec.size() * sizeof(T);
         std::memcpy(this->_data, vec.data(), this->_numBytes);
 
@@ -48,9 +49,10 @@ public:
     AppBuffer(AppDevice &device, size_t size, WGPUBufferUsage usage)
     {
         this->_numBytes = _ceilFour(size);
-        this->_data = std::malloc(size);
-        for(size_t i = 0; i < this->_numBytes; i++) {
-            *((unsigned char *)this->_data + i) = 0;
+        this->_data = (std::byte *)std::malloc(size);
+        for (size_t i = 0; i < this->_numBytes; i++)
+        {
+            this->_data[i] = std::byte{0x0};
         }
 
         WGPUBufferDescriptor bufferDesc = WGPU_BUFFER_DESCRIPTOR_INIT;
@@ -69,7 +71,8 @@ public:
     }
 
     template <class T>
-    inline void set(T &data) {
+    inline void set(T &data)
+    {
         memcpy(this->_data, &data, sizeof(T));
     }
 
@@ -91,7 +94,7 @@ public:
     WGPUBuffer wgpuBuffer;
 
 private:
-    void *_data;
+    std::byte *_data;
     size_t _numBytes;
 
     size_t _ceilFour(size_t n, size_t unitSize)
@@ -100,7 +103,8 @@ private:
         size_t roundedUp = _ceilFour(numBytes);
         return roundedUp / unitSize;
     }
-    size_t _ceilFour(size_t numBytes) {
+    size_t _ceilFour(size_t numBytes)
+    {
         return (numBytes + 3) & ~3;
     }
 };
