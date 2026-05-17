@@ -8,6 +8,7 @@ set(AB_ENGINE_SOURCES
   src/application/appInstance.cpp
   src/application/appPipeline.cpp
   src/application/appRenderPassCommand.cpp
+  src/application/appRenderPassEncoder.cpp
   src/application/appShader.cpp
   src/application/appVertexBufferLayout.cpp
   src/application/appVertexLayout.cpp

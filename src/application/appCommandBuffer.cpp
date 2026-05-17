@@ -84,6 +84,11 @@ void AppCommandBuffer::addCommand(
     wgpuRenderPassEncoderRelease(renderPass);
 }
 
+std::unique_ptr<AppRenderPassEncoder> AppCommandBuffer::addCommand(AppRenderPassCommand &command)
+{
+    return std::make_unique<AppRenderPassEncoder>(this->wgpuEncoder, command.wgpuRenderPassDescriptor);
+}
+
 void AppCommandBuffer::finish()
 {
     WGPUCommandBufferDescriptor cmdBufferDescriptor = {};

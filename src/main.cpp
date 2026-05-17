@@ -92,7 +92,13 @@ int main(int, char **)
                         AppRenderPassCommand command(application.device, targetView);
                         std::vector<AppBuffer *> bufs = {&vertices};
 
-                        commandBuffer.addCommand(command, pipeline, bufs, vertexLayout, indices, sizeof(uint16_t), bindGroups);
+                        commandBuffer.addCommand(command)
+                        ->setPipeline(pipeline)
+                        .setVertexBuffers(bufs)
+                        .setBindGroups(bindGroups)
+                        .drawIndexed(indices, indices.numBytes() / sizeof(uint16_t))
+                        .finish();
+
                         std::cout << "Submitting command..." << std::endl;
                         commandBuffer.finish();
                         application.submitCommandBuffer(commandBuffer);

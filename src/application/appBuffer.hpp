@@ -6,6 +6,8 @@
 #include <string>
 #include <cstddef>
 
+#include "appDevice.hpp"
+
 class AppBuffer
 {
 public:

@@ -8,6 +8,7 @@
 #include "appBindGroup.hpp"
 #include "appBuffer.hpp"
 #include "appBindGroup.hpp"
+#include "appRenderPassEncoder.hpp"
 
 class AppCommandBuffer
 {
@@ -28,6 +29,8 @@ public:
         AppBuffer &indexBuffer,
         size_t indexBufferSize,
         std::vector<std::unique_ptr<AppBindGroup>> &bindGroups);
+    std::unique_ptr<AppRenderPassEncoder> addCommand(AppRenderPassCommand &command);
+
     void finish();
     WGPUCommandEncoder wgpuEncoder;
     WGPUCommandBuffer wgpuBuffer;
