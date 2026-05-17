@@ -73,6 +73,12 @@ public:
     }
 
     template <class T>
+    inline T *get()
+    {
+        return (T *)this->_data;
+    }
+
+    template <class T>
     inline void set(T &data)
     {
         memcpy(this->_data, &data, sizeof(T));
