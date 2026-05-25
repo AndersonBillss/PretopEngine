@@ -1,5 +1,5 @@
 struct VertexInput {
-    @location(0) position: vec2f,
+    @location(0) position: vec3f,
     @location(1) color: vec3f,
 };
 
@@ -22,8 +22,21 @@ fn vs_main(in: VertexInput) -> VertexOutput {
     let offset = vec2f(-0.6875, -0.463); // The offset that we want to apply to the position
     let offsetX = -cos(uMyUniforms.time) / 3;
     let offsetY = sin(uMyUniforms.time) / 3;
-    out.position = vec4f(in.position.x + offset.x + offsetX, (in.position.y + offset.y + offsetY) * ratio, 0.0, 1.0);
-    out.color = vec3f(in.color.x, in.color.y, in.color.z * uMyUniforms.color);
+
+    let alpha = cos(uMyUniforms.time);
+    let beta = sin(uMyUniforms.time);
+    var position = vec3f(
+        in.position.x,
+        alpha * in.position.y + beta * in.position.z,
+        alpha * in.position.z - beta * in.position.y,
+    );
+    out.position = vec4f(
+        position.x,
+        position.y * ratio,
+        0.0,
+        1.0
+    );
+    out.color = vec3f(in.color.x * uMyUniforms.color, in.color.y, in.color.z);
     return out;
 }
 

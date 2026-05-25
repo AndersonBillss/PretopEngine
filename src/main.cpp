@@ -39,33 +39,24 @@ int main(int, char **)
 
     AppBuffer vertices(application.device,
                        std::initializer_list<std::initializer_list<float>>{
-                           {0.5, 0.0, 0.0, 0.353, 0.612},
-                           {1.0, 0.866, 0.0, 0.353, 0.612},
-                           {0.0, 0.866, 0.0, 0.353, 0.612},
-                           {0.75, 0.433, 0.0, 0.4, 0.7},
-                           {1.25, 0.433, 0.0, 0.4, 0.7},
-                           {1.0, 0.866, 0.0, 0.4, 0.7},
-                           {1.0, 0.0, 0.0, 0.463, 0.8},
-                           {1.25, 0.433, 0.0, 0.463, 0.8},
-                           {0.75, 0.433, 0.0, 0.463, 0.8},
-                           {1.25, 0.433, 0.0, 0.525, 0.91},
-                           {1.375, 0.65, 0.0, 0.525, 0.91},
-                           {1.125, 0.65, 0.0, 0.525, 0.91},
-                           {1.125, 0.65, 0.0, 0.576, 1.0},
-                           {1.375, 0.65, 0.0, 0.576, 1.0},
-                           {1.25, 0.866, 0.0, 0.576, 1.0},
+                           {-0.5, -0.5, -0.3, 1.0, 1.0, 1.0},
+                           {+0.5, -0.5, -0.3, 1.0, 1.0, 1.0},
+                           {+0.5, +0.5, -0.3, 1.0, 1.0, 1.0},
+                           {-0.5, +0.5, -0.3, 1.0, 1.0, 1.0},
+                           {+0.0, +0.0, +0.5, 0.5, 0.5, 0.5},
                        },
                        WGPUBufferUsage_Vertex);
     AppBuffer indices(application.device, std::initializer_list<std::initializer_list<uint16_t>>{
                                               {0, 1, 2},
-                                              {3, 4, 5},
-                                              {6, 7, 8},
-                                              {9, 10, 11},
-                                              {12, 13, 14},
+                                              {0, 2, 3},
+                                              {0, 1, 4},
+                                              {1, 2, 4},
+                                              {2, 3, 4},
+                                              {3, 0, 4},
                                           },
                       WGPUBufferUsage_Index);
 
-    AppVertexLayout vertexLayout = {{LayoutType::Float32x2, LayoutType::Float32x3}};
+    AppVertexLayout vertexLayout = {{LayoutType::Float32x3, LayoutType::Float32x3}};
 
     WGPUBindGroupLayoutEntry bindingLayoutEntry = WGPU_BIND_GROUP_LAYOUT_ENTRY_INIT;
     bindingLayoutEntry.binding = 0;
@@ -81,7 +72,7 @@ int main(int, char **)
     std::vector<WGPUBindGroupEntry> bindings = {WGPU_BIND_GROUP_ENTRY_INIT};
     bindings[0].binding = 0;
     bindings[0].buffer = myUniformBuffer.wgpuBuffer;
-    bindings[0].size = 256;
+    bindings[0].size = sizeof(MyUniforms);
     AppBindGroup bindGroup(application.device, bindingLayout.wgpuBindGroupLayouts[0], bindings);
 
     application.writeBuf(myUniformBuffer);
@@ -112,8 +103,8 @@ int main(int, char **)
                         .setVertexBuffers(bufs)
                         .setBindGroup(&bindGroup, 0, {0})
                         .drawIndexed(indices, indices.numBytes() / sizeof(uint16_t))
-                        .setBindGroup(&bindGroup, 0, {256})
-                        .drawIndexed(indices, indices.numBytes() / sizeof(uint16_t))
+                        // .setBindGroup(&bindGroup, 0, {256})
+                        // .drawIndexed(indices, indices.numBytes() / sizeof(uint16_t))
                         .finish();
 
                         std::cout << "Submitting command..." << std::endl;
