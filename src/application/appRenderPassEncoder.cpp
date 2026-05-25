@@ -36,6 +36,29 @@ AppRenderPassEncoder &AppRenderPassEncoder::setBindGroups(std::vector<std::uniqu
     return *this;
 }
 
+AppRenderPassEncoder &AppRenderPassEncoder::setBindGroup(
+    AppBindGroup *bindGroup, size_t groupIndex, std::vector<uint32_t> dynamicOffset)
+{
+    wgpuRenderPassEncoderSetBindGroup(
+        this->wgpuRenderPass,
+        groupIndex,
+        bindGroup->wgpuBindGroup,
+        dynamicOffset.size(),
+        dynamicOffset.data());
+    return *this;
+}
+
+AppRenderPassEncoder &AppRenderPassEncoder::setBindGroup(AppBindGroup *bindGroup, size_t groupIndex)
+{
+    wgpuRenderPassEncoderSetBindGroup(
+        this->wgpuRenderPass,
+        groupIndex,
+        bindGroup->wgpuBindGroup,
+        0,
+        nullptr);
+    return *this;
+}
+
 AppRenderPassEncoder &AppRenderPassEncoder::draw(size_t vertexCount)
 {
     wgpuRenderPassEncoderDraw(this->wgpuRenderPass, vertexCount, 1, 0, 0);

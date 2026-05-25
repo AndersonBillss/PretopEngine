@@ -11,6 +11,8 @@ public:
     AppRenderPassEncoder &setPipeline(AppPipeline &pipeline);
     AppRenderPassEncoder &setVertexBuffers(std::vector<AppBuffer *> &vertexBuffers);
     AppRenderPassEncoder &setBindGroups(std::vector<std::unique_ptr<AppBindGroup>> &bindGroups);
+    AppRenderPassEncoder &setBindGroup(AppBindGroup *bindGroup, size_t groupIndex, std::vector<uint32_t> dynamicOffset);
+    AppRenderPassEncoder &setBindGroup(AppBindGroup *bindGroup, size_t groupIndex);
     AppRenderPassEncoder &draw(size_t vertexCount);
     AppRenderPassEncoder &drawIndexed(AppBuffer &indexBuffer, size_t indexCount);
     void finish();

@@ -1,20 +1,14 @@
 #include "appBindingLayout.hpp"
 
-AppBindingLayout::AppBindingLayout(AppDevice &device, std::initializer_list<std::initializer_list<uint32_t>> sizes)
+AppBindingLayout::AppBindingLayout(
+    AppDevice &device, std::initializer_list<std::initializer_list<WGPUBindGroupLayoutEntry>> layoutEntries)
 {
-    for (const auto &bindGroupSize : sizes)
+    for (const auto &bindGroupLayouts : layoutEntries)
     {
         std::vector<WGPUBindGroupLayoutEntry> bindingLayouts;
-        size_t i = 0;
-        for (const auto &size : bindGroupSize)
+        for (const auto &entry : bindGroupLayouts)
         {
-            WGPUBindGroupLayoutEntry bindingLayout = WGPU_BIND_GROUP_LAYOUT_ENTRY_INIT;
-            bindingLayout.binding = i;
-            bindingLayout.buffer.type = WGPUBufferBindingType_Uniform;
-            bindingLayout.buffer.minBindingSize = size;
-            bindingLayout.visibility = WGPUShaderStage_Vertex;
-            bindingLayouts.push_back(bindingLayout);
-            i++;
+            bindingLayouts.push_back(entry);
         }
         WGPUBindGroupLayoutDescriptor bindGroupLayoutDesc = WGPU_BIND_GROUP_LAYOUT_DESCRIPTOR_INIT;
         bindGroupLayoutDesc.entryCount = bindingLayouts.size();
@@ -36,19 +30,4 @@ AppBindingLayout::~AppBindingLayout()
     {
         wgpuBindGroupLayoutRelease(bindGroupLayout);
     }
-}
-
-std::vector<std::unique_ptr<AppBindGroup>> AppBindingLayout::createBindGroups(
-    AppDevice &device,
-    std::initializer_list<std::initializer_list<AppBuffer *>> bufs)
-{
-    std::vector<std::unique_ptr<AppBindGroup>> result;
-    size_t currIndex = 0;
-    for (const auto &buf : bufs)
-    {
-        result.push_back(
-            std::make_unique<AppBindGroup>(device, currIndex, this->wgpuBindGroupLayouts[currIndex], buf));
-        currIndex++;
-    }
-    return result;
 }

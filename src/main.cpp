@@ -66,10 +66,23 @@ int main(int, char **)
                       WGPUBufferUsage_Index);
 
     AppVertexLayout vertexLayout = {{LayoutType::Float32x2, LayoutType::Float32x3}};
-    AppBindingLayout bindingLayout(application.device, {{sizeof(MyUniforms)}});
+
+    WGPUBindGroupLayoutEntry bindingLayoutEntry = WGPU_BIND_GROUP_LAYOUT_ENTRY_INIT;
+    bindingLayoutEntry.binding = 0;
+    bindingLayoutEntry.buffer.type = WGPUBufferBindingType_Uniform;
+    bindingLayoutEntry.buffer.minBindingSize = sizeof(MyUniforms);
+    bindingLayoutEntry.buffer.hasDynamicOffset = true;
+    bindingLayoutEntry.visibility = WGPUShaderStage_Vertex;
+    AppBindingLayout bindingLayout(application.device, {{bindingLayoutEntry}});
+
     AppPipeline pipeline(application.device, shader, application.windowFormat, vertexLayout, bindingLayout);
-    AppBuffer myUniformBuffer(application.device, sizeof(MyUniforms), WGPUBufferUsage_Uniform);
-    auto bindGroups = bindingLayout.createBindGroups(application.device, {{&myUniformBuffer}});
+    AppBuffer myUniformBuffer(application.device, 512, WGPUBufferUsage_Uniform);
+
+    std::vector<WGPUBindGroupEntry> bindings = {WGPU_BIND_GROUP_ENTRY_INIT};
+    bindings[0].binding = 0;
+    bindings[0].buffer = myUniformBuffer.wgpuBuffer;
+    bindings[0].size = 256;
+    AppBindGroup bindGroup(application.device, bindingLayout.wgpuBindGroupLayouts[0], bindings);
 
     application.writeBuf(myUniformBuffer);
     application.writeBuf(vertices);
@@ -81,9 +94,12 @@ int main(int, char **)
                         WGPUTextureView targetView)
                     {
                         seconds += dt;
-                        MyUniforms *uniforms = myUniformBuffer.get<MyUniforms>();
-                        uniforms->color = (sin(seconds * 2.32325) + 1) / 2;
-                        uniforms->time = seconds;
+                        MyUniforms *u1 = myUniformBuffer.get<MyUniforms>();
+                        u1->color = (sin(seconds * 2.32325) + 1) / 2;
+                        u1->time = seconds;
+                        MyUniforms *u2 = myUniformBuffer.get<MyUniforms>(256);
+                        u2->color = (cos(seconds * 2.32325) + 1) / 2;
+                        u2->time = -seconds;
                         application.writeBuf(myUniformBuffer);
 
                         AppCommandBuffer commandBuffer(application.device);
@@ -94,7 +110,9 @@ int main(int, char **)
                         commandBuffer.addCommand(command)
                         ->setPipeline(pipeline)
                         .setVertexBuffers(bufs)
-                        .setBindGroups(bindGroups)
+                        .setBindGroup(&bindGroup, 0, {0})
+                        .drawIndexed(indices, indices.numBytes() / sizeof(uint16_t))
+                        .setBindGroup(&bindGroup, 0, {256})
                         .drawIndexed(indices, indices.numBytes() / sizeof(uint16_t))
                         .finish();
 

@@ -79,6 +79,12 @@ public:
     }
 
     template <class T>
+    inline T *get(size_t offset)
+    {
+        return (T *)((uint8_t *)this->_data + 256);
+    }
+
+    template <class T>
     inline void set(T &data)
     {
         memcpy(this->_data, &data, sizeof(T));

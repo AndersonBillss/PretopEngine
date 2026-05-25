@@ -10,12 +10,8 @@
 class AppBindingLayout
 {
 public:
-    AppBindingLayout(AppDevice &device, std::initializer_list<std::initializer_list<uint32_t>> sizes);
+    AppBindingLayout(AppDevice &device, std::initializer_list<std::initializer_list<WGPUBindGroupLayoutEntry>> layoutEntries);
     ~AppBindingLayout();
-
-    std::vector<std::unique_ptr<AppBindGroup>> createBindGroups(
-        AppDevice &device,
-        std::initializer_list<std::initializer_list<AppBuffer *>> bufs);
 
     WGPUPipelineLayout wgpuLayout;
     std::vector<WGPUBindGroupLayout> wgpuBindGroupLayouts;

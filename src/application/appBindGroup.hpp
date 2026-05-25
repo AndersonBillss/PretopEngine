@@ -7,7 +7,9 @@
 class AppBindGroup
 {
 public:
-    AppBindGroup(AppDevice &device, size_t startBinding, WGPUBindGroupLayout &layout, std::initializer_list<AppBuffer *> bufs);
+    AppBindGroup(AppDevice &device,
+                 WGPUBindGroupLayout &layout,
+                 std::vector<WGPUBindGroupEntry> &bindGroupEntries);
     ~AppBindGroup();
     WGPUBindGroup wgpuBindGroup;
 };
