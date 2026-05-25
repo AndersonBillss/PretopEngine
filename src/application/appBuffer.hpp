@@ -48,6 +48,29 @@ public:
         this->wgpuBuffer = wgpuDeviceCreateBuffer(device.wgpuDevice, &bufferDesc);
     }
 
+    template <typename T>
+    AppBuffer(AppDevice &device, std::initializer_list<T> data, WGPUBufferUsage usage)
+    {
+        std::vector<T> vec = std::vector<T>();
+        for (auto &item : data)
+        {
+            vec.push_back(item);
+        }
+        vec.resize(_ceilFour(vec.size(), sizeof(T)));
+        size_t unitCount = vec.size();
+        this->_data = (std::byte *)std::malloc(vec.size() * sizeof(T));
+        this->_numBytes = vec.size() * sizeof(T);
+        std::memcpy(this->_data, vec.data(), this->_numBytes);
+
+        WGPUBufferDescriptor bufferDesc = WGPU_BUFFER_DESCRIPTOR_INIT;
+        const std::string bufferLabel = "Test index buffer";
+        bufferDesc.label = WGPUStringView{bufferLabel.c_str(), bufferLabel.size()};
+        bufferDesc.usage = WGPUBufferUsage_CopyDst | usage;
+        bufferDesc.size = this->numBytes();
+        bufferDesc.mappedAtCreation = false;
+        this->wgpuBuffer = wgpuDeviceCreateBuffer(device.wgpuDevice, &bufferDesc);
+    }
+
     AppBuffer(AppDevice &device, size_t size, WGPUBufferUsage usage)
     {
         this->_numBytes = _ceilFour(size);
