@@ -1,11 +1,12 @@
 #include "appDevice.hpp"
 #include <iostream>
 #include "../printStringView.hpp"
+#include "../limits/limits.hpp"
 
 AppDevice::AppDevice(const AppInstance &instance, const AppAdapter &adapter)
 {
     WGPUDeviceDescriptor desc = _createDeviceDescriptor(instance, adapter);
-    WGPULimits requiredLimits = WGPU_LIMITS_INIT;
+    WGPULimits requiredLimits = compatibilityLimits;
     desc.requiredLimits = &requiredLimits;
     wgpuDevice = _requestDeviceSync(instance, adapter, &desc);
 }
