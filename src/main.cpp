@@ -19,6 +19,7 @@
 #include "application/appBindingLayout.hpp"
 #include "application/appBuffer.hpp"
 #include "application/appBindGroup.hpp"
+#include "math/ceilToBufferOffset.hpp"
 
 struct MyUniforms
 {
@@ -67,7 +68,8 @@ int main(int, char **)
     AppBindingLayout bindingLayout(application.device, {{bindingLayoutEntry}});
 
     AppPipeline pipeline(application.device, shader, application.windowFormat, vertexLayout, bindingLayout);
-    AppBuffer myUniformBuffer(application.device, 512, WGPUBufferUsage_Uniform);
+    uint32_t uniformOffsetSize = ceilToBufferOffset(sizeof(MyUniforms));
+    AppBuffer myUniformBuffer(application.device, uniformOffsetSize * 2, WGPUBufferUsage_Uniform);
 
     std::vector<WGPUBindGroupEntry> bindings = {WGPU_BIND_GROUP_ENTRY_INIT};
     bindings[0].binding = 0;

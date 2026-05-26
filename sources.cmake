@@ -15,6 +15,7 @@ set(AB_ENGINE_SOURCES
   src/application/application.cpp
   src/asset/readFileBytes.cpp
   src/main.cpp
+  src/math/ceilToBufferOffset.cpp
   src/printStringView.cpp
   src/window/windowFactory.cpp
 )
