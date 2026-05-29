@@ -33,7 +33,7 @@ fn vs_main(in: VertexInput) -> VertexOutput {
     out.position = vec4f(
         position.x,
         position.y * ratio,
-        0.0,
+        position.z * 0.5 + 0.5,
         1.0
     );
     out.color = vec3f(in.color.x * uMyUniforms.color, in.color.y, in.color.z);

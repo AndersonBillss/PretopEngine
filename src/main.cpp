@@ -97,7 +97,7 @@ int main(int, char **)
 
                         AppCommandBuffer commandBuffer(application.device);
                         std::cout << "DELTATIME: " << dt << std::endl;
-                        AppRenderPassCommand command(application.device, targetView);
+                        AppRenderPassCommand command(application.device, targetView, pipeline.wgpuDepthStencilAttachment);
                         std::vector<AppBuffer *> bufs = {&vertices};
 
                         commandBuffer.addCommand(command)

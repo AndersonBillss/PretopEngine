@@ -1,11 +1,14 @@
 #include "appRenderPassCommand.hpp"
 
-AppRenderPassCommand::AppRenderPassCommand(AppDevice &device, WGPUTextureView targetView)
+AppRenderPassCommand::AppRenderPassCommand(
+    AppDevice &device,
+    WGPUTextureView targetView,
+    WGPURenderPassDepthStencilAttachment &depthStencilAttachment)
 {
-    this->wgpuRenderPassDescriptor = {};
+    this->wgpuRenderPassDescriptor = WGPU_RENDER_PASS_DESCRIPTOR_INIT;
     this->wgpuRenderPassDescriptor.nextInChain = nullptr;
 
-    this->wgpuRenderPassColorAttachment = {};
+    this->wgpuRenderPassColorAttachment = WGPU_RENDER_PASS_COLOR_ATTACHMENT_INIT;
     this->wgpuRenderPassColorAttachment.view = targetView;
     this->wgpuRenderPassColorAttachment.resolveTarget = nullptr;
     this->wgpuRenderPassColorAttachment.loadOp = WGPULoadOp_Clear;
@@ -15,6 +18,6 @@ AppRenderPassCommand::AppRenderPassCommand(AppDevice &device, WGPUTextureView ta
 
     this->wgpuRenderPassDescriptor.colorAttachmentCount = 1;
     this->wgpuRenderPassDescriptor.colorAttachments = &this->wgpuRenderPassColorAttachment;
-    this->wgpuRenderPassDescriptor.depthStencilAttachment = nullptr;
+    this->wgpuRenderPassDescriptor.depthStencilAttachment = &depthStencilAttachment;
     this->wgpuRenderPassDescriptor.timestampWrites = nullptr;
 }

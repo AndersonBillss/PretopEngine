@@ -6,7 +6,10 @@
 class AppRenderPassCommand
 {
 public:
-    AppRenderPassCommand(AppDevice &device, WGPUTextureView targetView);
+    AppRenderPassCommand(
+        AppDevice &device,
+        WGPUTextureView targetView,
+        WGPURenderPassDepthStencilAttachment &depthStencilAttachment);
     WGPURenderPassDescriptor wgpuRenderPassDescriptor;
     WGPURenderPassColorAttachment wgpuRenderPassColorAttachment;
 };

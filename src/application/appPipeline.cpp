@@ -27,6 +27,64 @@ AppPipeline::AppPipeline(
     pipelineDesc.layout = pipelineLayout.wgpuLayout;
     pipelineDesc.vertex.buffers = layouts.data();
 
+    WGPUDepthStencilState depthStencilState = WGPU_DEPTH_STENCIL_STATE_INIT;
+    depthStencilState.format = WGPUTextureFormat_Undefined;
+    depthStencilState.depthWriteEnabled = WGPUOptionalBool_False;
+    depthStencilState.depthCompare = WGPUCompareFunction_Always;
+    depthStencilState.stencilReadMask = 0xFFFFFFFF;
+    depthStencilState.stencilWriteMask = 0xFFFFFFFF;
+    depthStencilState.depthBias = 0;
+    depthStencilState.depthBiasSlopeScale = 0;
+    depthStencilState.depthBiasClamp = 0;
+    depthStencilState.depthCompare = WGPUCompareFunction_Less;
+    depthStencilState.depthWriteEnabled = WGPUOptionalBool_True;
+    // Store the format in a variable as later parts of the code depend on it
+    WGPUTextureFormat depthTextureFormat = WGPUTextureFormat_Depth24Plus;
+    depthStencilState.format = depthTextureFormat;
+    // Deactivate the stencil alltogether
+    depthStencilState.stencilReadMask = 0;
+    depthStencilState.stencilWriteMask = 0;
+    pipelineDesc.depthStencil = &depthStencilState;
+    // Create the depth texture
+    WGPUTextureDescriptor depthTextureDesc = WGPU_TEXTURE_DESCRIPTOR_INIT;
+    depthTextureDesc.dimension = WGPUTextureDimension_2D;
+    depthTextureDesc.format = depthTextureFormat;
+    depthTextureDesc.mipLevelCount = 1;
+    depthTextureDesc.sampleCount = 1;
+    depthTextureDesc.size = {800, 600, 1};
+    depthTextureDesc.usage = WGPUTextureUsage_RenderAttachment;
+    depthTextureDesc.viewFormatCount = 1;
+    depthTextureDesc.viewFormats = &depthTextureFormat;
+    WGPUTexture depthTexture = wgpuDeviceCreateTexture(device.wgpuDevice, &depthTextureDesc);
+
+    // Create the view of the depth texture manipulated by the rasterizer
+    WGPUTextureViewDescriptor depthTextureViewDesc = WGPU_TEXTURE_VIEW_DESCRIPTOR_INIT;
+    depthTextureViewDesc.aspect = WGPUTextureAspect_DepthOnly;
+    depthTextureViewDesc.baseArrayLayer = 0;
+    depthTextureViewDesc.arrayLayerCount = 1;
+    depthTextureViewDesc.baseMipLevel = 0;
+    depthTextureViewDesc.mipLevelCount = 1;
+    depthTextureViewDesc.dimension = WGPUTextureViewDimension_2D;
+    depthTextureViewDesc.format = depthTextureFormat;
+    WGPUTextureView depthTextureView = wgpuTextureCreateView(depthTexture, &depthTextureViewDesc);
+
+    // We now add a depth/stencil attachment:
+    this->wgpuDepthStencilAttachment = WGPU_RENDER_PASS_DEPTH_STENCIL_ATTACHMENT_INIT;
+    // Setup depth/stencil attachment
+
+    // The view of the depth texture
+    this->wgpuDepthStencilAttachment.view = depthTextureView;
+
+    // The initial value of the depth buffer, meaning "far"
+    this->wgpuDepthStencilAttachment.depthClearValue = 1.0f;
+    // Operation settings comparable to the color attachment
+    this->wgpuDepthStencilAttachment.depthLoadOp = WGPULoadOp_Clear;
+    this->wgpuDepthStencilAttachment.depthStoreOp = WGPUStoreOp_Store;
+    // we could turn off writing to the depth buffer globally here
+    this->wgpuDepthStencilAttachment.depthReadOnly = false;
+
+    pipelineDesc.depthStencil = &depthStencilState;
+
     WGPUFragmentState fragmentState = WGPU_FRAGMENT_STATE_INIT;
     fragmentState.module = shader.wgpuShader;
     std::string fragmentEntryPoint = "fs_main";
