@@ -91,31 +91,6 @@ def get_command(commands: list[str], cmdTree: dict = COMMANDS):
     return None
 
 
-COMMANDS_OLD = {
-    "build-native-debug": build_native_debug,
-    "run-native-debug": run_native_debug,
-    "run-tests": run_tests,
-    "build-web-debug": build_web_debug,
-    "run-web-debug": run_web_debug,
-    "dawn-debug-setup": dawn_debug_setup,
-    "gen-sources": gen_sources,
-}
-
-
-def execute_build(build_command):
-    if build_command not in COMMANDS_OLD:
-        print(f"Unknown command: '{build_command}'")
-    else:
-        build_fn = COMMANDS_OLD[sys.argv[1]]
-        print(build_command)
-        try:
-            build_fn()
-        except KeyboardInterrupt:
-            pass
-        except SubprocessError:
-            pass
-
-
 def handle_command(command: Command):
     try:
         command.fn()
@@ -130,25 +105,9 @@ if len(cmd) == 0:
     help()
     exit(0)
 command = get_command(cmd)
-cmd_str = ' '.join(cmd)
+cmd_str = " ".join(cmd)
 if command is None:
     print(f"unknown command: {cmd_str}")
     exit(0)
 print(cmd_str)
 handle_command(command)
-
-# print(sys.argv[1:])
-# command = get_command(sys.argv[1:], COMMANDS)
-# if command is None:
-#     print("Command is none!!!")
-# else:
-#     print(f"Command desc: {command.description}")
-
-# if len(sys.argv) == 1:
-#     print("Available build commands:")
-#     for key in COMMANDS_OLD:
-#         print(f"  {key}")
-# elif len(sys.argv) == 2:
-#     execute_build(sys.argv[1])
-# else:
-#     print("Must provide two arguments")
