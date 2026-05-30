@@ -4,7 +4,9 @@ import os
 SRC_DIR = "src"
 OUT_FILE = "sources.cmake"
 STARTING_COMMENT = "# Auto-generated code, do not edit"
+MAIN_RULE_PREFIX = "AB_ENGINE_MAIN"
 RULE_PREFIX = "AB_ENGINE_SOURCES"
+TEST_RULE_PREFIX = "AB_ENGINE_TEST_SOURCES"
 
 
 class SourceTracker:
@@ -34,6 +36,13 @@ class SourceTracker:
         else:
             self.src_targets[target] = [filepath]
 
+def save_rules(rules: list[str]):
+    file_content = STARTING_COMMENT + "\n"
+    for rule in rules:
+        file_content += f"{rule}\n"
+
+    with open(OUT_FILE, "w") as output:
+        output.write(file_content)
 
 def generate_rule(sources: list[str], label) -> str:
     sources.sort()
@@ -45,30 +54,31 @@ def generate_rule(sources: list[str], label) -> str:
     result = f"set({label}\n{concat_files}\n)"
     return result
 
+def get_tests():
+    test_files = []
+    for root, dirs, files in os.walk("tests"):
+        for file in files:
+            filepath = os.path.join(root, file).replace("\\", "/")
+            if file.endswith(".cpp"):
+                test_files += [filepath]
+    
+    return test_files
 
 def gen_sources():
     tracker = SourceTracker()
     for root, dirs, files in os.walk("src"):
         for file in files:
             filepath = os.path.join(root, file).replace("\\", "/")
-            if file.endswith(".cpp"):
+            if file.endswith(".cpp") and file != "main.cpp":
                 tracker.add_file(filepath)
 
-    src_files_rule = generate_rule(tracker.src_files, RULE_PREFIX)
-    target_files_rules = []
+    target_files_rules = [
+        generate_rule(get_tests(), TEST_RULE_PREFIX),
+        generate_rule(["src/main.cpp"], MAIN_RULE_PREFIX),
+        generate_rule(tracker.src_files, RULE_PREFIX),
+    ]
     for key in tracker.src_targets:
         target_files_rules += [generate_rule(tracker.src_targets[key], f"{RULE_PREFIX}_" + key)]
         
-    # target_files_rules = [
-    #     generate_rule(tracker.src_targets[key], f"{RULE_PREFIX}_" + key)
-    #     for key in tracker.src_targets
-    # ]
     target_files_rules.sort()
-
-    file_content = STARTING_COMMENT
-    file_content += f"\n{src_files_rule}\n"
-    for rule in target_files_rules:
-        file_content += f"{rule}\n"
-
-    with open(OUT_FILE, "w") as output:
-        output.write(file_content)
+    save_rules(target_files_rules)

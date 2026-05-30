@@ -1,4 +1,7 @@
 # Auto-generated code, do not edit
+set(AB_ENGINE_MAIN
+  src/main.cpp
+)
 set(AB_ENGINE_SOURCES
   src/application/appAdapter.cpp
   src/application/appBindGroup.cpp
@@ -14,7 +17,6 @@ set(AB_ENGINE_SOURCES
   src/application/appVertexLayout.cpp
   src/application/application.cpp
   src/asset/readFileBytes.cpp
-  src/main.cpp
   src/math/ceilToBufferOffset.cpp
   src/printStringView.cpp
   src/window/windowFactory.cpp
@@ -24,4 +26,7 @@ set(AB_ENGINE_SOURCES_NATIVE
 )
 set(AB_ENGINE_SOURCES_WEB
   src/window/WEB_canvasWindow.cpp
+)
+set(AB_ENGINE_TEST_SOURCES
+  tests/test.cpp
 )

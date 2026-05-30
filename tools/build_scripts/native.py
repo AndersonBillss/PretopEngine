@@ -33,3 +33,7 @@ def build_native_debug():
 def run_native_debug():
     build_native_debug()
     return cmd([f"build/engine/ab_engine{EXE_SUFFIX}"])
+
+def run_tests():
+    build_native_debug()
+    return cmd([f"build/engine/ab_engine_tests{EXE_SUFFIX}"])

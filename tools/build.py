@@ -3,13 +3,14 @@ import sys
 
 from codegen.gen_sources import gen_sources
 from build_scripts.dawn import dawn_debug_setup
-from build_scripts.native import build_native_debug, run_native_debug
+from build_scripts.native import build_native_debug, run_native_debug, run_tests
 from build_scripts.web import build_web_debug, run_web_debug
 
 
 COMMANDS = {
     "build-native-debug": build_native_debug,
     "run-native-debug": run_native_debug,
+    "run-tests": run_tests,
     "build-web-debug": build_web_debug,
     "run-web-debug": run_web_debug,
     "dawn-debug-setup": dawn_debug_setup,
