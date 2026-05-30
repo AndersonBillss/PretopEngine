@@ -18,6 +18,7 @@ set(AB_ENGINE_SOURCES
   src/application/application.cpp
   src/asset/readFileBytes.cpp
   src/math/ceilToBufferOffset.cpp
+  src/math/linalg/vec2.cpp
   src/printStringView.cpp
   src/window/windowFactory.cpp
 )
@@ -28,5 +29,5 @@ set(AB_ENGINE_SOURCES_WEB
   src/window/WEB_canvasWindow.cpp
 )
 set(AB_ENGINE_TEST_SOURCES
-  tests/test.cpp
+  tests/math/linalg/vec2.cpp
 )
