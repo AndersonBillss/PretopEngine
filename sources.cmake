@@ -19,6 +19,7 @@ set(AB_ENGINE_SOURCES
   src/asset/readFileBytes.cpp
   src/math/ceilToBufferOffset.cpp
   src/math/linalg/vec2.cpp
+  src/math/linalg/vec3.cpp
   src/printStringView.cpp
   src/window/windowFactory.cpp
 )
@@ -30,4 +31,5 @@ set(AB_ENGINE_SOURCES_WEB
 )
 set(AB_ENGINE_TEST_SOURCES
   tests/math/linalg/vec2.cpp
+  tests/math/linalg/vec3.cpp
 )
