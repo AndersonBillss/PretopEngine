@@ -28,6 +28,11 @@ bool Vec2::operator==(const Vec2 &rhs) const
     return this->x == rhs.x && this->y == rhs.y;
 }
 
+float Vec2::dot(const Vec2 &rhs) const
+{
+    return this->x * rhs.x + this->y * rhs.y;
+}
+
 float Vec2::length() const
 {
     return sqrt(this->x * this->x + this->y * this->y);

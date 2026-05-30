@@ -10,6 +10,7 @@ struct Vec2 {
     Vec2 operator-(const Vec2& rhs) const;
     void operator-=(const Vec2& rhs);
     bool operator==(const Vec2& rhs) const;
+    float dot(const Vec2& rhs) const;
     float length() const;
 };
 
