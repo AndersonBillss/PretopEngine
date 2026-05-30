@@ -6,7 +6,9 @@ struct Vec2 {
     float y;
 
     Vec2 operator+(const Vec2& rhs) const;
+    void operator+=(const Vec2& rhs);
     Vec2 operator-(const Vec2& rhs) const;
+    void operator-=(const Vec2& rhs);
     bool operator==(const Vec2& rhs) const;
     float length() const;
 };

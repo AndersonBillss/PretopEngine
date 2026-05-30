@@ -7,6 +7,8 @@ TEST_CASE("Basic Vec2 addition works", "[math][linalg][vec2]")
     Vec2 v2{3, 4};
     Vec2 result{4, 6};
     REQUIRE(v1 + v2 == result);
+    v1 += v2;
+    REQUIRE(v1 == result);
 }
 
 TEST_CASE("Basic Vec2 subtraction works", "[math][linalg][vec2]")
@@ -15,4 +17,6 @@ TEST_CASE("Basic Vec2 subtraction works", "[math][linalg][vec2]")
     Vec2 v2{3, 4};
     Vec2 result{-2, -2};
     REQUIRE(v1 - v2 == result);
+    v1 -= v2;
+    REQUIRE(v1 == result);
 }
