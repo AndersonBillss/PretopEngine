@@ -25,7 +25,7 @@ If you are using **Visual Studio Installer (Community 2022)**:
 1. Run:
 
    ```
-   ./script/windows/build-dawn.bat
+   ./script/windows/setup.bat
    ```
 
 2. Then start the engine:
@@ -46,13 +46,13 @@ If you are using a different version of Visual Studio:
 2. Run the setup build:
 
    ```
-   python tools/build.py dawn-debug-setup
+   python tools/cli.py setup
    ```
 
 3. Run the engine:
 
    ```
-   python tools/build.py run-native-debug
+   python tools/cli.py run native
    ```
 
 # Building the Engine for Linux 
@@ -82,11 +82,11 @@ Install the following dependencies:
 1. Run the setup build:
 
    ```
-   python tools/build.py dawn-debug-setup
+   python tools/cli.py setup
    ```
 
 2. Run the engine:
 
    ```
-   python tools/build.py run-native-debug
+   python tools/cli.py run native
    ```
