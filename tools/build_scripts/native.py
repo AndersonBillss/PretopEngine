@@ -34,6 +34,6 @@ def run_native_debug():
     build_native_debug()
     return cmd([f"build/engine/ab_engine{EXE_SUFFIX}"])
 
-def run_tests():
+def run_tests(args: list[str]):
     build_native_debug()
-    return cmd([f"build/engine/ab_engine_tests{EXE_SUFFIX}"])
+    return cmd([f"build/engine/ab_engine_tests{EXE_SUFFIX}"] + args)
