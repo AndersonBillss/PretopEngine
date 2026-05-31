@@ -22,6 +22,7 @@ set(AB_ENGINE_SOURCES
   src/math/linalg/mat3x3.cpp
   src/math/linalg/vec2.cpp
   src/math/linalg/vec3.cpp
+  src/math/linalg/vec4.cpp
   src/printStringView.cpp
   src/window/windowFactory.cpp
 )
@@ -36,4 +37,5 @@ set(AB_ENGINE_TEST_SOURCES
   tests/math/linalg/mat3x3.cpp
   tests/math/linalg/vec2.cpp
   tests/math/linalg/vec3.cpp
+  tests/math/linalg/vec4.cpp
 )
