@@ -1,45 +1,6 @@
 #include <cmath>
 #include "vec3.hpp"
 
-Vec3 Vec3::operator+(const Vec3 &rhs) const
-{
-    return Vec3{
-        this->x + rhs.x,
-        this->y + rhs.y,
-        this->z + rhs.z,
-    };
-}
-
-void Vec3::operator+=(const Vec3 &rhs)
-{
-    this->x += rhs.x;
-    this->y += rhs.y;
-    this->z += rhs.z;
-}
-
-Vec3 Vec3::operator-(const Vec3 &rhs) const
-{
-    return Vec3{
-        this->x - rhs.x,
-        this->y - rhs.y,
-        this->z - rhs.z,
-    };
-}
-
-void Vec3::operator-=(const Vec3 &rhs)
-{
-    this->x -= rhs.x;
-    this->y -= rhs.y;
-    this->z -= rhs.z;
-}
-
-bool Vec3::operator==(const Vec3 &rhs) const
-{
-    return this->x == rhs.x &&
-           this->y == rhs.y &&
-           this->z == rhs.z;
-}
-
 float Vec3::dot(const Vec3 &rhs) const
 {
     return this->x * rhs.x +
@@ -53,6 +14,45 @@ float Vec3::length() const
         this->x * this->x +
         this->y * this->y +
         this->z * this->z);
+}
+
+Vec3 operator+(const Vec3 &lhs, const Vec3 &rhs)
+{
+    return Vec3{
+        lhs.x + rhs.x,
+        lhs.y + rhs.y,
+        lhs.z + rhs.z,
+    };
+}
+
+void operator+=(Vec3 &lhs, const Vec3 &rhs)
+{
+    lhs.x += rhs.x;
+    lhs.y += rhs.y;
+    lhs.z += rhs.z;
+}
+
+Vec3 operator-(const Vec3 &lhs, const Vec3 &rhs)
+{
+    return Vec3{
+        lhs.x - rhs.x,
+        lhs.y - rhs.y,
+        lhs.z - rhs.z,
+    };
+}
+
+void operator-=(Vec3 &lhs, const Vec3 &rhs)
+{
+    lhs.x -= rhs.x;
+    lhs.y -= rhs.y;
+    lhs.z -= rhs.z;
+}
+
+bool operator==(const Vec3 &lhs, const Vec3 &rhs)
+{
+    return lhs.x == rhs.x &&
+           lhs.y == rhs.y &&
+           lhs.z == rhs.z;
 }
 
 std::ostream &operator<<(std::ostream &os, const Vec3 &v)
