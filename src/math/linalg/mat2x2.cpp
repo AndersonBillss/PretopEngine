@@ -28,6 +28,6 @@ Mat2x2 Mat2x2::operator*(Mat2x2 &right) const
 
 std::ostream &operator<<(std::ostream &os, const Mat2x2 &m)
 {
-    return os << "[[" << m(0, 0) << ", " << m(0, 1) << "], \n"
+    return os << "[[" << m(0, 0) << ", " << m(0, 1) << "],\n"
               << "[" << m(1, 0) << ", " << m(1, 1) << "]]";
 }
