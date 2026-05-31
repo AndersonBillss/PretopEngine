@@ -12,5 +12,9 @@ struct Mat2x2
     inline const float *begin() const { return data; }
     inline const float *end() const { return data + 4; }
 
-    Vec2 operator *(Vec2 &right);
+    bool operator==(Mat2x2 &right) const;
+    Vec2 operator*(Vec2 &right) const;
+    Mat2x2 operator*(Mat2x2 &right) const;
 };
+
+std::ostream &operator<<(std::ostream &os, const Mat2x2 &m);
