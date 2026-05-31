@@ -1,28 +1,28 @@
 #include "mat2x2.hpp"
 
-bool Mat2x2::operator==(Mat2x2 &right) const
+bool operator==(const Mat2x2 &left, const Mat2x2 &right)
 {
-    return this->data[0] == right.data[0] &&
-           this->data[1] == right.data[1] &&
-           this->data[2] == right.data[2] &&
-           this->data[3] == right.data[3];
+    return left.data[0] == right.data[0] &&
+           left.data[1] == right.data[1] &&
+           left.data[2] == right.data[2] &&
+           left.data[3] == right.data[3];
 }
 
-Vec2 Mat2x2::operator*(Vec2 &right) const
+Vec2 operator*(const Mat2x2 &left, const Vec2 &right)
 {
     return Vec2{
-        this->data[0] * right.x + this->data[1] * right.y,
-        this->data[2] * right.x + this->data[3] * right.y,
+        left.data[0] * right.x + left.data[1] * right.y,
+        left.data[2] * right.x + left.data[3] * right.y,
     };
 }
 
-Mat2x2 Mat2x2::operator*(Mat2x2 &right) const
+Mat2x2 operator*(const Mat2x2 &left, const Mat2x2 &right)
 {
     return Mat2x2{
-        this->data[0] * right.data[0] + this->data[1] * right.data[2],
-        this->data[0] * right.data[1] + this->data[1] * right.data[3],
-        this->data[2] * right.data[0] + this->data[3] * right.data[2],
-        this->data[2] * right.data[1] + this->data[3] * right.data[3],
+        left.data[0] * right.data[0] + left.data[1] * right.data[2],
+        left.data[0] * right.data[1] + left.data[1] * right.data[3],
+        left.data[2] * right.data[0] + left.data[3] * right.data[2],
+        left.data[2] * right.data[1] + left.data[3] * right.data[3],
     };
 }
 

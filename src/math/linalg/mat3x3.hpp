@@ -11,10 +11,10 @@ struct Mat3x3
     inline float *end() { return data + 9; }
     inline const float *begin() const { return data; }
     inline const float *end() const { return data + 9; }
-
-    bool operator==(Mat3x3 &right) const;
-    Vec3 operator*(Vec3 &right) const;
-    Mat3x3 operator*(Mat3x3 &right) const;
+    static inline Mat3x3 identity() { return Mat3x3{1, 0, 0, 0, 1, 0, 0, 0, 1}; }
 };
 
+bool operator==(const Mat3x3 &left, const Mat3x3 &right);
+Vec3 operator*(const Mat3x3 &left, const Vec3 &right);
+Mat3x3 operator*(const Mat3x3 &left, const Mat3x3 &right);
 std::ostream &operator<<(std::ostream &os, const Mat3x3 &m);

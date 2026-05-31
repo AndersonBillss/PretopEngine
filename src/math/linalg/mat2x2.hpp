@@ -11,10 +11,10 @@ struct Mat2x2
     inline float *end() { return data + 4; }
     inline const float *begin() const { return data; }
     inline const float *end() const { return data + 4; }
-
-    bool operator==(Mat2x2 &right) const;
-    Vec2 operator*(Vec2 &right) const;
-    Mat2x2 operator*(Mat2x2 &right) const;
+    static inline Mat2x2 identity() { return Mat2x2{1, 0, 0, 1}; }
 };
 
+bool operator==(const Mat2x2 &left, const Mat2x2 &right);
+Vec2 operator*(const Mat2x2 &left, const Vec2 &right);
+Mat2x2 operator*(const Mat2x2 &left, const Mat2x2 &right);
 std::ostream &operator<<(std::ostream &os, const Mat2x2 &m);

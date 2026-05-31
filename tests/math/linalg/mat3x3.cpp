@@ -24,3 +24,11 @@ TEST_CASE("Mat3x3 Mat3x3 multiplication works", "[math][linalg][mat3x3]")
                   12.0f, 11.0f, 29.0f};
     REQUIRE(m1 * m2 == result);
 }
+
+TEST_CASE("Mat3x3 multiplied by identity matrix remain the same", "[math][linalg][mat3x3]")
+{
+    Mat3x3 m{1.0f, 2.0f, 3.0f,
+             4.0f, 1.0f, 5.0f,
+             2.0f, 1.0f, 4.0f};
+    REQUIRE(m * Mat3x3::identity() == m);
+}

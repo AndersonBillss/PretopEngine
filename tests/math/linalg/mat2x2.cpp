@@ -20,3 +20,10 @@ TEST_CASE("Mat2x2 Mat2x2 multiplication works", "[math][linalg][mat2x2]")
                   17.0f, 23.0f};
     REQUIRE(m1 * m2 == result);
 }
+
+TEST_CASE("Mat2x2 multiplied by identity matrix remain the same", "[math][linalg][mat2x2]")
+{
+    Mat2x2 m{1.0f, 2.0f,
+             3.0f, 4.0f};
+    REQUIRE(m * Mat2x2::identity() == m);
+}
