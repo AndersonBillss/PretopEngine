@@ -20,6 +20,7 @@ set(AB_ENGINE_SOURCES
   src/math/ceilToBufferOffset.cpp
   src/math/linalg/mat2x2.cpp
   src/math/linalg/mat3x3.cpp
+  src/math/linalg/mat4x4.cpp
   src/math/linalg/vec2.cpp
   src/math/linalg/vec3.cpp
   src/math/linalg/vec4.cpp
