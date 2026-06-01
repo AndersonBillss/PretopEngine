@@ -36,6 +36,7 @@ set(AB_ENGINE_SOURCES_WEB
 set(AB_ENGINE_TEST_SOURCES
   tests/math/linalg/mat2x2.cpp
   tests/math/linalg/mat3x3.cpp
+  tests/math/linalg/mat4x4.cpp
   tests/math/linalg/vec2.cpp
   tests/math/linalg/vec3.cpp
   tests/math/linalg/vec4.cpp
