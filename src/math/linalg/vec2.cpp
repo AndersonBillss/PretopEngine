@@ -11,6 +11,19 @@ float Vec2::length() const
     return sqrt(this->x * this->x + this->y * this->y);
 }
 
+void Vec2::normalize()
+{
+    float len = this->length();
+    this->x /= len;
+    this->y /= len;
+}
+
+Vec2 Vec2::normalized() const
+{
+    float len = this->length();
+    return Vec2{this->x / len, this->y / len};
+}
+
 Vec2 operator+(const Vec2 &lhs, const Vec2 &rhs)
 {
     return Vec2{lhs.x + rhs.x, lhs.y + rhs.y};

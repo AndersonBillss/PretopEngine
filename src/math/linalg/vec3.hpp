@@ -9,6 +9,8 @@ struct Vec3
 
     float dot(const Vec3 &rhs) const;
     float length() const;
+    void normalize();
+    Vec3 normalized() const;
 };
 
 Vec3 operator+(const Vec3 &lhs, const Vec3 &rhs);

@@ -18,6 +18,21 @@ float Vec4::length() const
         this->w * this->w);
 }
 
+void Vec4::normalize()
+{
+    float len = this->length();
+    this->x /= len;
+    this->y /= len;
+    this->z /= len;
+    this->w /= len;
+}
+
+Vec4 Vec4::normalized() const
+{
+    float len = this->length();
+    return Vec4{this->x / len, this->y / len, this->z / len, this->w / len};
+}
+
 Vec4 operator+(const Vec4 &lhs, const Vec4 &rhs)
 {
     return Vec4{

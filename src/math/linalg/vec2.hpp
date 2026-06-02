@@ -8,6 +8,8 @@ struct Vec2
 
     float dot(const Vec2 &rhs) const;
     float length() const;
+    void normalize();
+    Vec2 normalized() const;
 };
 
 Vec2 operator+(const Vec2 &lhs, const Vec2 &rhs);

@@ -10,6 +10,8 @@ struct Vec4
 
     float dot(const Vec4 &rhs) const;
     float length() const;
+    void normalize();
+    Vec4 normalized() const;
 };
 
 Vec4 operator+(const Vec4 &lhs, const Vec4 &rhs);

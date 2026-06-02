@@ -16,6 +16,20 @@ float Vec3::length() const
         this->z * this->z);
 }
 
+void Vec3::normalize()
+{
+    float len = this->length();
+    this->x /= len;
+    this->y /= len;
+    this->z /= len;
+}
+
+Vec3 Vec3::normalized() const
+{
+    float len = this->length();
+    return Vec3{this->x / len, this->y / len, this->z / len};
+}
+
 Vec3 operator+(const Vec3 &lhs, const Vec3 &rhs)
 {
     return Vec3{
