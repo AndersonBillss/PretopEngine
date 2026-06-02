@@ -53,3 +53,18 @@ TEST_CASE("Mat4x4 multiplied by identity matrix remain the same", "[math][linalg
 
     REQUIRE(m * Mat4x4::identity() == m);
 }
+
+TEST_CASE("Mat4x4 transpose works", "[math][linalg][mat4x4]")
+{
+    Mat4x4 m{
+        1.0f, 2.0f, 3.0f, 10.0f,
+        5.0f, 6.0f, 7.0f, 8.0f,
+        9.0f, 1.0f, 2.0f, 3.0f,
+        4.0f, 5.0f, 6.0f, 7.0f};
+    Mat4x4 m_t{
+        1.0f, 5.0f, 9.0f, 4.0f,
+        2.0f, 6.0f, 1.0f, 5.0f,
+        3.0f, 7.0f, 2.0f, 6.0f,
+        10.0f, 8.0f, 3.0f, 7.0f};
+    REQUIRE(transpose(m) == m_t);
+}

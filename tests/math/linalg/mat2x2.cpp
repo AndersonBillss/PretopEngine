@@ -27,3 +27,12 @@ TEST_CASE("Mat2x2 multiplied by identity matrix remain the same", "[math][linalg
              3.0f, 4.0f};
     REQUIRE(m * Mat2x2::identity() == m);
 }
+
+TEST_CASE("Mat2x2 transpose works", "[math][linalg][mat2x2]")
+{
+    Mat2x2 m{1.0f, 2.0f,
+             3.0f, 4.0f};
+    Mat2x2 m_t{1.0f, 3.0f,
+               2.0f, 4.0f};
+    REQUIRE(transpose(m) == m_t);
+}

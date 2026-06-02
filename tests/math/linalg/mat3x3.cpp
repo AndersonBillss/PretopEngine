@@ -32,3 +32,14 @@ TEST_CASE("Mat3x3 multiplied by identity matrix remain the same", "[math][linalg
              2.0f, 1.0f, 4.0f};
     REQUIRE(m * Mat3x3::identity() == m);
 }
+
+TEST_CASE("Mat3x3 transpose works", "[math][linalg][mat3x3]")
+{
+    Mat3x3 m{1.0f, 2.0f, 3.0f,
+             4.0f, 1.0f, 5.0f,
+             2.0f, 1.0f, 4.0f};
+    Mat3x3 m_t{1.0f, 4.0f, 2.0f,
+               2.0f, 1.0f, 1.0f,
+               3.0f, 5.0f, 4.0f};
+    REQUIRE(transpose(m) == m_t);
+}
