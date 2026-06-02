@@ -1,5 +1,13 @@
 #include "mat3x3.hpp"
 
+Mat3x3 transpose(Mat3x3 &mat)
+{
+    return Mat3x3{
+        mat(0, 0), mat(1, 0), mat(2, 0),
+        mat(0, 1), mat(1, 1), mat(2, 1),
+        mat(0, 2), mat(1, 2), mat(2, 2)};
+}
+
 bool operator==(const Mat3x3 &left, const Mat3x3 &right)
 {
     return left.data[0] == right.data[0] &&

@@ -14,6 +14,8 @@ struct Mat4x4
     static inline Mat4x4 identity() { return Mat4x4{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}; }
 };
 
+Mat4x4 transpose(Mat4x4 &mat);
+
 bool operator==(const Mat4x4 &left, const Mat4x4 &right);
 Vec4 operator*(const Mat4x4 &left, const Vec4 &right);
 Mat4x4 operator*(const Mat4x4 &left, const Mat4x4 &right);
