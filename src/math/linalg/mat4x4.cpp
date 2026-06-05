@@ -15,6 +15,16 @@ Mat4x4 transpose(const Mat4x4 &mat)
     return result;
 }
 
+Mat4x4 perspective(float near, float far, float fovY, float aspect)
+{
+    float f = 1.0f / tan(fovY * 0.5f);
+    return Mat4x4{
+        f / aspect, 0.0f, 0.0f, 0.0f,
+        0.0f, f, 0.0f, 0.0f,
+        0.0f, 0.0f, far / (near - far), -1.0f,
+        0.0f, 0.0f, (near * far) / (near - far), 0.0f};
+}
+
 bool operator==(const Mat4x4 &left, const Mat4x4 &right)
 {
     for (int i = 0; i < 16; ++i)

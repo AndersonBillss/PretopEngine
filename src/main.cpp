@@ -20,8 +20,10 @@
 #include "application/appBindingLayout.hpp"
 #include "application/appBuffer.hpp"
 #include "application/appBindGroup.hpp"
+
 #include "math/ceilToBufferOffset.hpp"
 #include "math/linalg/mat4x4.hpp"
+#include "math/constants.hpp"
 
 struct MyUniforms
 {
@@ -105,7 +107,7 @@ int main(int, char **)
                             0.0, 0.0, 0.0, 1.0,
                         });
 
-                        float angle2 = 3.0 * M_PI / 4.0;
+                        float angle2 = 45 * deg2rad;
                         float c2 = cos(angle2);
                         float s2 = sin(angle2);
                         Mat4x4 R2 = transpose(Mat4x4{
@@ -114,10 +116,16 @@ int main(int, char **)
                             0.0, -s2, c2, 0.0,
                             0.0, 0.0, 0.0, 1.0,
                         });
-                        Mat4x4 T = transpose(Mat4x4{
+                        Mat4x4 T1 = transpose(Mat4x4{
                             1.0, 0.0, 0.0, 0.5,
                             0.0, 1.0, 0.0, 0.0,
                             0.0, 0.0, 1.0, 0.0,
+                            0.0, 0.0, 0.0, 1.0,
+                        });
+                        Mat4x4 T2 = transpose(Mat4x4{
+                            1.0, 0.0, 0.0, 0.0,
+                            0.0, 1.0, 0.0, 0.0,
+                            0.0, 0.0, 1.0, -2.0,
                             0.0, 0.0, 0.0, 1.0,
                         });
                         Mat4x4 S = transpose(Mat4x4{
@@ -126,19 +134,11 @@ int main(int, char **)
                             0.0, 0.0, 0.3, 0.0,
                             0.0, 0.0, 0.0, 1.0,
                         });
-                        u1->viewMatrix = R2 * R1 * T * S;
+                        u1->viewMatrix = T2 * R2 * R1 * T1 * S;
 
-                        float focalLength = 2.0;
                         float near = 0.01f;
                         float far = 100.0f;
-                        float divider = 1 / (focalLength * (far - near));
-                        float ratio = 640.0 / 480.0;
-                        u1->projectionMatrix = transpose({
-                            1.0, 0.0, 0.0, 0.0,
-                            0.0, ratio, 0.0, 0.0,
-                            0.0, 0.0, far * divider, -far * near * divider,
-                            0.0, 0.0, 1.0f / focalLength, 1.0
-                        });
+                        u1->projectionMatrix = perspective(0.01f, 100.0f, 60.0f * deg2rad, 640.0 / 480.0);
                         // MyUniforms *u2 = myUniformBuffer.get<MyUniforms>(256);
                         // u2->color = (cos(seconds * 2.32325) + 1) / 2;
                         // u2->time = -seconds;
