@@ -126,11 +126,17 @@ int main(int, char **)
                             0.0, 0.0, 0.0, 1.0,
                         };
                         u1->viewMatrix = transpose(R2) * transpose(R1) * transpose(T) * transpose(S);
+
+                        float focalLength = 2.0;
+                        float near = 0.01f;
+                        float far = 100.0f;
+                        float divider = 1 / (focalLength * (far - near));
+                        float ratio = 640.0 / 480.0;
                         u1->projectionMatrix = {
                             1.0, 0.0, 0.0, 0.0,
-                            0.0, 1.0, 0.0, 0.0,
-                            0.0, 0.0, 1.0, 0.0,
-                            0.0, 0.0, 0.0, 1.0,
+                            0.0, ratio, 0.0, 0.0,
+                            0.0, 0.0, far * divider, -far * near * divider,
+                            0.0, 0.0, 1.0f / focalLength, 1.0
                         };
                         // MyUniforms *u2 = myUniformBuffer.get<MyUniforms>(256);
                         // u2->color = (cos(seconds * 2.32325) + 1) / 2;
