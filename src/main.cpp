@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <chrono>
+#define _USE_MATH_DEFINES
 #include <cmath>
 
 #include "printStringView.hpp"
@@ -20,9 +21,13 @@
 #include "application/appBuffer.hpp"
 #include "application/appBindGroup.hpp"
 #include "math/ceilToBufferOffset.hpp"
+#include "math/linalg/mat4x4.hpp"
 
 struct MyUniforms
 {
+    Mat4x4 projectionMatrix;
+    Mat4x4 viewMatrix;
+    Mat4x4 modelMatrix;
     float color;
     float time;
     float _pad[2];
@@ -90,9 +95,50 @@ int main(int, char **)
                         MyUniforms *u1 = myUniformBuffer.get<MyUniforms>();
                         u1->color = (sin(seconds * 2.32325) + 1) / 2;
                         u1->time = seconds;
-                        MyUniforms *u2 = myUniformBuffer.get<MyUniforms>(256);
-                        u2->color = (cos(seconds * 2.32325) + 1) / 2;
-                        u2->time = -seconds;
+                        u1->modelMatrix = Mat4x4::identity();
+                        float c1 = cos(seconds);
+                        float s1 = sin(seconds);
+                        Mat4x4 R1 = Mat4x4{
+                            c1, s1, 0.0, 0.0,
+                            -s1, c1, 0.0, 0.0,
+                            0.0, 0.0, 1.0, 0.0,
+                            0.0, 0.0, 0.0, 1.0,
+                        };
+                        float angle2 = 3.0 * M_PI / 4.0;
+                        float c2 = cos(angle2);
+                        float s2 = sin(angle2);
+                        Mat4x4 R2 = Mat4x4{
+                            1.0, 0.0, 0.0, 0.0,
+                            0.0, c2, s2, 0.0,
+                            0.0, -s2, c2, 0.0,
+                            0.0, 0.0, 0.0, 1.0,
+                        };
+                        Mat4x4 T = Mat4x4{
+                            1.0, 0.0, 0.0, 0.5,
+                            0.0, 1.0, 0.0, 0.0,
+                            0.0, 0.0, 1.0, 0.0,
+                            0.0, 0.0, 0.0, 1.0,
+                        };
+                        Mat4x4 S = Mat4x4{
+                            0.3, 0.0, 0.0, 0.0,
+                            0.0, 0.3, 0.0, 0.0,
+                            0.0, 0.0, 0.3, 0.0,
+                            0.0, 0.0, 0.0, 1.0,
+                        };
+                        Mat4x4 temp = R2 * R1 * T * S;
+                        u1->viewMatrix = transpose(temp);
+                        u1->projectionMatrix = {
+                            1.0, 0.0, 0.0, 0.0,
+                            0.0, 1.0, 0.0, 0.0,
+                            0.0, 0.0, 1.0, 0.0,
+                            0.0, 0.0, 0.0, 1.0,
+                        };
+
+                        // u1->modelMatrix = Mat4x4::identity();
+                        u1->projectionMatrix = Mat4x4::identity();
+                        // MyUniforms *u2 = myUniformBuffer.get<MyUniforms>(256);
+                        // u2->color = (cos(seconds * 2.32325) + 1) / 2;
+                        // u2->time = -seconds;
                         application.writeBuf(myUniformBuffer);
 
                         AppCommandBuffer commandBuffer(application.device);
