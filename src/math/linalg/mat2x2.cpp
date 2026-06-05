@@ -2,34 +2,58 @@
 
 Mat2x2 transpose(const Mat2x2 &mat)
 {
-    return Mat2x2{mat(0, 0), mat(1, 0),
-                  mat(0, 1), mat(1, 1)};
+    Mat2x2 result{};
+
+    for (int row = 0; row < 2; ++row)
+    {
+        for (int col = 0; col < 2; ++col)
+        {
+            result(row, col) = mat(col, row);
+        }
+    }
+
+    return result;
 }
 
 bool operator==(const Mat2x2 &left, const Mat2x2 &right)
 {
-    return left.data[0] == right.data[0] &&
-           left.data[1] == right.data[1] &&
-           left.data[2] == right.data[2] &&
-           left.data[3] == right.data[3];
+    for (int i = 0; i < 4; ++i)
+    {
+        if (left.data[i] != right.data[i])
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 Vec2 operator*(const Mat2x2 &left, const Vec2 &right)
 {
     return Vec2{
-        left.data[0] * right.x + left.data[1] * right.y,
-        left.data[2] * right.x + left.data[3] * right.y,
+        left(0, 0) * right.x + left(0, 1) * right.y,
+        left(1, 0) * right.x + left(1, 1) * right.y,
     };
 }
 
 Mat2x2 operator*(const Mat2x2 &left, const Mat2x2 &right)
 {
-    return Mat2x2{
-        left.data[0] * right.data[0] + left.data[1] * right.data[2],
-        left.data[0] * right.data[1] + left.data[1] * right.data[3],
-        left.data[2] * right.data[0] + left.data[3] * right.data[2],
-        left.data[2] * right.data[1] + left.data[3] * right.data[3],
-    };
+    Mat2x2 result{};
+
+    for (int row = 0; row < 2; ++row)
+    {
+        for (int col = 0; col < 2; ++col)
+        {
+            float sum = 0.0f;
+            for (int k = 0; k < 2; ++k)
+            {
+                sum += left(row, k) * right(k, col);
+            }
+
+            result(row, col) = sum;
+        }
+    }
+
+    return result;
 }
 
 std::ostream &operator<<(std::ostream &os, const Mat2x2 &m)
