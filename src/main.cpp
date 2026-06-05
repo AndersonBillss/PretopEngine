@@ -125,17 +125,13 @@ int main(int, char **)
                             0.0, 0.0, 0.3, 0.0,
                             0.0, 0.0, 0.0, 1.0,
                         };
-                        Mat4x4 temp = R2 * R1 * T * S;
-                        u1->viewMatrix = transpose(temp);
+                        u1->viewMatrix = transpose(R2) * transpose(R1) * transpose(T) * transpose(S);
                         u1->projectionMatrix = {
                             1.0, 0.0, 0.0, 0.0,
                             0.0, 1.0, 0.0, 0.0,
                             0.0, 0.0, 1.0, 0.0,
                             0.0, 0.0, 0.0, 1.0,
                         };
-
-                        // u1->modelMatrix = Mat4x4::identity();
-                        u1->projectionMatrix = Mat4x4::identity();
                         // MyUniforms *u2 = myUniformBuffer.get<MyUniforms>(256);
                         // u2->color = (cos(seconds * 2.32325) + 1) / 2;
                         // u2->time = -seconds;
