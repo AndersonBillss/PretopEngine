@@ -1,6 +1,6 @@
 #include "mat2x2.hpp"
 
-Mat2x2 transpose(Mat2x2 &mat)
+Mat2x2 transpose(const Mat2x2 &mat)
 {
     return Mat2x2{mat(0, 0), mat(1, 0),
                   mat(0, 1), mat(1, 1)};

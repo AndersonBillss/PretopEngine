@@ -14,7 +14,7 @@ struct Mat2x2
     static inline Mat2x2 identity() { return Mat2x2{1, 0, 0, 1}; }
 };
 
-Mat2x2 transpose(Mat2x2 &mat);
+Mat2x2 transpose(const Mat2x2 &mat);
 
 bool operator==(const Mat2x2 &left, const Mat2x2 &right);
 Vec2 operator*(const Mat2x2 &left, const Vec2 &right);

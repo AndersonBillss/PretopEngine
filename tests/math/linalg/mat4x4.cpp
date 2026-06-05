@@ -17,7 +17,7 @@ TEST_CASE("Mat4x4 Vec4 multiplication works", "[math][linalg][mat4x4]")
         29.0f,
         60.0f};
 
-    REQUIRE(m * v == result);
+    REQUIRE(transpose(m) * v == result);
 }
 
 TEST_CASE("Mat4x4 Mat4x4 multiplication works", "[math][linalg][mat4x4]")
@@ -40,7 +40,7 @@ TEST_CASE("Mat4x4 Mat4x4 multiplication works", "[math][linalg][mat4x4]")
         20.0f, 14.0f, 26.0f, 14.0f,
         43.0f, 38.0f, 28.0f, 21.0f};
 
-    REQUIRE(m1 * m2 == result);
+    REQUIRE(transpose(m1) * transpose(m2) == transpose(result));
 }
 
 TEST_CASE("Mat4x4 multiplied by identity matrix remain the same", "[math][linalg][mat4x4]")

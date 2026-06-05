@@ -1,6 +1,6 @@
 #include "mat3x3.hpp"
 
-Mat3x3 transpose(Mat3x3 &mat)
+Mat3x3 transpose(const Mat3x3 &mat)
 {
     return Mat3x3{
         mat(0, 0), mat(1, 0), mat(2, 0),

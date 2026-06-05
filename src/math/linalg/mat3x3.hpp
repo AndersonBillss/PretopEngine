@@ -14,7 +14,7 @@ struct Mat3x3
     static inline Mat3x3 identity() { return Mat3x3{1, 0, 0, 0, 1, 0, 0, 0, 1}; }
 };
 
-Mat3x3 transpose(Mat3x3 &mat);
+Mat3x3 transpose(const Mat3x3 &mat);
 
 bool operator==(const Mat3x3 &left, const Mat3x3 &right);
 Vec3 operator*(const Mat3x3 &left, const Vec3 &right);

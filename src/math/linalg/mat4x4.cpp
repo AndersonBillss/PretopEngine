@@ -1,63 +1,60 @@
 #include "mat4x4.hpp"
 
-Mat4x4 transpose(Mat4x4 &mat)
+Mat4x4 transpose(const Mat4x4 &mat)
 {
-    return Mat4x4{mat(0, 0), mat(1, 0), mat(2, 0), mat(3, 0),
-                  mat(0, 1), mat(1, 1), mat(2, 1), mat(3, 1),
-                  mat(0, 2), mat(1, 2), mat(2, 2), mat(3, 2),
-                  mat(0, 3), mat(1, 3), mat(2, 3), mat(3, 3)};
+    Mat4x4 result{};
+
+    for (int row = 0; row < 4; ++row)
+    {
+        for (int col = 0; col < 4; ++col)
+        {
+            result(row, col) = mat(col, row);
+        }
+    }
+
+    return result;
 }
 
 bool operator==(const Mat4x4 &left, const Mat4x4 &right)
 {
-    return left.data[0] == right.data[0] &&
-           left.data[1] == right.data[1] &&
-           left.data[2] == right.data[2] &&
-           left.data[3] == right.data[3] &&
-           left.data[4] == right.data[4] &&
-           left.data[5] == right.data[5] &&
-           left.data[6] == right.data[6] &&
-           left.data[7] == right.data[7] &&
-           left.data[8] == right.data[8] &&
-           left.data[9] == right.data[9] &&
-           left.data[10] == right.data[10] &&
-           left.data[11] == right.data[11] &&
-           left.data[12] == right.data[12] &&
-           left.data[13] == right.data[13] &&
-           left.data[14] == right.data[14] &&
-           left.data[15] == right.data[15];
+    for (int i = 0; i < 16; ++i)
+    {
+        if (left.data[i] != right.data[i])
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 Vec4 operator*(const Mat4x4 &left, const Vec4 &right)
 {
     return Vec4{
-        left.data[0] * right.x + left.data[1] * right.y + left.data[2] * right.z + left.data[3] * right.w,
-        left.data[4] * right.x + left.data[5] * right.y + left.data[6] * right.z + left.data[7] * right.w,
-        left.data[8] * right.x + left.data[9] * right.y + left.data[10] * right.z + left.data[11] * right.w,
-        left.data[12] * right.x + left.data[13] * right.y + left.data[14] * right.z + left.data[15] * right.w,
+        left(0, 0) * right.x + left(0, 1) * right.y + left(0, 2) * right.z + left(0, 3) * right.w,
+        left(1, 0) * right.x + left(1, 1) * right.y + left(1, 2) * right.z + left(1, 3) * right.w,
+        left(2, 0) * right.x + left(2, 1) * right.y + left(2, 2) * right.z + left(2, 3) * right.w,
+        left(3, 0) * right.x + left(3, 1) * right.y + left(3, 2) * right.z + left(3, 3) * right.w,
     };
 }
 
 Mat4x4 operator*(const Mat4x4 &left, const Mat4x4 &right)
 {
-    return Mat4x4{
-        left.data[0] * right.data[0] + left.data[1] * right.data[4] + left.data[2] * right.data[8] + left.data[3] * right.data[12],
-        left.data[0] * right.data[1] + left.data[1] * right.data[5] + left.data[2] * right.data[9] + left.data[3] * right.data[13],
-        left.data[0] * right.data[2] + left.data[1] * right.data[6] + left.data[2] * right.data[10] + left.data[3] * right.data[14],
-        left.data[0] * right.data[3] + left.data[1] * right.data[7] + left.data[2] * right.data[11] + left.data[3] * right.data[15],
-        left.data[4] * right.data[0] + left.data[5] * right.data[4] + left.data[6] * right.data[8] + left.data[7] * right.data[12],
-        left.data[4] * right.data[1] + left.data[5] * right.data[5] + left.data[6] * right.data[9] + left.data[7] * right.data[13],
-        left.data[4] * right.data[2] + left.data[5] * right.data[6] + left.data[6] * right.data[10] + left.data[7] * right.data[14],
-        left.data[4] * right.data[3] + left.data[5] * right.data[7] + left.data[6] * right.data[11] + left.data[7] * right.data[15],
-        left.data[8] * right.data[0] + left.data[9] * right.data[4] + left.data[10] * right.data[8] + left.data[11] * right.data[12],
-        left.data[8] * right.data[1] + left.data[9] * right.data[5] + left.data[10] * right.data[9] + left.data[11] * right.data[13],
-        left.data[8] * right.data[2] + left.data[9] * right.data[6] + left.data[10] * right.data[10] + left.data[11] * right.data[14],
-        left.data[8] * right.data[3] + left.data[9] * right.data[7] + left.data[10] * right.data[11] + left.data[11] * right.data[15],
-        left.data[12] * right.data[0] + left.data[13] * right.data[4] + left.data[14] * right.data[8] + left.data[15] * right.data[12],
-        left.data[12] * right.data[1] + left.data[13] * right.data[5] + left.data[14] * right.data[9] + left.data[15] * right.data[13],
-        left.data[12] * right.data[2] + left.data[13] * right.data[6] + left.data[14] * right.data[10] + left.data[15] * right.data[14],
-        left.data[12] * right.data[3] + left.data[13] * right.data[7] + left.data[14] * right.data[11] + left.data[15] * right.data[15],
-    };
+    Mat4x4 result{};
+
+    for (int row = 0; row < 4; ++row)
+    {
+        for (int col = 0; col < 4; ++col)
+        {
+            float sum = 0.0f;
+            for (int k = 0; k < 4; ++k)
+            {
+                sum += left(row, k) * right(k, col);
+            }
+            result(row, col) = sum;
+        }
+    }
+
+    return result;
 }
 
 std::ostream &operator<<(std::ostream &os, const Mat4x4 &m)

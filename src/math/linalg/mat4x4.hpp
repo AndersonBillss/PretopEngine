@@ -1,20 +1,30 @@
 #pragma once
+
+#include <ostream>
 #include "vec4.hpp"
 
 struct Mat4x4
 {
     float data[16];
 
-    inline float &operator()(int row, int col) { return data[row * 4 + col]; }
-    inline const float &operator()(int row, int col) const { return data[row * 4 + col]; }
+    inline float &operator()(int row, int col) { return data[col * 4 + row]; }
+    inline const float &operator()(int row, int col) const { return data[col * 4 + row]; }
+
     inline float *begin() { return data; }
     inline float *end() { return data + 16; }
     inline const float *begin() const { return data; }
     inline const float *end() const { return data + 16; }
-    static inline Mat4x4 identity() { return Mat4x4{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}; }
+
+    static inline Mat4x4 identity()
+    {
+        return Mat4x4{1, 0, 0, 0,
+                      0, 1, 0, 0,
+                      0, 0, 1, 0,
+                      0, 0, 0, 1};
+    }
 };
 
-Mat4x4 transpose(Mat4x4 &mat);
+Mat4x4 transpose(const Mat4x4 &mat);
 
 bool operator==(const Mat4x4 &left, const Mat4x4 &right);
 Vec4 operator*(const Mat4x4 &left, const Vec4 &right);
