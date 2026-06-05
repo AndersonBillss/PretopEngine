@@ -98,46 +98,47 @@ int main(int, char **)
                         u1->modelMatrix = Mat4x4::identity();
                         float c1 = cos(seconds);
                         float s1 = sin(seconds);
-                        Mat4x4 R1 = Mat4x4{
+                        Mat4x4 R1 = transpose(Mat4x4{
                             c1, s1, 0.0, 0.0,
                             -s1, c1, 0.0, 0.0,
                             0.0, 0.0, 1.0, 0.0,
                             0.0, 0.0, 0.0, 1.0,
-                        };
+                        });
+
                         float angle2 = 3.0 * M_PI / 4.0;
                         float c2 = cos(angle2);
                         float s2 = sin(angle2);
-                        Mat4x4 R2 = Mat4x4{
+                        Mat4x4 R2 = transpose(Mat4x4{
                             1.0, 0.0, 0.0, 0.0,
                             0.0, c2, s2, 0.0,
                             0.0, -s2, c2, 0.0,
                             0.0, 0.0, 0.0, 1.0,
-                        };
-                        Mat4x4 T = Mat4x4{
+                        });
+                        Mat4x4 T = transpose(Mat4x4{
                             1.0, 0.0, 0.0, 0.5,
                             0.0, 1.0, 0.0, 0.0,
                             0.0, 0.0, 1.0, 0.0,
                             0.0, 0.0, 0.0, 1.0,
-                        };
-                        Mat4x4 S = Mat4x4{
+                        });
+                        Mat4x4 S = transpose(Mat4x4{
                             0.3, 0.0, 0.0, 0.0,
                             0.0, 0.3, 0.0, 0.0,
                             0.0, 0.0, 0.3, 0.0,
                             0.0, 0.0, 0.0, 1.0,
-                        };
-                        u1->viewMatrix = transpose(R2) * transpose(R1) * transpose(T) * transpose(S);
+                        });
+                        u1->viewMatrix = R2 * R1 * T * S;
 
                         float focalLength = 2.0;
                         float near = 0.01f;
                         float far = 100.0f;
                         float divider = 1 / (focalLength * (far - near));
                         float ratio = 640.0 / 480.0;
-                        u1->projectionMatrix = {
+                        u1->projectionMatrix = transpose({
                             1.0, 0.0, 0.0, 0.0,
                             0.0, ratio, 0.0, 0.0,
                             0.0, 0.0, far * divider, -far * near * divider,
                             0.0, 0.0, 1.0f / focalLength, 1.0
-                        };
+                        });
                         // MyUniforms *u2 = myUniformBuffer.get<MyUniforms>(256);
                         // u2->color = (cos(seconds * 2.32325) + 1) / 2;
                         // u2->time = -seconds;
