@@ -1,17 +1,27 @@
 #pragma once
+
+#include <ostream>
 #include "vec3.hpp"
 
 struct Mat3x3
 {
     float data[9];
 
-    inline float &operator()(int row, int col) { return data[row * 3 + col]; }
-    inline const float &operator()(int row, int col) const { return data[row * 3 + col]; }
+    // Column-major storage: data[col * 3 + row]
+    inline float &operator()(int row, int col) { return data[col * 3 + row]; }
+    inline const float &operator()(int row, int col) const { return data[col * 3 + row]; }
+
     inline float *begin() { return data; }
     inline float *end() { return data + 9; }
     inline const float *begin() const { return data; }
     inline const float *end() const { return data + 9; }
-    static inline Mat3x3 identity() { return Mat3x3{1, 0, 0, 0, 1, 0, 0, 0, 1}; }
+
+    static inline Mat3x3 identity()
+    {
+        return Mat3x3{1, 0, 0,
+                      0, 1, 0,
+                      0, 0, 1};
+    }
 };
 
 Mat3x3 transpose(const Mat3x3 &mat);

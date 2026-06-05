@@ -2,47 +2,58 @@
 
 Mat3x3 transpose(const Mat3x3 &mat)
 {
-    return Mat3x3{
-        mat(0, 0), mat(1, 0), mat(2, 0),
-        mat(0, 1), mat(1, 1), mat(2, 1),
-        mat(0, 2), mat(1, 2), mat(2, 2)};
+    Mat3x3 result{};
+
+    for (int row = 0; row < 3; ++row)
+    {
+        for (int col = 0; col < 3; ++col)
+        {
+            result(row, col) = mat(col, row);
+        }
+    }
+
+    return result;
 }
 
 bool operator==(const Mat3x3 &left, const Mat3x3 &right)
 {
-    return left.data[0] == right.data[0] &&
-           left.data[1] == right.data[1] &&
-           left.data[2] == right.data[2] &&
-           left.data[3] == right.data[3] &&
-           left.data[4] == right.data[4] &&
-           left.data[5] == right.data[5] &&
-           left.data[6] == right.data[6] &&
-           left.data[7] == right.data[7] &&
-           left.data[8] == right.data[8];
+    for (int i = 0; i < 9; ++i)
+    {
+        if (left.data[i] != right.data[i])
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 Vec3 operator*(const Mat3x3 &left, const Vec3 &right)
 {
     return Vec3{
-        left.data[0] * right.x + left.data[1] * right.y + left.data[2] * right.z,
-        left.data[3] * right.x + left.data[4] * right.y + left.data[5] * right.z,
-        left.data[6] * right.x + left.data[7] * right.y + left.data[8] * right.z,
+        left(0, 0) * right.x + left(0, 1) * right.y + left(0, 2) * right.z,
+        left(1, 0) * right.x + left(1, 1) * right.y + left(1, 2) * right.z,
+        left(2, 0) * right.x + left(2, 1) * right.y + left(2, 2) * right.z,
     };
 }
 
 Mat3x3 operator*(const Mat3x3 &left, const Mat3x3 &right)
 {
-    return Mat3x3{
-        left.data[0] * right.data[0] + left.data[1] * right.data[3] + left.data[2] * right.data[6],
-        left.data[0] * right.data[1] + left.data[1] * right.data[4] + left.data[2] * right.data[7],
-        left.data[0] * right.data[2] + left.data[1] * right.data[5] + left.data[2] * right.data[8],
-        left.data[3] * right.data[0] + left.data[4] * right.data[3] + left.data[5] * right.data[6],
-        left.data[3] * right.data[1] + left.data[4] * right.data[4] + left.data[5] * right.data[7],
-        left.data[3] * right.data[2] + left.data[4] * right.data[5] + left.data[5] * right.data[8],
-        left.data[6] * right.data[0] + left.data[7] * right.data[3] + left.data[8] * right.data[6],
-        left.data[6] * right.data[1] + left.data[7] * right.data[4] + left.data[8] * right.data[7],
-        left.data[6] * right.data[2] + left.data[7] * right.data[5] + left.data[8] * right.data[8],
-    };
+    Mat3x3 result{};
+
+    for (int row = 0; row < 3; ++row)
+    {
+        for (int col = 0; col < 3; ++col)
+        {
+            float sum = 0.0f;
+            for (int k = 0; k < 3; ++k)
+            {
+                sum += left(row, k) * right(k, col);
+            }
+            result(row, col) = sum;
+        }
+    }
+
+    return result;
 }
 
 std::ostream &operator<<(std::ostream &os, const Mat3x3 &m)

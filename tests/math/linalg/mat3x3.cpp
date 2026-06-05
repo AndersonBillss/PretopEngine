@@ -8,7 +8,7 @@ TEST_CASE("Mat3x3 Vec3 multiplication works", "[math][linalg][mat3x3]")
              2.0f, 1.0f, 4.0f};
     Vec3 v{3.0f, 4.0f, 1.0f};
     Vec3 result{14.0f, 21.0f, 14.0f};
-    REQUIRE(m * v == result);
+    REQUIRE(transpose(m) * v == result);
 }
 
 TEST_CASE("Mat3x3 Mat3x3 multiplication works", "[math][linalg][mat3x3]")
@@ -22,7 +22,7 @@ TEST_CASE("Mat3x3 Mat3x3 multiplication works", "[math][linalg][mat3x3]")
     Mat3x3 result{10.0f, 14.0f, 30.0f,
                   19.0f, 14.0f, 43.0f,
                   12.0f, 11.0f, 29.0f};
-    REQUIRE(m1 * m2 == result);
+    REQUIRE(transpose(m1) * transpose(m2) == transpose(result));
 }
 
 TEST_CASE("Mat3x3 multiplied by identity matrix remain the same", "[math][linalg][mat3x3]")
