@@ -97,7 +97,6 @@ int main(int, char **)
                         MyUniforms *u1 = myUniformBuffer.get<MyUniforms>();
                         u1->color = (sin(seconds * 2.32325) + 1) / 2;
                         u1->time = seconds;
-                        u1->modelMatrix = Mat4x4::identity();
                         float c1 = cos(seconds);
                         float s1 = sin(seconds);
                         Mat4x4 R1 = transpose(Mat4x4{
@@ -106,6 +105,19 @@ int main(int, char **)
                             0.0, 0.0, 1.0, 0.0,
                             0.0, 0.0, 0.0, 1.0,
                         });
+                        Mat4x4 T1 = transpose(Mat4x4{
+                            1.0, 0.0, 0.0, 0.5,
+                            0.0, 1.0, 0.0, 0.0,
+                            0.0, 0.0, 1.0, 0.0,
+                            0.0, 0.0, 0.0, 1.0,
+                        });
+                        Mat4x4 S = transpose(Mat4x4{
+                            0.3, 0.0, 0.0, 0.0,
+                            0.0, 0.3, 0.0, 0.0,
+                            0.0, 0.0, 0.3, 0.0,
+                            0.0, 0.0, 0.0, 1.0,
+                        });
+                        u1->modelMatrix = R1 * T1 * S;
 
                         float angle2 = 45 * deg2rad;
                         float c2 = cos(angle2);
@@ -116,25 +128,13 @@ int main(int, char **)
                             0.0, -s2, c2, 0.0,
                             0.0, 0.0, 0.0, 1.0,
                         });
-                        Mat4x4 T1 = transpose(Mat4x4{
-                            1.0, 0.0, 0.0, 0.5,
-                            0.0, 1.0, 0.0, 0.0,
-                            0.0, 0.0, 1.0, 0.0,
-                            0.0, 0.0, 0.0, 1.0,
-                        });
                         Mat4x4 T2 = transpose(Mat4x4{
                             1.0, 0.0, 0.0, 0.0,
                             0.0, 1.0, 0.0, 0.0,
                             0.0, 0.0, 1.0, -2.0,
                             0.0, 0.0, 0.0, 1.0,
                         });
-                        Mat4x4 S = transpose(Mat4x4{
-                            0.3, 0.0, 0.0, 0.0,
-                            0.0, 0.3, 0.0, 0.0,
-                            0.0, 0.0, 0.3, 0.0,
-                            0.0, 0.0, 0.0, 1.0,
-                        });
-                        u1->viewMatrix = T2 * R2 * R1 * T1 * S;
+                        u1->viewMatrix = T2 * R2;
 
                         float near = 0.01f;
                         float far = 100.0f;
