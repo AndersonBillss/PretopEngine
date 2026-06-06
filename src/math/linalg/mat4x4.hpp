@@ -22,10 +22,11 @@ struct Mat4x4
                       0, 0, 1, 0,
                       0, 0, 0, 1};
     }
+    static Mat4x4 perspective(float near, float far, float fovY, float aspect);
+    static Mat4x4 transform(float x, float y, float z);
 };
 
 Mat4x4 transpose(const Mat4x4 &mat);
-Mat4x4 perspective(float near, float far, float fovY, float aspect);
 
 bool operator==(const Mat4x4 &left, const Mat4x4 &right);
 Vec4 operator*(const Mat4x4 &left, const Vec4 &right);

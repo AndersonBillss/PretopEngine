@@ -105,12 +105,7 @@ int main(int, char **)
                             0.0, 0.0, 1.0, 0.0,
                             0.0, 0.0, 0.0, 1.0,
                         });
-                        Mat4x4 T1 = transpose(Mat4x4{
-                            1.0, 0.0, 0.0, 0.5,
-                            0.0, 1.0, 0.0, 0.0,
-                            0.0, 0.0, 1.0, 0.0,
-                            0.0, 0.0, 0.0, 1.0,
-                        });
+                        Mat4x4 T1 = Mat4x4::transform(0.5f, 0.0f, 0.0f);
                         Mat4x4 S = transpose(Mat4x4{
                             0.3, 0.0, 0.0, 0.0,
                             0.0, 0.3, 0.0, 0.0,
@@ -128,17 +123,12 @@ int main(int, char **)
                             0.0, -s2, c2, 0.0,
                             0.0, 0.0, 0.0, 1.0,
                         });
-                        Mat4x4 T2 = transpose(Mat4x4{
-                            1.0, 0.0, 0.0, 0.0,
-                            0.0, 1.0, 0.0, 0.0,
-                            0.0, 0.0, 1.0, -2.0,
-                            0.0, 0.0, 0.0, 1.0,
-                        });
+                        Mat4x4 T2 = Mat4x4::transform(0.0f, 0.0f, -2.0f);
                         u1->viewMatrix = T2 * R2;
 
                         float near = 0.01f;
                         float far = 100.0f;
-                        u1->projectionMatrix = perspective(0.01f, 100.0f, 60.0f * deg2rad, 640.0 / 480.0);
+                        u1->projectionMatrix = Mat4x4::perspective(0.01f, 100.0f, 60.0f * deg2rad, 640.0 / 480.0);
                         // MyUniforms *u2 = myUniformBuffer.get<MyUniforms>(256);
                         // u2->color = (cos(seconds * 2.32325) + 1) / 2;
                         // u2->time = -seconds;
