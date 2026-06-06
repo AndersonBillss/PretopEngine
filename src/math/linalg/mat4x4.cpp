@@ -34,6 +34,24 @@ Mat4x4 Mat4x4::transform(float x, float y, float z)
         x, y, z, 1.0f};
 }
 
+Mat4x4 Mat4x4::scale(float factor)
+{
+    return Mat4x4{
+        factor, 0.0f, 0.0f, 0.0f,
+        0.0f, factor, 0.0f, 0.0f,
+        0.0f, 0.0f, factor, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f};
+}
+
+Mat4x4 Mat4x4::scale(float x, float y, float z)
+{
+    return Mat4x4{
+        x, 0.0f, 0.0f, 0.0f,
+        0.0f, y, 0.0f, 0.0f,
+        0.0f, 0.0f, z, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f};
+}
+
 bool operator==(const Mat4x4 &left, const Mat4x4 &right)
 {
     for (int i = 0; i < 16; ++i)

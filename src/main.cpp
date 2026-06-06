@@ -106,12 +106,7 @@ int main(int, char **)
                             0.0, 0.0, 0.0, 1.0,
                         });
                         Mat4x4 T1 = Mat4x4::transform(0.5f, 0.0f, 0.0f);
-                        Mat4x4 S = transpose(Mat4x4{
-                            0.3, 0.0, 0.0, 0.0,
-                            0.0, 0.3, 0.0, 0.0,
-                            0.0, 0.0, 0.3, 0.0,
-                            0.0, 0.0, 0.0, 1.0,
-                        });
+                        Mat4x4 S = Mat4x4::scale(0.3f);
                         u1->modelMatrix = R1 * T1 * S;
 
                         float angle2 = 45 * deg2rad;

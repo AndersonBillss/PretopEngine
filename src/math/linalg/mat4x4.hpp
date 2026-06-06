@@ -24,6 +24,8 @@ struct Mat4x4
     }
     static Mat4x4 perspective(float near, float far, float fovY, float aspect);
     static Mat4x4 transform(float x, float y, float z);
+    static Mat4x4 scale(float factor);
+    static Mat4x4 scale(float x, float y, float z);
 };
 
 Mat4x4 transpose(const Mat4x4 &mat);
