@@ -47,25 +47,32 @@ int main(int, char **)
     AppShader shader = AppShader::pipeline(application.device, application.instance, "shaders/shader.wgsl");
 
     AppBuffer vertices(application.device,
-                       std::initializer_list<std::initializer_list<float>>{
-                           {-0.5, -0.5, -0.3, 1.0, 1.0, 1.0},
-                           {+0.5, -0.5, -0.3, 1.0, 1.0, 1.0},
-                           {+0.5, +0.5, -0.3, 1.0, 1.0, 1.0},
-                           {-0.5, +0.5, -0.3, 1.0, 1.0, 1.0},
-                           {+0.0, +0.0, +0.5, 0.5, 0.5, 0.5},
-                       },
+                       std::initializer_list<float>{
+                           -0.5, -0.5, -0.3, 0.0, -1.0, 0.0, 1.0, 1.0, 1.0,
+                           +0.5, -0.5, -0.3, 0.0, -1.0, 0.0, 1.0, 1.0, 1.0,
+                           +0.5, +0.5, -0.3, 0.0, -1.0, 0.0, 1.0, 1.0, 1.0,
+                           -0.5, +0.5, -0.3, 0.0, -1.0, 0.0, 1.0, 1.0, 1.0,
+                           -0.5, -0.5, -0.3, 0.0, -0.848, 0.53, 1.0, 1.0, 1.0,
+                           +0.5, -0.5, -0.3, 0.0, -0.848, 0.53, 1.0, 1.0, 1.0,
+                           +0.0, +0.0, +0.5, 0.0, -0.848, 0.53, 1.0, 1.0, 1.0,
+                           +0.5, -0.5, -0.3, 0.848, 0.0, 0.53, 1.0, 1.0, 1.0,
+                           +0.5, +0.5, -0.3, 0.848, 0.0, 0.53, 1.0, 1.0, 1.0,
+                           +0.0, +0.0, +0.5, 0.848, 0.0, 0.53, 1.0, 1.0, 1.0,
+                           +0.5, +0.5, -0.3, 0.0, 0.848, 0.53, 1.0, 1.0, 1.0,
+                           -0.5, +0.5, -0.3, 0.0, 0.848, 0.53, 1.0, 1.0, 1.0,
+                           +0.0, +0.0, +0.5, 0.0, 0.848, 0.53, 1.0, 1.0, 1.0},
                        WGPUBufferUsage_Vertex);
-    AppBuffer indices(application.device, std::initializer_list<std::initializer_list<uint16_t>>{
-                                              {0, 1, 2},
-                                              {0, 2, 3},
-                                              {0, 1, 4},
-                                              {1, 2, 4},
-                                              {2, 3, 4},
-                                              {3, 0, 4},
-                                          },
+    AppBuffer indices(application.device,
+                      std::initializer_list<uint16_t>{
+                          0, 1, 2,
+                          0, 2, 3,
+                          4, 5, 6,
+                          7, 8, 9,
+                          10, 11, 12,
+                          13, 14, 15},
                       WGPUBufferUsage_Index);
 
-    AppVertexLayout vertexLayout = {{LayoutType::Float32x3, LayoutType::Float32x3}};
+    AppVertexLayout vertexLayout = {{LayoutType::Float32x3, LayoutType::Float32x3, LayoutType::Float32x3}};
 
     WGPUBindGroupLayoutEntry bindingLayoutEntry = WGPU_BIND_GROUP_LAYOUT_ENTRY_INIT;
     bindingLayoutEntry.binding = 0;
