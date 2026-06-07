@@ -33,6 +33,14 @@ Vec4 Vec4::normalized() const
     return Vec4{this->x / len, this->y / len, this->z / len, this->w / len};
 }
 
+bool Vec4::nearlyEquals(const Vec4 &rhs, float epsilon) const
+{
+    return abs(this->x - rhs.x) <= epsilon &&
+           abs(this->y - rhs.y) <= epsilon &&
+           abs(this->z - rhs.z) <= epsilon &&
+           abs(this->w - rhs.w) <= epsilon;
+}
+
 Vec4 operator+(const Vec4 &lhs, const Vec4 &rhs)
 {
     return Vec4{

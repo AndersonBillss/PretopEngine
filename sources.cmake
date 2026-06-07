@@ -18,6 +18,7 @@ set(AB_ENGINE_SOURCES
   src/application/application.cpp
   src/asset/readFileBytes.cpp
   src/math/ceilToBufferOffset.cpp
+  src/math/euler.cpp
   src/math/linalg/mat2x2.cpp
   src/math/linalg/mat3x3.cpp
   src/math/linalg/mat4x4.cpp
@@ -34,6 +35,7 @@ set(AB_ENGINE_SOURCES_WEB
   src/window/WEB_canvasWindow.cpp
 )
 set(AB_ENGINE_TEST_SOURCES
+  tests/math/euler.cpp
   tests/math/linalg/mat2x2.cpp
   tests/math/linalg/mat3x3.cpp
   tests/math/linalg/mat4x4.cpp

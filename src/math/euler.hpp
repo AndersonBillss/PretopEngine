@@ -2,9 +2,9 @@
 #include "linalg/mat4x4.hpp"
 
 struct Euler {
-    float roll;
-    float pitch;
-    float yaw;
+    float x;
+    float y;
+    float z;
 
     Mat4x4 toMatrix();
 };

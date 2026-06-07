@@ -24,6 +24,7 @@
 #include "math/ceilToBufferOffset.hpp"
 #include "math/linalg/mat4x4.hpp"
 #include "math/constants.hpp"
+#include "math/euler.hpp"
 
 struct MyUniforms
 {
@@ -109,15 +110,9 @@ int main(int, char **)
                         Mat4x4 S = Mat4x4::scale(0.3f);
                         u1->modelMatrix = R1 * T1 * S;
 
-                        float angle2 = 45 * deg2rad;
-                        float c2 = cos(angle2);
-                        float s2 = sin(angle2);
-                        Mat4x4 R2 = transpose(Mat4x4{
-                            1.0, 0.0, 0.0, 0.0,
-                            0.0, c2, s2, 0.0,
-                            0.0, -s2, c2, 0.0,
-                            0.0, 0.0, 0.0, 1.0,
-                        });
+                        float angle2 = -45 * deg2rad;
+                        Euler e2{angle2, 0, 0};
+                        Mat4x4 R2 = e2.toMatrix();
                         Mat4x4 T2 = Mat4x4::transform(0.0f, 0.0f, -2.0f);
                         u1->viewMatrix = T2 * R2;
 
