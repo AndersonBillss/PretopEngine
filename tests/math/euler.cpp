@@ -18,9 +18,9 @@ public:
     std::string describe() const override
     {
         std::ostringstream ss;
-        ss << "is approximately "
+        ss << "~= "
            << expected
-           << " with epsilon "
+           << "; epsilon "
            << epsilon;
         return ss.str();
     }
