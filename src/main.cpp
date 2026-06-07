@@ -98,21 +98,13 @@ int main(int, char **)
                         MyUniforms *u1 = myUniformBuffer.get<MyUniforms>();
                         u1->color = (sin(seconds * 2.32325) + 1) / 2;
                         u1->time = seconds;
-                        float c1 = cos(seconds);
-                        float s1 = sin(seconds);
-                        Mat4x4 R1 = transpose(Mat4x4{
-                            c1, s1, 0.0, 0.0,
-                            -s1, c1, 0.0, 0.0,
-                            0.0, 0.0, 1.0, 0.0,
-                            0.0, 0.0, 0.0, 1.0,
-                        });
+
+                        Mat4x4 R1 = (Euler{0, 0, seconds}).toMatrix();
                         Mat4x4 T1 = Mat4x4::transform(0.5f, 0.0f, 0.0f);
                         Mat4x4 S = Mat4x4::scale(0.3f);
                         u1->modelMatrix = R1 * T1 * S;
 
-                        float angle2 = -45 * deg2rad;
-                        Euler e2{angle2, 0, 0};
-                        Mat4x4 R2 = e2.toMatrix();
+                        Mat4x4 R2 = (Euler{-45.0f * (float)deg2rad, 0, 0}).toMatrix();
                         Mat4x4 T2 = Mat4x4::transform(0.0f, 0.0f, -2.0f);
                         u1->viewMatrix = T2 * R2;
 
