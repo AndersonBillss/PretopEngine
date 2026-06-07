@@ -24,6 +24,12 @@ Vec2 Vec2::normalized() const
     return Vec2{this->x / len, this->y / len};
 }
 
+bool Vec2::nearlyEquals(const Vec2 &rhs, float epsilon) const
+{
+    return abs(this->x - rhs.x) <= epsilon &&
+           abs(this->y - rhs.y) <= epsilon;
+}
+
 Vec2 operator+(const Vec2 &lhs, const Vec2 &rhs)
 {
     return Vec2{lhs.x + rhs.x, lhs.y + rhs.y};

@@ -10,6 +10,7 @@ struct Vec2
     float length() const;
     void normalize();
     Vec2 normalized() const;
+    bool nearlyEquals(const Vec2 &rhs, float epsilon = 1e-5f) const;
 };
 
 Vec2 operator+(const Vec2 &lhs, const Vec2 &rhs);

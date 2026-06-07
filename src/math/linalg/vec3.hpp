@@ -11,6 +11,7 @@ struct Vec3
     float length() const;
     void normalize();
     Vec3 normalized() const;
+    bool nearlyEquals(const Vec3 &rhs, float epsilon = 1e-5f) const;
 };
 
 Vec3 operator+(const Vec3 &lhs, const Vec3 &rhs);

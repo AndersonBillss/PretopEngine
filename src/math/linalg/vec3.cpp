@@ -30,6 +30,13 @@ Vec3 Vec3::normalized() const
     return Vec3{this->x / len, this->y / len, this->z / len};
 }
 
+bool Vec3::nearlyEquals(const Vec3 &rhs, float epsilon) const
+{
+    return abs(this->x - rhs.x) <= epsilon &&
+           abs(this->y - rhs.y) <= epsilon &&
+           abs(this->z - rhs.z) <= epsilon;
+}
+
 Vec3 operator+(const Vec3 &lhs, const Vec3 &rhs)
 {
     return Vec3{
