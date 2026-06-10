@@ -13,7 +13,7 @@ AppRenderPassCommand::AppRenderPassCommand(
     this->wgpuRenderPassColorAttachment.resolveTarget = nullptr;
     this->wgpuRenderPassColorAttachment.loadOp = WGPULoadOp_Clear;
     this->wgpuRenderPassColorAttachment.storeOp = WGPUStoreOp_Store;
-    this->wgpuRenderPassColorAttachment.clearValue = WGPUColor{0.0, 0.0, 0.0, 1.0};
+    this->wgpuRenderPassColorAttachment.clearValue = WGPUColor{0.2, 0.2, 0.2, 1.0};
     this->wgpuRenderPassColorAttachment.depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
 
     this->wgpuRenderPassDescriptor.colorAttachmentCount = 1;
