@@ -6,8 +6,19 @@ include(sources.cmake)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+include(FetchContent)
+
+FetchContent_Declare(
+  nlohmann_json
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
+  GIT_TAG v3.12.0
+)
+
+FetchContent_MakeAvailable(nlohmann_json)
+
 add_library(ab_engine_core STATIC ${AB_ENGINE_SOURCES})
 target_include_directories(ab_engine_core PUBLIC include)
+target_link_libraries(ab_engine_core PUBLIC nlohmann_json::nlohmann_json)
 
 add_executable(ab_engine ${AB_ENGINE_MAIN})
 target_link_libraries(ab_engine PRIVATE ab_engine_core)
@@ -59,8 +70,6 @@ endif()
 option(BUILD_TESTING "Build tests" ON)
 
 if(BUILD_TESTING AND NOT EMSCRIPTEN)
-  include(FetchContent)
-
   FetchContent_Declare(
     Catch2
     GIT_REPOSITORY https://github.com/catchorg/Catch2.git
