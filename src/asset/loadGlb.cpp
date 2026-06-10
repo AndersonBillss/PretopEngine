@@ -29,5 +29,11 @@ ParsedData loadGlb(const std::string &path)
     }
     uint32_t version = readU32LE(data + 4);
     std::cout << "Version: " << version << std::endl;
+    uint32_t length = readU32LE(data + 8);
+    uint32_t chunkLength = readU32LE(data + 12);
+    std::cout << "Chunk length: " << chunkLength << std::endl;
+    char *chunkStart = (char *)(data + 20);
+    nlohmann::json j = nlohmann::json::parse(chunkStart , chunkStart + chunkLength);
+    std::cout << j.dump(2) << std::endl;
     return ParsedData();
 }
