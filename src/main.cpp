@@ -26,6 +26,9 @@
 #include "math/constants.hpp"
 #include "math/euler.hpp"
 
+#include "asset/loadGlb.hpp"
+#include "asset/modelParseError.hpp"
+
 struct MyUniforms
 {
     Mat4x4 projectionMatrix;
@@ -39,6 +42,17 @@ struct MyUniforms
 int main(int, char **)
 {
     std::cout << "Hello, WebGPU!!" << std::endl;
+
+    try
+    {
+        auto model = loadGlb("assets/models/woolly-mammoth-100k-4096_std.glb");
+        std::cout << "Success!" << std::endl;
+    }
+    catch (ModelParseError &e)
+    {
+        std::cout << e.what() << std::endl;
+    }
+    return 0;
 
     Application application;
     application.logQueueCommands();

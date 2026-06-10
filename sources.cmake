@@ -16,6 +16,7 @@ set(AB_ENGINE_SOURCES
   src/application/appVertexBufferLayout.cpp
   src/application/appVertexLayout.cpp
   src/application/application.cpp
+  src/asset/loadGlb.cpp
   src/asset/readFileBytes.cpp
   src/math/ceilToBufferOffset.cpp
   src/math/euler.cpp
