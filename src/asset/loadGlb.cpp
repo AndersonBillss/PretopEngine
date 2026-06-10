@@ -12,14 +12,22 @@ uint32_t toUint32LE(uint32_t n)
            (uint32_t(bytes[2]) << 16) |
            (uint32_t(bytes[3]) << 24);
 }
+uint32_t readU32LE(const std::byte* p)
+{
+    uint32_t value;
+    std::memcpy(&value, p, sizeof(value));
+    return toUint32LE(value);
+}
 
 ParsedData loadGlb(const std::string &path)
 {
     std::vector<std::byte> bytes = readFileBytes(path);
-    void *data = bytes.data();
-    uint32_t magic = toUint32LE(*(uint32_t *)data);
+    std::byte *data = bytes.data();
+    uint32_t magic = readU32LE(data);
     if(magic != 0x46546C67) {
         throw ModelParseError("GLB file corrupted");
     }
+    uint32_t version = readU32LE(data + 4);
+    std::cout << "Version: " << version << std::endl;
     return ParsedData();
 }
