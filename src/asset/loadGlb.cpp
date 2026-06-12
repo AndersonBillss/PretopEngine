@@ -148,6 +148,7 @@ ParsedData loadGlb(const std::string &path)
     std::byte *binaryChunkStart = (std::byte *)jsonChunkEnd + 8;
     std::byte *posChunkStart = binaryChunkStart + posBufferOffset;
     std::byte *normChunkStart = binaryChunkStart + normBufferOffset;
+    std::byte *indicesChunkStart = binaryChunkStart + indicesBufferOffset;
 
     ParsedData result;
     std::vector<Vertex> vertices;
@@ -168,6 +169,14 @@ ParsedData loadGlb(const std::string &path)
         v.normal = normal;
         vertices.push_back(v);
     }
+    result.vertices = vertices;
 
-    return ParsedData();
+    std::vector<uint32_t> indices;
+    for (uint32_t i = 0; i < indicesBufferSize; i += sizeof(uint32_t))
+    {
+        indices.push_back(readU32LE(indicesChunkStart + i));
+    }
+    result.indices = indices;
+
+    return result;
 }
