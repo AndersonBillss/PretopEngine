@@ -113,6 +113,12 @@ public:
         memcpy(this->_data, &data, sizeof(T));
     }
 
+    template <class T>
+    inline void setPtr(T *data)
+    {
+        this->_data = (std::byte *)data;
+    }
+
     size_t numBytes() const
     {
         return _numBytes;

@@ -43,16 +43,16 @@ int main(int, char **)
 {
     std::cout << "Hello, WebGPU!!" << std::endl;
 
+    ParsedData model;
     try
     {
-        auto model = loadGlb("assets/models/woolly-mammoth-100k-4096_std.glb");
+        model = loadGlb("assets/models/woolly-mammoth-100k-4096_std.glb");
         std::cout << "Success!" << std::endl;
     }
     catch (ModelParseError &e)
     {
         std::cout << e.what() << std::endl;
     }
-    return 0;
 
     Application application;
     application.logQueueCommands();
@@ -60,36 +60,13 @@ int main(int, char **)
 
     AppShader shader = AppShader::pipeline(application.device, application.instance, "shaders/shader.wgsl");
 
-    AppBuffer vertices(application.device,
-                       std::initializer_list<float>{
-                           -0.5, -0.5, -0.3, 0.0, -1.0, 0.0, 1.0, 1.0, 1.0,
-                           +0.5, -0.5, -0.3, 0.0, -1.0, 0.0, 1.0, 1.0, 1.0,
-                           +0.5, +0.5, -0.3, 0.0, -1.0, 0.0, 1.0, 1.0, 1.0,
-                           -0.5, +0.5, -0.3, 0.0, -1.0, 0.0, 1.0, 1.0, 1.0,
-                           -0.5, -0.5, -0.3, 0.0, -0.848, 0.53, 1.0, 1.0, 1.0,
-                           +0.5, -0.5, -0.3, 0.0, -0.848, 0.53, 1.0, 1.0, 1.0,
-                           +0.0, +0.0, +0.5, 0.0, -0.848, 0.53, 1.0, 1.0, 1.0,
-                           +0.5, -0.5, -0.3, 0.848, 0.0, 0.53, 1.0, 1.0, 1.0,
-                           +0.5, +0.5, -0.3, 0.848, 0.0, 0.53, 1.0, 1.0, 1.0,
-                           +0.0, +0.0, +0.5, 0.848, 0.0, 0.53, 1.0, 1.0, 1.0,
-                           +0.5, +0.5, -0.3, 0.0, 0.848, 0.53, 1.0, 1.0, 1.0,
-                           -0.5, +0.5, -0.3, 0.0, 0.848, 0.53, 1.0, 1.0, 1.0,
-                           +0.0, +0.0, +0.5, 0.0, 0.848, 0.53, 1.0, 1.0, 1.0,
-                           -0.5, +0.5, -0.3, -0.848, 0.0, 0.53, 1.0, 1.0, 1.0,
-                           -0.5, -0.5, -0.3, -0.848, 0.0, 0.53, 1.0, 1.0, 1.0,
-                           +0.0, +0.0, +0.5, -0.848, 0.0, 0.53, 1.0, 1.0, 1.0},
-                       WGPUBufferUsage_Vertex);
-    AppBuffer indices(application.device,
-                      std::initializer_list<uint16_t>{
-                          0, 1, 2,
-                          0, 2, 3,
-                          4, 5, 6,
-                          7, 8, 9,
-                          10, 11, 12,
-                          13, 14, 15},
-                      WGPUBufferUsage_Index);
+    AppBuffer vertices(application.device, model.vertices.size() * sizeof(Vertex), WGPUBufferUsage_Vertex);
+    vertices.setPtr(model.vertices.data());
 
-    AppVertexLayout vertexLayout = {{LayoutType::Float32x3, LayoutType::Float32x3, LayoutType::Float32x3}};
+    AppBuffer indices(application.device, model.indices.size() * sizeof(uint32_t), WGPUBufferUsage_Index);
+    indices.setPtr(model.indices.data());
+
+    AppVertexLayout vertexLayout = {{LayoutType::Float32x3, LayoutType::Float32x3}};
 
     WGPUBindGroupLayoutEntry bindingLayoutEntry = WGPU_BIND_GROUP_LAYOUT_ENTRY_INIT;
     bindingLayoutEntry.binding = 0;
@@ -123,13 +100,12 @@ int main(int, char **)
                         u1->color = (sin(seconds * 2.32325) + 1) / 2;
                         u1->time = seconds;
 
-                        Mat4x4 R1 = (Euler{0, 0, seconds}).toMatrix();
-                        Mat4x4 T1 = Mat4x4::transform(0.5f, 0.0f, 0.0f);
-                        Mat4x4 S = Mat4x4::scale(0.3f);
-                        u1->modelMatrix = R1 * T1 * S;
+                        Mat4x4 R1 = (Euler{90.0f * (float)deg2rad, 0, seconds}).toMatrix();
+                        Mat4x4 S = Mat4x4::scale(0.5f);
+                        u1->modelMatrix = R1 * S;
 
                         Mat4x4 R2 = (Euler{-45.0f * (float)deg2rad, 0, 0}).toMatrix();
-                        Mat4x4 T2 = Mat4x4::transform(0.0f, 0.0f, -2.0f);
+                        Mat4x4 T2 = Mat4x4::transform(0.0f, 0.0f, -4.0f);
                         u1->viewMatrix = T2 * R2;
 
                         float near = 0.01f;
@@ -149,7 +125,7 @@ int main(int, char **)
                         ->setPipeline(pipeline)
                         .setVertexBuffers(bufs)
                         .setBindGroup(&bindGroup, 0, {0})
-                        .drawIndexed(indices, indices.numBytes() / sizeof(uint16_t))
+                        .drawIndexed(indices, model.indices.size(), WGPUIndexFormat_Uint32)
                         // .setBindGroup(&bindGroup, 0, {256})
                         // .drawIndexed(indices, indices.numBytes() / sizeof(uint16_t))
                         .finish();

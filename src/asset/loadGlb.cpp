@@ -65,7 +65,7 @@ ParsedData loadGlb(const std::string &path)
     char *jsonChunkStart = (char *)(data + 20);
     char *jsonChunkEnd = jsonChunkStart + jsonChunkLength;
     nlohmann::json j = nlohmann::json::parse(jsonChunkStart, jsonChunkEnd);
-    // std::cout << j.dump(2) << std::endl;
+    std::cout << j.dump(2) << std::endl;
 
     nlohmann::json mesh = j["meshes"][0];
     nlohmann::json primitives = mesh["primitives"];
@@ -80,6 +80,7 @@ ParsedData loadGlb(const std::string &path)
     nlohmann::json accessors = j["accessors"];
     nlohmann::json posAccessor = accessors[posIndex];
     std::string posAccessorType = posAccessor["type"];
+    uint32_t posCount = posAccessor["count"];
     uint32_t posAccessorComponentType = posAccessor["componentType"];
     if (posAccessorType != "VEC3" || posAccessorComponentType != ComponentType::FLOAT)
     {
@@ -90,16 +91,23 @@ ParsedData loadGlb(const std::string &path)
     nlohmann::json normAccessor = accessors[normIndex];
     std::string normAccessorType = normAccessor["type"];
     uint32_t normAccessorComponentType = normAccessor["componentType"];
+    uint32_t normCount = normAccessor["count"];
     if (normAccessorType != "VEC3" || normAccessorComponentType != ComponentType::FLOAT)
     {
         throw ModelParseError("Normal accessor is not a 3D vector of floats");
     }
     uint32_t normBufferViewIndex = normAccessor["bufferView"];
 
+    if (posCount != normCount)
+    {
+        throw ModelParseError("Position count is not equal to normal buffer count");
+    }
+
     nlohmann::json indicesAccessor = accessors[indicesIndex];
     uint32_t indicesBufferViewIndex = indicesAccessor["bufferView"];
     std::string indicesAccessorType = indicesAccessor["type"];
     uint32_t indicesAccessorComponentType = indicesAccessor["componentType"];
+    uint32_t indicesCount = indicesAccessor["count"];
     if (indicesAccessorType != "SCALAR" || indicesAccessorComponentType != ComponentType::UNSIGNED_INT)
     {
         throw ModelParseError("Indices accessor is not a scalar unsigned integer");
@@ -109,7 +117,6 @@ ParsedData loadGlb(const std::string &path)
 
     nlohmann::json posBufferView = bufferViews[posBufferViewIndex];
     uint32_t posBufferIndex = posBufferView["buffer"];
-    uint32_t posBufferSize = posBufferView["byteLength"];
     uint32_t posBufferOffset = 0;
     if (posBufferView.contains("byteOffset"))
     {
@@ -118,20 +125,16 @@ ParsedData loadGlb(const std::string &path)
 
     nlohmann::json normBufferView = bufferViews[normBufferViewIndex];
     uint32_t normBufferIndex = normBufferView["buffer"];
-    uint32_t normBufferSize = normBufferView["byteLength"];
     uint32_t normBufferOffset = 0;
     if (normBufferView.contains("byteOffset"))
     {
         normBufferOffset = normBufferView["byteOffset"];
     }
-    if (posBufferSize != normBufferSize)
-    {
-        throw ModelParseError("Position buffer size is not equal to normal buffer size");
-    }
+    std::cout << "posBufferOffset: " << posBufferOffset << std::endl;
+    std::cout << "normBufferOffset: " << normBufferOffset << std::endl;
 
     nlohmann::json indicesBufferView = bufferViews[indicesBufferViewIndex];
     uint32_t indicesBufferIndex = indicesBufferView["buffer"];
-    uint32_t indicesBufferSize = indicesBufferView["byteLength"];
     uint32_t indicesBufferOffset = 0;
     if (indicesBufferView.contains("byteOffset"))
     {
@@ -152,29 +155,29 @@ ParsedData loadGlb(const std::string &path)
 
     ParsedData result;
     std::vector<Vertex> vertices;
-    for (uint32_t i = 0; i < posBufferSize; i += 3 * sizeof(float))
+    for (uint32_t i = 0; i < posCount; i++)
     {
+        uint32_t base = i * 3 * sizeof(float);
         Vertex v;
-        Vec3 position{
-            readFloatLE(posChunkStart + i),
-            readFloatLE(posChunkStart + i + sizeof(float)),
-            readFloatLE(posChunkStart + i + 2 * sizeof(float)),
+        v.position = {
+            readFloatLE(posChunkStart + base + 0),
+            readFloatLE(posChunkStart + base + 4),
+            readFloatLE(posChunkStart + base + 8),
         };
-        v.position = position;
-        Vec3 normal{
-            readFloatLE(normChunkStart + i),
-            readFloatLE(normChunkStart + i + sizeof(float)),
-            readFloatLE(normChunkStart + i + 2 * sizeof(float)),
+        v.normal = {
+            readFloatLE(normChunkStart + base + 0),
+            readFloatLE(normChunkStart + base + 4),
+            readFloatLE(normChunkStart + base + 8),
         };
-        v.normal = normal;
         vertices.push_back(v);
     }
     result.vertices = vertices;
 
     std::vector<uint32_t> indices;
-    for (uint32_t i = 0; i < indicesBufferSize; i += sizeof(uint32_t))
+    for (uint32_t i = 0; i < indicesCount; i++)
     {
-        indices.push_back(readU32LE(indicesChunkStart + i));
+        uint32_t base = i * sizeof(uint32_t);
+        indices.push_back(readU32LE(indicesChunkStart + base));
     }
     result.indices = indices;
 

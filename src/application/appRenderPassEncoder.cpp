@@ -65,10 +65,13 @@ AppRenderPassEncoder &AppRenderPassEncoder::draw(size_t vertexCount)
     return *this;
 }
 
-AppRenderPassEncoder &AppRenderPassEncoder::drawIndexed(AppBuffer &indexBuffer, size_t indexCount)
+AppRenderPassEncoder &AppRenderPassEncoder::drawIndexed(
+    AppBuffer &indexBuffer,
+    size_t indexCount,
+    WGPUIndexFormat indexFormat)
 {
     wgpuRenderPassEncoderSetIndexBuffer(
-        this->wgpuRenderPass, indexBuffer.wgpuBuffer, WGPUIndexFormat_Uint16, 0, wgpuBufferGetSize(indexBuffer.wgpuBuffer));
+        this->wgpuRenderPass, indexBuffer.wgpuBuffer, indexFormat, 0, wgpuBufferGetSize(indexBuffer.wgpuBuffer));
     wgpuRenderPassEncoderDrawIndexed(this->wgpuRenderPass, indexCount, 1, 0, 0, 0);
     return *this;
 }

@@ -14,7 +14,9 @@ public:
     AppRenderPassEncoder &setBindGroup(AppBindGroup *bindGroup, size_t groupIndex, std::vector<uint32_t> dynamicOffset);
     AppRenderPassEncoder &setBindGroup(AppBindGroup *bindGroup, size_t groupIndex);
     AppRenderPassEncoder &draw(size_t vertexCount);
-    AppRenderPassEncoder &drawIndexed(AppBuffer &indexBuffer, size_t indexCount);
+    AppRenderPassEncoder &drawIndexed(AppBuffer &indexBuffer,
+                                      size_t indexCount,
+                                      WGPUIndexFormat indexFormat);
     void finish();
 
     WGPURenderPassEncoder wgpuRenderPass;
