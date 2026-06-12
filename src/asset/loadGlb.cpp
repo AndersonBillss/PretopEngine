@@ -47,10 +47,16 @@ ParsedData loadGlb(const std::string &path)
     uint32_t version = readU32LE(data + 4);
     std::cout << "Version: " << version << std::endl;
     uint32_t length = readU32LE(data + 8);
-    uint32_t chunkLength = readU32LE(data + 12);
-    std::cout << "Chunk length: " << chunkLength << std::endl;
-    char *chunkStart = (char *)(data + 20);
-    nlohmann::json j = nlohmann::json::parse(chunkStart, chunkStart + chunkLength);
+    uint32_t jsonChunkLength = readU32LE(data + 12);
+    uint32_t jsonChunkType = readU32LE(data + 16);
+    if (jsonChunkType != ChunkType::JSON)
+    {
+        throw ModelParseError("First chunk is not JSON");
+    }
+    std::cout << "Chunk length: " << jsonChunkLength << std::endl;
+    char *jsonChunkStart = (char *)(data + 20);
+    char *jsonChunkEnd = jsonChunkStart + jsonChunkLength;
+    nlohmann::json j = nlohmann::json::parse(jsonChunkStart, jsonChunkEnd);
     // std::cout << j.dump(2) << std::endl;
 
     nlohmann::json mesh = j["meshes"][0];
@@ -69,7 +75,7 @@ ParsedData loadGlb(const std::string &path)
     uint32_t posAccessorComponentType = posAccessor["componentType"];
     if (posAccessorType != "VEC3" || posAccessorComponentType != ComponentType::FLOAT)
     {
-        throw ModelParseError("Position accessor must be a 3D vector of floats");
+        throw ModelParseError("Position accessor is not a 3D vector of floats");
     }
     uint32_t posBufferViewIndex = posAccessor["bufferView"];
 
@@ -78,7 +84,7 @@ ParsedData loadGlb(const std::string &path)
     uint32_t normAccessorComponentType = normAccessor["componentType"];
     if (normAccessorType != "VEC3" || normAccessorComponentType != ComponentType::FLOAT)
     {
-        throw ModelParseError("Normal accessor must be a 3D vector of floats");
+        throw ModelParseError("Normal accessor is not a 3D vector of floats");
     }
     uint32_t normBufferViewIndex = normAccessor["bufferView"];
 
@@ -88,18 +94,45 @@ ParsedData loadGlb(const std::string &path)
     uint32_t indicesAccessorComponentType = indicesAccessor["componentType"];
     if (indicesAccessorType != "SCALAR" || indicesAccessorComponentType != ComponentType::UNSIGNED_INT)
     {
-        throw ModelParseError("Indices accessor must be a scalar unsigned integer");
+        throw ModelParseError("Indices accessor is not a scalar unsigned integer");
     }
 
     nlohmann::json bufferViews = j["bufferViews"];
-    nlohmann::json posBufferView = bufferViews[posBufferViewIndex];
-    std::cout << "posBufferView: " << posBufferView << std::endl;
-    nlohmann::json normBufferView = bufferViews[normBufferViewIndex];
-    std::cout << "normBufferView: " << normBufferView << std::endl;
-    nlohmann::json indicesBufferView = bufferViews[indicesBufferViewIndex];
-    std::cout << "indicesBufferView: " << indicesBufferView << std::endl;
 
-    // std::cout << accessors.dump(2) << std::endl;
+    nlohmann::json posBufferView = bufferViews[posBufferViewIndex];
+    uint32_t posBufferIndex = posBufferView["buffer"];
+    uint32_t posBufferSize = posBufferView["byteLength"];
+    uint32_t posBufferOffset = 0;
+    if (posBufferView.contains("byteOffset"))
+    {
+        posBufferOffset = posBufferView["byteOffset"];
+    }
+
+    nlohmann::json normBufferView = bufferViews[normBufferViewIndex];
+    uint32_t normBufferIndex = normBufferView["buffer"];
+    uint32_t normBufferSize = normBufferView["byteLength"];
+    uint32_t normBufferOffset = 0;
+    if (normBufferView.contains("byteOffset"))
+    {
+        normBufferOffset = normBufferView["byteOffset"];
+    }
+
+    nlohmann::json indicesBufferView = bufferViews[indicesBufferViewIndex];
+    uint32_t indicesBufferIndex = indicesBufferView["buffer"];
+    uint32_t indicesBufferSize = indicesBufferView["byteLength"];
+    uint32_t indicesBufferOffset = 0;
+    if (indicesBufferView.contains("byteOffset"))
+    {
+        indicesBufferOffset = indicesBufferView["byteOffset"];
+    }
+
+    uint32_t binaryChunkLength = readU32LE((std::byte *)jsonChunkEnd);
+    std::cout << "binaryChunkLength: " << binaryChunkLength << std::endl;
+    uint32_t binaryChunkType = readU32LE((std::byte *)jsonChunkEnd + 4);
+    if(binaryChunkType != ChunkType::BIN) {
+        throw ModelParseError("Second chunk is not binary");
+    }
+    std::byte *binaryChunkStart = (std::byte *)jsonChunkEnd + 8;
 
     return ParsedData();
 }
