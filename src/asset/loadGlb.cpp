@@ -34,6 +34,14 @@ uint32_t readU32LE(const std::byte *p)
     std::memcpy(&value, p, sizeof(value));
     return toUint32LE(value);
 }
+float readFloatLE(const std::byte *p)
+{
+    uint32_t bits = readU32LE(p);
+
+    float value;
+    std::memcpy(&value, &bits, sizeof(value));
+    return value;
+}
 
 ParsedData loadGlb(const std::string &path)
 {
@@ -116,6 +124,10 @@ ParsedData loadGlb(const std::string &path)
     {
         normBufferOffset = normBufferView["byteOffset"];
     }
+    if (posBufferSize != normBufferSize)
+    {
+        throw ModelParseError("Position buffer size is not equal to normal buffer size");
+    }
 
     nlohmann::json indicesBufferView = bufferViews[indicesBufferViewIndex];
     uint32_t indicesBufferIndex = indicesBufferView["buffer"];
@@ -129,10 +141,33 @@ ParsedData loadGlb(const std::string &path)
     uint32_t binaryChunkLength = readU32LE((std::byte *)jsonChunkEnd);
     std::cout << "binaryChunkLength: " << binaryChunkLength << std::endl;
     uint32_t binaryChunkType = readU32LE((std::byte *)jsonChunkEnd + 4);
-    if(binaryChunkType != ChunkType::BIN) {
+    if (binaryChunkType != ChunkType::BIN)
+    {
         throw ModelParseError("Second chunk is not binary");
     }
     std::byte *binaryChunkStart = (std::byte *)jsonChunkEnd + 8;
+    std::byte *posChunkStart = binaryChunkStart + posBufferOffset;
+    std::byte *normChunkStart = binaryChunkStart + normBufferOffset;
+
+    ParsedData result;
+    std::vector<Vertex> vertices;
+    for (uint32_t i = 0; i < posBufferSize; i += 3 * sizeof(float))
+    {
+        Vertex v;
+        Vec3 position{
+            readFloatLE(posChunkStart + i),
+            readFloatLE(posChunkStart + i + sizeof(float)),
+            readFloatLE(posChunkStart + i + 2 * sizeof(float)),
+        };
+        v.position = position;
+        Vec3 normal{
+            readFloatLE(normChunkStart + i),
+            readFloatLE(normChunkStart + i + sizeof(float)),
+            readFloatLE(normChunkStart + i + 2 * sizeof(float)),
+        };
+        v.normal = normal;
+        vertices.push_back(v);
+    }
 
     return ParsedData();
 }
