@@ -61,10 +61,10 @@ int main(int, char **)
     AppShader shader = AppShader::pipeline(application.device, application.instance, "shaders/shader.wgsl");
 
     AppBuffer vertices(application.device, model.vertices.size() * sizeof(Vertex), WGPUBufferUsage_Vertex);
-    vertices.setPtr(model.vertices.data());
+    application.writeVec(vertices, model.vertices);
 
     AppBuffer indices(application.device, model.indices.size() * sizeof(uint32_t), WGPUBufferUsage_Index);
-    indices.setPtr(model.indices.data());
+    application.writeVec(indices, model.indices);
 
     AppVertexLayout vertexLayout = {{LayoutType::Float32x3, LayoutType::Float32x3}};
 
@@ -77,18 +77,14 @@ int main(int, char **)
     AppBindingLayout bindingLayout(application.device, {{bindingLayoutEntry}});
 
     AppPipeline pipeline(application.device, shader, application.windowFormat, vertexLayout, bindingLayout);
-    uint32_t uniformOffsetSize = ceilToBufferOffset(sizeof(MyUniforms));
-    AppBuffer myUniformBuffer(application.device, uniformOffsetSize * 2, WGPUBufferUsage_Uniform);
+    AppBuffer myUniformBuffer(application.device, sizeof(MyUniforms), WGPUBufferUsage_Uniform);
 
     std::vector<WGPUBindGroupEntry> bindings = {WGPU_BIND_GROUP_ENTRY_INIT};
     bindings[0].binding = 0;
     bindings[0].buffer = myUniformBuffer.wgpuBuffer;
     bindings[0].size = sizeof(MyUniforms);
     AppBindGroup bindGroup(application.device, bindingLayout.wgpuBindGroupLayouts[0], bindings);
-
-    application.writeBuf(myUniformBuffer);
-    application.writeBuf(vertices);
-    application.writeBuf(indices);
+    application.writeBufZero(myUniformBuffer);
 
     float seconds = 0;
     application.run([&](
@@ -96,25 +92,22 @@ int main(int, char **)
                         WGPUTextureView targetView)
                     {
                         seconds += dt;
-                        MyUniforms *u1 = myUniformBuffer.get<MyUniforms>();
-                        u1->color = (sin(seconds * 2.32325) + 1) / 2;
-                        u1->time = seconds;
+                        MyUniforms u;
+                        u.color = (sin(seconds * 2.32325) + 1) / 2;
+                        u.time = seconds;
 
                         Mat4x4 R1 = (Euler{90.0f * (float)deg2rad, 0, seconds}).toMatrix();
                         Mat4x4 S = Mat4x4::scale(0.5f);
-                        u1->modelMatrix = R1 * S;
+                        u.modelMatrix = R1 * S;
 
                         Mat4x4 R2 = (Euler{-45.0f * (float)deg2rad, 0, 0}).toMatrix();
                         Mat4x4 T2 = Mat4x4::transform(0.0f, 0.0f, -4.0f);
-                        u1->viewMatrix = T2 * R2;
+                        u.viewMatrix = T2 * R2;
 
                         float near = 0.01f;
                         float far = 100.0f;
-                        u1->projectionMatrix = Mat4x4::perspective(0.01f, 100.0f, 60.0f * deg2rad, 640.0 / 480.0);
-                        // MyUniforms *u2 = myUniformBuffer.get<MyUniforms>(256);
-                        // u2->color = (cos(seconds * 2.32325) + 1) / 2;
-                        // u2->time = -seconds;
-                        application.writeBuf(myUniformBuffer);
+                        u.projectionMatrix = Mat4x4::perspective(0.01f, 100.0f, 60.0f * deg2rad, 640.0 / 480.0);
+                        application.writeBuf(myUniformBuffer, u);
 
                         AppCommandBuffer commandBuffer(application.device);
                         std::cout << "DELTATIME: " << dt << std::endl;
@@ -126,8 +119,6 @@ int main(int, char **)
                         .setVertexBuffers(bufs)
                         .setBindGroup(&bindGroup, 0, {0})
                         .drawIndexed(indices, model.indices.size(), WGPUIndexFormat_Uint32)
-                        // .setBindGroup(&bindGroup, 0, {256})
-                        // .drawIndexed(indices, indices.numBytes() / sizeof(uint16_t))
                         .finish();
 
                         std::cout << "Submitting command..." << std::endl;

@@ -19,15 +19,48 @@ public:
 
     void run(TickCallback cb);
 
-    void writeBuf(const AppBuffer &buf)
+    void writeBufZero(const AppBuffer &buf)
+    {
+        std::vector<uint8_t> data = buf.zeroBuffer();
+        wgpuQueueWriteBuffer(
+            this->_queue,
+            buf.wgpuBuffer,
+            0,
+            data.data(),
+            data.size());
+    }
+    void writeBuf(const AppBuffer &buf, void *data, size_t numBytes)
     {
         wgpuQueueWriteBuffer(
             this->_queue,
             buf.wgpuBuffer,
             0,
-            buf.data(),
-            buf.numBytes());
-    };
+            data,
+            numBytes);
+    }
+
+    template <class T>
+    void writeBuf(const AppBuffer &buf, T &data)
+    {
+        wgpuQueueWriteBuffer(
+            this->_queue,
+            buf.wgpuBuffer,
+            0,
+            &data,
+            sizeof(T));
+    }
+
+    template <class T>
+    void writeVec(const AppBuffer &buf, std::vector<T> &vec)
+    {
+        wgpuQueueWriteBuffer(
+            this->_queue,
+            buf.wgpuBuffer,
+            0,
+            vec.data(),
+            vec.size() * sizeof(T));
+    }
+
     void submitCommandBuffer(AppCommandBuffer &buf);
     void setWindow(std::unique_ptr<Window> win);
     void logQueueCommands();
