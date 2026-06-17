@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <variant>
 #include "../math/linalg/vec3.hpp"
 
 struct Vertex {
@@ -9,9 +10,11 @@ struct Vertex {
     Vec3 normal;
 };
 
+using IndexList = std::variant<std::vector<uint16_t>, std::vector<uint32_t>>;
+
 struct ParsedData {
     std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
+    IndexList indices;
 };
 
 ParsedData loadGlb(const std::string &path);

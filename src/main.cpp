@@ -39,6 +39,7 @@ struct MyUniforms
     float _pad[2];
 };
 
+const float scale = 3.0f;
 int main(int, char **)
 {
     std::cout << "Hello, WebGPU!!" << std::endl;
@@ -46,12 +47,13 @@ int main(int, char **)
     ParsedData model;
     try
     {
-        model = loadGlb("assets/models/woolly-mammoth-100k-4096_std.glb");
+        model = loadGlb("assets/models/DiffuseTransmissionPlant.glb");
         std::cout << "Success!" << std::endl;
     }
     catch (ModelParseError &e)
     {
         std::cout << e.what() << std::endl;
+        return 1;
     }
 
     Application application;
@@ -63,9 +65,29 @@ int main(int, char **)
     AppBuffer vertices(application.device, model.vertices.size() * sizeof(Vertex), WGPUBufferUsage_Vertex);
     application.writeVec(vertices, model.vertices);
 
-    AppBuffer indices(application.device, model.indices.size() * sizeof(uint32_t), WGPUBufferUsage_Index);
-    application.writeVec(indices, model.indices);
-
+    uint32_t indicesSize = 0;
+    bool is32bitIndexBuffer = std::holds_alternative<std::vector<uint32_t>>(model.indices);
+    if (is32bitIndexBuffer)
+    {
+        std::vector<uint32_t> indicesVec = std::get<std::vector<uint32_t>>(model.indices);
+        indicesSize = indicesVec.size() * sizeof(uint32_t);
+    }
+    else
+    {
+        std::vector<uint16_t> indicesVec = std::get<std::vector<uint16_t>>(model.indices);
+        indicesSize = indicesVec.size() * sizeof(uint16_t);
+    }
+    AppBuffer indices(application.device, indicesSize, WGPUBufferUsage_Index);
+    if (is32bitIndexBuffer)
+    {
+        std::vector<uint32_t> indicesVec = std::get<std::vector<uint32_t>>(model.indices);
+        application.writeVec(indices, indicesVec);
+    }
+    else
+    {
+        std::vector<uint16_t> indicesVec = std::get<std::vector<uint16_t>>(model.indices);
+        application.writeVec(indices, indicesVec);
+    }
     AppVertexLayout vertexLayout = {{LayoutType::Float32x3, LayoutType::Float32x3}};
 
     WGPUBindGroupLayoutEntry bindingLayoutEntry = WGPU_BIND_GROUP_LAYOUT_ENTRY_INIT;
@@ -97,7 +119,7 @@ int main(int, char **)
                         u.time = seconds;
 
                         Mat4x4 R1 = (Euler{90.0f * (float)deg2rad, 0, seconds}).toMatrix();
-                        Mat4x4 S = Mat4x4::scale(0.5f);
+                        Mat4x4 S = Mat4x4::scale(scale);
                         u.modelMatrix = R1 * S;
 
                         Mat4x4 R2 = (Euler{-45.0f * (float)deg2rad, 0, 0}).toMatrix();
@@ -114,12 +136,21 @@ int main(int, char **)
                         AppRenderPassCommand command(application.device, targetView, pipeline.wgpuDepthStencilAttachment);
                         std::vector<AppBuffer *> bufs = {&vertices};
 
-                        commandBuffer.addCommand(command)
-                        ->setPipeline(pipeline)
+                        auto cmd = commandBuffer.addCommand(command);
+                        cmd->setPipeline(pipeline)
                         .setVertexBuffers(bufs)
-                        .setBindGroup(&bindGroup, 0, {0})
-                        .drawIndexed(indices, model.indices.size(), WGPUIndexFormat_Uint32)
-                        .finish();
+                        .setBindGroup(&bindGroup, 0, {0});
+                        if (is32bitIndexBuffer)
+                        {
+                            std::vector<uint32_t> indicesVec = std::get<std::vector<uint32_t>>(model.indices);
+                            cmd->drawIndexed(indices, indicesVec.size(), WGPUIndexFormat_Uint32);
+                        }
+                        else
+                        {
+                            std::vector<uint16_t> indicesVec = std::get<std::vector<uint16_t>>(model.indices);
+                            cmd->drawIndexed(indices, indicesVec.size(), WGPUIndexFormat_Uint16);
+                        }
+                        cmd->finish();
 
                         std::cout << "Submitting command..." << std::endl;
                         commandBuffer.finish();

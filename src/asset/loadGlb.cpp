@@ -20,6 +20,18 @@ enum ComponentType
     FLOAT = 5126,
 };
 
+uint16_t toUint16LE(uint16_t n)
+{
+    uint8_t *bytes = reinterpret_cast<uint8_t *>(&n);
+    return uint16_t(bytes[0]) |
+           (uint16_t(bytes[1]) << 8);
+}
+uint16_t readU16LE(const std::byte *p)
+{
+    uint16_t value;
+    std::memcpy(&value, p, sizeof(value));
+    return toUint16LE(value);
+}
 uint32_t toUint32LE(uint32_t n)
 {
     uint8_t *bytes = (uint8_t *)&n;
@@ -41,6 +53,27 @@ float readFloatLE(const std::byte *p)
     float value;
     std::memcpy(&value, &bits, sizeof(value));
     return value;
+}
+
+std::vector<uint32_t> readIndicesU32(uint32_t indicesCount, std::byte *indicesChunkStart)
+{
+    std::vector<uint32_t> indices;
+    for (uint32_t i = 0; i < indicesCount; i++)
+    {
+        uint32_t base = i * sizeof(uint32_t);
+        indices.push_back(readU32LE(indicesChunkStart + base));
+    }
+    return indices;
+}
+std::vector<uint16_t> readIndicesU16(uint32_t indicesCount, std::byte *indicesChunkStart)
+{
+    std::vector<uint16_t> indices;
+    for (uint32_t i = 0; i < indicesCount; i++)
+    {
+        uint32_t base = i * sizeof(uint16_t);
+        indices.push_back(readU16LE(indicesChunkStart + base));
+    }
+    return indices;
 }
 
 ParsedData loadGlb(const std::string &path)
@@ -108,10 +141,20 @@ ParsedData loadGlb(const std::string &path)
     std::string indicesAccessorType = indicesAccessor["type"];
     uint32_t indicesAccessorComponentType = indicesAccessor["componentType"];
     uint32_t indicesCount = indicesAccessor["count"];
-    if (indicesAccessorType != "SCALAR" || indicesAccessorComponentType != ComponentType::UNSIGNED_INT)
+    if (indicesAccessorType != "SCALAR")
     {
-        throw ModelParseError("Indices accessor is not a scalar unsigned integer");
+        throw ModelParseError("Indices accessor is not a scalar");
     }
+    if (
+        indicesAccessorComponentType != ComponentType::UNSIGNED_INT &&
+        indicesAccessorComponentType != ComponentType::UNSIGNED_SHORT)
+    {
+        throw ModelParseError("Indices accessor is not an unsigned integer or an unsigned short");
+    }
+    uint8_t indicesComponentSize = indicesAccessorComponentType ==
+                                           ComponentType::UNSIGNED_INT
+                                       ? sizeof(UNSIGNED_INT)
+                                       : sizeof(UNSIGNED_SHORT);
 
     nlohmann::json bufferViews = j["bufferViews"];
 
@@ -173,13 +216,18 @@ ParsedData loadGlb(const std::string &path)
     }
     result.vertices = vertices;
 
-    std::vector<uint32_t> indices;
-    for (uint32_t i = 0; i < indicesCount; i++)
+    if (indicesAccessorComponentType == ComponentType::UNSIGNED_INT)
     {
-        uint32_t base = i * sizeof(uint32_t);
-        indices.push_back(readU32LE(indicesChunkStart + base));
+        std::vector<uint32_t> indicesU32 = readIndicesU32(indicesCount, indicesChunkStart);
+        IndexList indices{std::in_place_type<std::vector<uint32_t>>, indicesU32};
+        result.indices = indices;
     }
-    result.indices = indices;
+    else
+    {
+        std::vector<uint16_t> indicesU16 = readIndicesU16(indicesCount, indicesChunkStart);
+        IndexList indices{std::in_place_type<std::vector<uint16_t>>, indicesU16};
+        result.indices = indices;
+    }
 
     return result;
 }
