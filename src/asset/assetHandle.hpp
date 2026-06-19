@@ -16,7 +16,7 @@ public:
 
     AssetHandle() = default;
 
-    AssetHandle(AssetId id, AssetKind kind, std::shared_future<result_type> future)
+    AssetHandle(AssetId id, AssetKind kind, std::future<result_type> future)
         : _id(std::move(id)), _kind(kind), _future(std::move(future))
     {
     }
@@ -38,7 +38,8 @@ public:
 
     bool ready() const noexcept
     {
-        return valid() && _future.wait_for(std::chrono::seconds{0}) == std::future_status::ready;
+        return valid() &&
+               _future.wait_for(std::chrono::seconds{0}) == std::future_status::ready;
     }
 
     void wait() const
@@ -51,7 +52,7 @@ public:
         _future.wait();
     }
 
-    const result_type &result() const
+    result_type get() const
     {
         if (!valid())
         {
@@ -59,16 +60,6 @@ public:
         }
 
         return _future.get();
-    }
-
-    std::shared_ptr<const T> data() const
-    {
-        return result().data;
-    }
-
-    std::string error() const
-    {
-        return result().error;
     }
 
     explicit operator bool() const noexcept

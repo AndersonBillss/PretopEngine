@@ -1,5 +1,5 @@
 #include "loadGlb.hpp"
-#include "readFileBytes.hpp"
+#include "assetLoaderFactory.hpp"
 #include "modelParseError.hpp"
 #include <nlohmann/json.hpp>
 #include <iostream>
@@ -78,9 +78,16 @@ std::vector<uint16_t> readIndicesU16(uint32_t indicesCount, std::byte *indicesCh
 
 ParsedData loadGlb(const std::string &path)
 {
-    std::vector<std::byte> bytes = readFileBytes(path);
-    std::byte *data = bytes.data();
+    auto assetLoader = AssetLoaderFactory::createAssetLoader();
+    auto handle = assetLoader->loadBinaryAsync(path);
+    auto handleResult = handle.get();
+    if(!handleResult) {
+        throw ModelParseError("Asset could not be loaded: " + handleResult.error);
+    }
+    std::byte *data = handleResult.data.data();
+    std::cout << "HERE!!!1" << std::endl;
     uint32_t magic = readU32LE(data);
+    std::cout << "HERE!!!2" << std::endl;
     if (magic != 0x46546C67)
     {
         throw ModelParseError("GLB file corrupted");

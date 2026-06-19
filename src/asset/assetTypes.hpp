@@ -16,19 +16,14 @@ enum class AssetKind
 using AssetBytes = std::vector<std::byte>;
 using AssetText = std::string;
 
-template <typename T>
+template<typename T>
 struct AssetResult
 {
-    std::shared_ptr<const T> data;
+    T data;
     std::string error;
-
-    bool ok() const noexcept
-    {
-        return data != nullptr && error.empty();
-    }
 
     explicit operator bool() const noexcept
     {
-        return ok();
+        return error.empty();
     }
 };

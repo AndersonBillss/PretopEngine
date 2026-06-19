@@ -16,6 +16,7 @@ set(AB_ENGINE_SOURCES
   src/application/appVertexBufferLayout.cpp
   src/application/appVertexLayout.cpp
   src/application/application.cpp
+  src/asset/assetLoaderFactory.cpp
   src/asset/loadGlb.cpp
   src/asset/readFileBytes.cpp
   src/math/ceilToBufferOffset.cpp
@@ -30,9 +31,11 @@ set(AB_ENGINE_SOURCES
   src/window/windowFactory.cpp
 )
 set(AB_ENGINE_SOURCES_NATIVE
+  src/asset/NATIVE_assetLoader.cpp
   src/window/NATIVE_glfwWindow.cpp
 )
 set(AB_ENGINE_SOURCES_WEB
+  src/asset/WEB_assetLoader.cpp
   src/window/WEB_canvasWindow.cpp
 )
 set(AB_ENGINE_TEST_SOURCES

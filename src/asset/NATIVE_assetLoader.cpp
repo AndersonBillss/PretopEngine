@@ -47,22 +47,22 @@ namespace
     {
         using Result = AssetResult<T>;
 
-        auto future = std::async(std::launch::async, [path, loader = std::forward<LoaderFn>(loader)]() mutable -> Result
+        auto future = std::async(std::launch::async,
+                                 [path, loader = std::forward<LoaderFn>(loader)]() mutable -> Result
                                  {
-                try
-                {
-                    auto data = std::make_shared<const T>(loader(path));
-                    return Result{std::move(data), {}};
-                }
-                catch (const std::exception& e)
-                {
-                    return Result{nullptr, e.what()};
-                }
-                catch (...)
-                {
-                    return Result{nullptr, "Unknown error while loading asset: " + path};
-                } })
-                          .share();
+                                     try
+                                     {
+                                         return Result{loader(path), {}};
+                                     }
+                                     catch (const std::exception &e)
+                                     {
+                                         return Result{T{}, e.what()};
+                                     }
+                                     catch (...)
+                                     {
+                                         return Result{T{}, "Unknown error while loading asset: " + path};
+                                     }
+                                 });
 
         return AssetHandle<T>(path, kind, std::move(future));
     }

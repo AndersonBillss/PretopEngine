@@ -3,6 +3,7 @@
 #include "AssetHandle.hpp"
 
 #include <string_view>
+#include <memory>
 
 class IAssetLoader
 {
