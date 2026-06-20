@@ -1,6 +1,6 @@
 #pragma once
 
-#include "AssetHandle.hpp"
+#include "assetHandle.hpp"
 
 #include <string_view>
 #include <memory>

@@ -2,11 +2,11 @@
 #include <emscripten/emscripten.h>
 #include <iostream>
 
-EM_JS(void, setDocumentTitle, (const char *title), {
-    const myTitle = UTF8ToString(title);
-    console.log("New document title:", myTitle);
-    document.title = myTitle;
-});
+// EM_JS(void, setDocumentTitle, (const char *title), {
+//     const myTitle = UTF8ToString(title);
+//     console.log("New document title:", myTitle);
+//     document.title = myTitle;
+// });
 
 CanvasWindow::~CanvasWindow()
 {
@@ -17,7 +17,7 @@ CanvasWindow::CanvasWindow(int width, int height, std::string title) : Window(wi
     this->width = width;
     this->height = height;
     this->title_ = std::move(title);
-    setDocumentTitle(this->title_.c_str());
+    // setDocumentTitle(this->title_.c_str());
 }
 
 CanvasWindow::CanvasWindow(std::string title) : CanvasWindow(default_width, default_height, title) {}

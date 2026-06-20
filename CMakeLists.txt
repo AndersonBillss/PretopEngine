@@ -31,9 +31,15 @@ if(EMSCRIPTEN)
   set_target_properties(ab_engine PROPERTIES SUFFIX ".html")
 
   target_compile_definitions(ab_engine_core PRIVATE WEBGPU_BACKEND_EMDAWNWEBGPU=1)
-  target_compile_options(ab_engine_core PRIVATE "--use-port=emdawnwebgpu")
+  target_compile_options(ab_engine_core PRIVATE 
+    "--use-port=emdawnwebgpu"
+    "-pthread"
+  )
+  target_compile_options(ab_engine PRIVATE 
+    "--use-port=emdawnwebgpu"
+    "-pthread"
+  )
 
-  target_compile_options(ab_engine PRIVATE "--use-port=emdawnwebgpu")
   target_link_options(ab_engine PRIVATE
     "--shell-file" "../../web/shell.html"
     "--use-port=emdawnwebgpu"
@@ -42,6 +48,8 @@ if(EMSCRIPTEN)
     "-sASSERTIONS=1"
     "-sALLOW_MEMORY_GROWTH=1"
     "-sASYNCIFY"
+    "-sFETCH"
+    "-pthread"
     "-sNO_DISABLE_EXCEPTION_CATCHING"
   )
 else()

@@ -1,9 +1,8 @@
 #pragma once
 
-#include "AssetTypes.hpp"
+#include "assetTypes.hpp"
+#include "task.hpp"
 
-#include <chrono>
-#include <future>
 #include <stdexcept>
 #include <utility>
 
@@ -16,12 +15,14 @@ public:
 
     AssetHandle() = default;
 
-    AssetHandle(AssetId id, AssetKind kind, std::future<result_type> future)
-        : _id(std::move(id)), _kind(kind), _future(std::move(future))
+    AssetHandle(AssetId id, AssetKind kind, Task<result_type> task)
+        : _id(std::move(id))
+        , _kind(kind)
+        , _task(std::move(task))
     {
     }
 
-    const AssetId &id() const noexcept
+    const AssetId& id() const noexcept
     {
         return _id;
     }
@@ -33,33 +34,32 @@ public:
 
     bool valid() const noexcept
     {
-        return _future.valid();
+        return _task.valid();
     }
 
     bool ready() const noexcept
     {
-        return valid() &&
-               _future.wait_for(std::chrono::seconds{0}) == std::future_status::ready;
+        return valid() && _task.ready();
     }
 
-    void wait() const
+    void wait()
     {
         if (!valid())
         {
             throw std::logic_error("AssetHandle is not valid.");
         }
 
-        _future.wait();
+        _task.wait();
     }
 
-    result_type get() const
+    result_type get()
     {
         if (!valid())
         {
             throw std::logic_error("AssetHandle is not valid.");
         }
 
-        return _future.get();
+        return _task.get();
     }
 
     explicit operator bool() const noexcept
@@ -70,5 +70,5 @@ public:
 private:
     AssetId _id;
     AssetKind _kind = AssetKind::Binary;
-    std::shared_future<result_type> _future;
+    Task<result_type> _task;
 };

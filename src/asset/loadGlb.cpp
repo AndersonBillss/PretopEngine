@@ -80,6 +80,7 @@ ParsedData loadGlb(const std::string &path)
 {
     auto assetLoader = AssetLoaderFactory::createAssetLoader();
     auto handle = assetLoader->loadBinaryAsync(path);
+    handle.wait();
     auto handleResult = handle.get();
     if(!handleResult) {
         throw ModelParseError("Asset could not be loaded: " + handleResult.error);

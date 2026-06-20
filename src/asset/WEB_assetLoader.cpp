@@ -1,166 +1,139 @@
-#ifdef __EMSCRIPTEN__
-
-#include "Web_assetLoader.hpp"
-
-#include <emscripten/fetch.h>
+#include "WEB_assetLoader.hpp"
 
 #include <cstring>
-#include <future>
-#include <memory>
+#include <new>
+#include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <utility>
+
+#if defined(__EMSCRIPTEN__)
+    #include <emscripten/fetch.h>
+#else
+    #error "WebAssetLoader should only be compiled for Emscripten builds."
+#endif
 
 namespace
 {
     template <typename T>
     struct FetchContext
     {
-        std::string path;
-        std::shared_ptr<std::promise<AssetResult<T>>> promise;
+        TaskCompletion<AssetResult<T>> completion;
     };
 
-    static void finishBinarySuccess(emscripten_fetch_t *fetch)
+    inline std::string makeHttpError(emscripten_fetch_t* fetch)
     {
-        auto *ctx = static_cast<FetchContext<AssetBytes> *>(fetch->userData);
-
-        try
+        std::string message = "Fetch failed";
+        if (fetch)
         {
-            AssetBytes bytes(static_cast<std::size_t>(fetch->numBytes));
-            if (fetch->numBytes > 0 && fetch->data)
+            message += ", HTTP status ";
+            message += std::to_string(fetch->status);
+            if (fetch->statusText)
             {
-                std::memcpy(bytes.data(), fetch->data, static_cast<std::size_t>(fetch->numBytes));
+                message += " (";
+                message += fetch->statusText;
+                message += ")";
             }
-
-            AssetResult<AssetBytes> result;
-            result.data = std::make_shared<const AssetBytes>(std::move(bytes));
-            ctx->promise->set_value(std::move(result));
         }
-        catch (const std::exception &e)
-        {
-            ctx->promise->set_value(AssetResult<AssetBytes>{nullptr, e.what()});
-        }
-        catch (...)
-        {
-            ctx->promise->set_value(AssetResult<AssetBytes>{nullptr, "Unknown error while loading binary asset."});
-        }
-
-        emscripten_fetch_close(fetch);
-        delete ctx;
+        return message;
     }
 
-    static void finishBinaryError(emscripten_fetch_t *fetch)
+    template <typename T>
+    AssetResult<T> buildResultFromFetch(emscripten_fetch_t* fetch)
     {
-        auto *ctx = static_cast<FetchContext<AssetBytes> *>(fetch->userData);
+        AssetResult<T> result;
 
-        std::string message = "Failed to fetch binary asset: " + ctx->path;
-        if (fetch->statusText)
+        if constexpr (std::is_same_v<T, AssetBytes>)
         {
-            message += " (" + std::string(fetch->statusText) + ")";
+            result.data.resize(static_cast<std::size_t>(fetch->numBytes));
+            if (!result.data.empty())
+            {
+                std::memcpy(result.data.data(), fetch->data, result.data.size());
+            }
+        }
+        else if constexpr (std::is_same_v<T, AssetText>)
+        {
+            result.data.assign(
+                static_cast<const char*>(fetch->data),
+                static_cast<std::size_t>(fetch->numBytes));
+        }
+        else
+        {
+            static_assert(std::is_same_v<T, AssetBytes> || std::is_same_v<T, AssetText>,
+                          "Unsupported asset type for WebAssetLoader.");
         }
 
-        ctx->promise->set_value(AssetResult<AssetBytes>{nullptr, message});
-
-        emscripten_fetch_close(fetch);
-        delete ctx;
+        return result;
     }
 
-    static void finishTextSuccess(emscripten_fetch_t *fetch)
+    template <typename T>
+    void onFetchSuccess(emscripten_fetch_t* fetch)
     {
-        auto *ctx = static_cast<FetchContext<AssetText> *>(fetch->userData);
-
-        try
+        auto* ctx = static_cast<FetchContext<T>*>(fetch->userData);
+        if (!ctx)
         {
-            AssetText text;
-            text.assign(fetch->data, fetch->data + fetch->numBytes);
-
-            AssetResult<AssetText> result;
-            result.data = std::make_shared<const AssetText>(std::move(text));
-            ctx->promise->set_value(std::move(result));
-        }
-        catch (const std::exception &e)
-        {
-            ctx->promise->set_value(AssetResult<AssetText>{nullptr, e.what()});
-        }
-        catch (...)
-        {
-            ctx->promise->set_value(AssetResult<AssetText>{nullptr, "Unknown error while loading text asset."});
+            emscripten_fetch_close(fetch);
+            return;
         }
 
-        emscripten_fetch_close(fetch);
-        delete ctx;
-    }
-
-    static void finishTextError(emscripten_fetch_t *fetch)
-    {
-        auto *ctx = static_cast<FetchContext<AssetText> *>(fetch->userData);
-
-        std::string message = "Failed to fetch text asset: " + ctx->path;
-        if (fetch->statusText)
+        if (fetch->status < 200 || fetch->status >= 300)
         {
-            message += " (" + std::string(fetch->statusText) + ")";
+            ctx->completion.set_result(AssetResult<T>{T{}, makeHttpError(fetch)});
         }
-
-        ctx->promise->set_value(AssetResult<AssetText>{nullptr, message});
+        else
+        {
+            ctx->completion.set_result(buildResultFromFetch<T>(fetch));
+        }
 
         emscripten_fetch_close(fetch);
         delete ctx;
     }
 
     template <typename T>
-    AssetHandle<T> makeHandle(const std::string &path, AssetKind kind, std::shared_ptr<std::promise<AssetResult<T>>> promise)
+    void onFetchError(emscripten_fetch_t* fetch)
     {
-        auto future = promise->get_future().share();
-        return AssetHandle<T>(path, kind, std::move(future));
+        auto* ctx = static_cast<FetchContext<T>*>(fetch->userData);
+        if (!ctx)
+        {
+            emscripten_fetch_close(fetch);
+            return;
+        }
+
+        ctx->completion.set_result(AssetResult<T>{T{}, makeHttpError(fetch)});
+
+        emscripten_fetch_close(fetch);
+        delete ctx;
     }
 
-    AssetHandle<AssetBytes> startBinaryFetch(const std::string &path)
+    template <typename T>
+    AssetHandle<T> loadImpl(std::string_view path, AssetKind kind)
     {
-        auto *ctx = new FetchContext<AssetBytes>{
-            path,
-            std::make_shared<std::promise<AssetResult<AssetBytes>>>()};
+        auto* ctx = new FetchContext<T>();
+        auto task = ctx->completion.task();
 
         emscripten_fetch_attr_t attr;
         emscripten_fetch_attr_init(&attr);
         std::strcpy(attr.requestMethod, "GET");
         attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
-        attr.onsuccess = finishBinarySuccess;
-        attr.onerror = finishBinaryError;
         attr.userData = ctx;
+        attr.onsuccess = &onFetchSuccess<T>;
+        attr.onerror = &onFetchError<T>;
 
-        auto handle = makeHandle<AssetBytes>(ctx->path, AssetKind::Binary, ctx->promise);
-        emscripten_fetch(&attr, ctx->path.c_str());
-        return handle;
-    }
+        std::string url(path);
+        emscripten_fetch(&attr, url.c_str());
 
-    AssetHandle<AssetText> startTextFetch(const std::string &path)
-    {
-        auto *ctx = new FetchContext<AssetText>{
-            path,
-            std::make_shared<std::promise<AssetResult<AssetText>>>()};
-
-        emscripten_fetch_attr_t attr;
-        emscripten_fetch_attr_init(&attr);
-        std::strcpy(attr.requestMethod, "GET");
-        attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
-        attr.onsuccess = finishTextSuccess;
-        attr.onerror = finishTextError;
-        attr.userData = ctx;
-
-        auto handle = makeHandle<AssetText>(ctx->path, AssetKind::Text, ctx->promise);
-        emscripten_fetch(&attr, ctx->path.c_str());
-        return handle;
+        return AssetHandle<T>{std::move(url), kind, std::move(task)};
     }
 }
 
-AssetHandle<AssetBytes> WebAssetLoader::loadBinaryAsync(std::string_view path)
+AssetHandle<AssetBytes>
+WebAssetLoader::loadBinaryAsync(std::string_view path)
 {
-    return startBinaryFetch(std::string(path));
+    return loadImpl<AssetBytes>(path, AssetKind::Binary);
 }
 
-AssetHandle<AssetText> WebAssetLoader::loadTextAsync(std::string_view path)
+AssetHandle<AssetText>
+WebAssetLoader::loadTextAsync(std::string_view path)
 {
-    return startTextFetch(std::string(path));
+    return loadImpl<AssetText>(path, AssetKind::Text);
 }
-
-#else
-#endif

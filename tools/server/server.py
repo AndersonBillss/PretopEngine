@@ -21,6 +21,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=BUILD_DIRECTORY, **kwargs)
 
+    def end_headers(self):
+        self.send_header("Cross-Origin-Opener-Policy", "same-origin")
+        self.send_header("Cross-Origin-Embedder-Policy", "require-corp")
+        super().end_headers()
+
 
 def run_server():
     print("Enter 'o' to open engine in browser, enter 'q' to quit")
