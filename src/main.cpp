@@ -39,7 +39,7 @@ struct MyUniforms
     float _pad[2];
 };
 
-const float scale = 3.0f;
+const float scale = 0.5f;
 int main(int, char **)
 {
     std::cout << "Hello, WebGPU!!" << std::endl;
@@ -47,7 +47,7 @@ int main(int, char **)
     ParsedData model;
     try
     {
-        model = loadGlb("assets/models/DiffuseTransmissionPlant.glb");
+        model = loadGlb("assets/models/woolly-mammoth-100k-4096_std.glb");
         std::cout << "Success!" << std::endl;
     }
     catch (ModelParseError &e)
@@ -62,7 +62,7 @@ int main(int, char **)
 
     AppShader shader = AppShader::pipeline(application.device, application.instance, "shaders/shader.wgsl");
 
-    AppBuffer vertices(application.device, model.vertices.size() * sizeof(Vertex), WGPUBufferUsage_Vertex);
+    AppBuffer vertices(application.device, model.vertices.size() * sizeof(Vertex), WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex);
     application.writeVec(vertices, model.vertices);
 
     uint32_t indicesSize = 0;
@@ -77,7 +77,7 @@ int main(int, char **)
         std::vector<uint16_t> indicesVec = std::get<std::vector<uint16_t>>(model.indices);
         indicesSize = indicesVec.size() * sizeof(uint16_t);
     }
-    AppBuffer indices(application.device, indicesSize, WGPUBufferUsage_Index);
+    AppBuffer indices(application.device, indicesSize, WGPUBufferUsage_CopyDst | WGPUBufferUsage_Index);
     if (is32bitIndexBuffer)
     {
         std::vector<uint32_t> indicesVec = std::get<std::vector<uint32_t>>(model.indices);
@@ -99,7 +99,7 @@ int main(int, char **)
     AppBindingLayout bindingLayout(application.device, {{bindingLayoutEntry}});
 
     AppPipeline pipeline(application.device, shader, application.windowFormat, vertexLayout, bindingLayout);
-    AppBuffer myUniformBuffer(application.device, sizeof(MyUniforms), WGPUBufferUsage_Uniform);
+    AppBuffer myUniformBuffer(application.device, sizeof(MyUniforms), WGPUBufferUsage_CopyDst | WGPUBufferUsage_Uniform);
 
     std::vector<WGPUBindGroupEntry> bindings = {WGPU_BIND_GROUP_ENTRY_INIT};
     bindings[0].binding = 0;

@@ -16,7 +16,7 @@ public:
         WGPUBufferDescriptor bufferDesc = WGPU_BUFFER_DESCRIPTOR_INIT;
         const std::string bufferLabel = "Test index buffer";
         bufferDesc.label = WGPUStringView{bufferLabel.c_str(), bufferLabel.size()};
-        bufferDesc.usage = WGPUBufferUsage_CopyDst | usage;
+        bufferDesc.usage = usage;
         bufferDesc.size = size;
         bufferDesc.mappedAtCreation = false;
         this->wgpuBuffer = wgpuDeviceCreateBuffer(device.wgpuDevice, &bufferDesc);

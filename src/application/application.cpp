@@ -131,7 +131,7 @@ Application *Application::inspectQueue()
 
 WGPUTextureView Application::getNextSurfaceTextureView()
 {
-    WGPUSurfaceTexture surfaceTexture;
+    WGPUSurfaceTexture surfaceTexture = WGPU_SURFACE_TEXTURE_INIT;
     wgpuSurfaceGetCurrentTexture(this->_windowSurface, &surfaceTexture);
     if (surfaceTexture.status != WGPUSurfaceGetCurrentTextureStatus_SuccessOptimal &&
         surfaceTexture.status != WGPUSurfaceGetCurrentTextureStatus_SuccessSuboptimal)
@@ -139,7 +139,7 @@ WGPUTextureView Application::getNextSurfaceTextureView()
         return nullptr;
     }
 
-    WGPUTextureViewDescriptor viewDescriptor;
+    WGPUTextureViewDescriptor viewDescriptor = WGPU_TEXTURE_VIEW_DESCRIPTOR_INIT;
     viewDescriptor.nextInChain = nullptr;
     std::string label = "Surface texture view";
     viewDescriptor.label = WGPUStringView{label.c_str(), label.size()};

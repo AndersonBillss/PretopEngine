@@ -86,15 +86,13 @@ ParsedData loadGlb(const std::string &path)
         throw ModelParseError("Asset could not be loaded: " + handleResult.error);
     }
     std::byte *data = handleResult.data.data();
-    std::cout << "HERE!!!1" << std::endl;
     uint32_t magic = readU32LE(data);
-    std::cout << "HERE!!!2" << std::endl;
     if (magic != 0x46546C67)
     {
         throw ModelParseError("GLB file corrupted");
     }
     uint32_t version = readU32LE(data + 4);
-    std::cout << "Version: " << version << std::endl;
+    // std::cout << "Version: " << version << std::endl;
     uint32_t length = readU32LE(data + 8);
     uint32_t jsonChunkLength = readU32LE(data + 12);
     uint32_t jsonChunkType = readU32LE(data + 16);
@@ -102,21 +100,21 @@ ParsedData loadGlb(const std::string &path)
     {
         throw ModelParseError("First chunk is not JSON");
     }
-    std::cout << "Chunk length: " << jsonChunkLength << std::endl;
+    // std::cout << "Chunk length: " << jsonChunkLength << std::endl;
     char *jsonChunkStart = (char *)(data + 20);
     char *jsonChunkEnd = jsonChunkStart + jsonChunkLength;
     nlohmann::json j = nlohmann::json::parse(jsonChunkStart, jsonChunkEnd);
-    std::cout << j.dump(2) << std::endl;
+    // std::cout << j.dump(2) << std::endl;
 
     nlohmann::json mesh = j["meshes"][0];
     nlohmann::json primitives = mesh["primitives"];
     nlohmann::json primitive = primitives[0];
     uint32_t posIndex = primitive["attributes"]["POSITION"];
-    std::cout << "posIndex: " << posIndex << std::endl;
+    // std::cout << "posIndex: " << posIndex << std::endl;
     uint32_t normIndex = primitive["attributes"]["NORMAL"];
-    std::cout << "normIndex: " << normIndex << std::endl;
+    // std::cout << "normIndex: " << normIndex << std::endl;
     uint32_t indicesIndex = primitive["indices"];
-    std::cout << "indicesIndex: " << indicesIndex << std::endl;
+    // std::cout << "indicesIndex: " << indicesIndex << std::endl;
 
     nlohmann::json accessors = j["accessors"];
     nlohmann::json posAccessor = accessors[posIndex];
@@ -161,8 +159,8 @@ ParsedData loadGlb(const std::string &path)
     }
     uint8_t indicesComponentSize = indicesAccessorComponentType ==
                                            ComponentType::UNSIGNED_INT
-                                       ? sizeof(UNSIGNED_INT)
-                                       : sizeof(UNSIGNED_SHORT);
+                                       ? sizeof(uint32_t)
+                                       : sizeof(uint16_t);
 
     nlohmann::json bufferViews = j["bufferViews"];
 
@@ -181,8 +179,8 @@ ParsedData loadGlb(const std::string &path)
     {
         normBufferOffset = normBufferView["byteOffset"];
     }
-    std::cout << "posBufferOffset: " << posBufferOffset << std::endl;
-    std::cout << "normBufferOffset: " << normBufferOffset << std::endl;
+    // std::cout << "posBufferOffset: " << posBufferOffset << std::endl;
+    // std::cout << "normBufferOffset: " << normBufferOffset << std::endl;
 
     nlohmann::json indicesBufferView = bufferViews[indicesBufferViewIndex];
     uint32_t indicesBufferIndex = indicesBufferView["buffer"];
@@ -193,7 +191,7 @@ ParsedData loadGlb(const std::string &path)
     }
 
     uint32_t binaryChunkLength = readU32LE((std::byte *)jsonChunkEnd);
-    std::cout << "binaryChunkLength: " << binaryChunkLength << std::endl;
+    // std::cout << "binaryChunkLength: " << binaryChunkLength << std::endl;
     uint32_t binaryChunkType = readU32LE((std::byte *)jsonChunkEnd + 4);
     if (binaryChunkType != ChunkType::BIN)
     {
