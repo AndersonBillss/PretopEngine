@@ -1,8 +1,8 @@
 #include "appShader.hpp"
-#include "../asset/readFileBytes.hpp"
+#include "../asset/modelParseError.hpp"
 #include <iostream>
 
-AppShader AppShader::pipeline(AppDevice &device, AppInstance &instance, std::string src)
+AppShader AppShader::pipeline(AppDevice &device, AppInstance &instance, AssetLoader *assetLoader, std::string_view src)
 {
     auto compilationCallbackInfo = [](
                                        WGPUCompilationInfoRequestStatus status,
@@ -24,8 +24,16 @@ AppShader AppShader::pipeline(AppDevice &device, AppInstance &instance, std::str
     AppShader result;
     WGPUShaderSourceWGSL shaderWGSL = WGPU_SHADER_SOURCE_WGSL_INIT;
     shaderWGSL.chain.sType = WGPUSType_ShaderSourceWGSL;
-    std::vector<std::byte> bytes = readFileBytes("assets/" + src);
-    shaderWGSL.code = {(char *)bytes.data(), bytes.size()};
+
+    auto handle = assetLoader->loadTextAsync("assets/" + std::string(src));
+    handle.wait();
+    auto handleResult = handle.get();
+    if (!handleResult)
+    {
+        throw ModelParseError("Asset could not be loaded: " + handleResult.error);
+    }
+    std::string sourceCode = handleResult.data.data();
+    shaderWGSL.code = WGPUStringView{sourceCode.c_str(), sourceCode.length()};
 
     WGPUShaderModuleDescriptor shaderDesc = WGPU_SHADER_MODULE_DESCRIPTOR_INIT;
     shaderDesc.nextInChain = &shaderWGSL.chain;

@@ -3,6 +3,7 @@
 #include <string>
 #include <memory>
 #include <variant>
+#include "assetLoader.hpp"
 #include "../math/linalg/vec3.hpp"
 
 struct Vertex {
@@ -17,4 +18,4 @@ struct ParsedData {
     IndexList indices;
 };
 
-ParsedData loadGlb(const std::string &path);
+ParsedData loadGlb(AssetLoader * assetLoader, const std::string &path);

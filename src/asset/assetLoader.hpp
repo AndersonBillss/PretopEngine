@@ -5,10 +5,10 @@
 #include <string_view>
 #include <memory>
 
-class IAssetLoader
+class AssetLoader
 {
 public:
-    virtual ~IAssetLoader() = default;
+    virtual ~AssetLoader() = default;
 
     virtual AssetHandle<AssetBytes> loadBinaryAsync(std::string_view path) = 0;
     virtual AssetHandle<AssetText> loadTextAsync(std::string_view path) = 0;

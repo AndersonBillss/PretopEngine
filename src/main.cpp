@@ -28,6 +28,7 @@
 
 #include "asset/loadGlb.hpp"
 #include "asset/modelParseError.hpp"
+#include "asset/assetLoaderFactory.hpp"
 
 struct MyUniforms
 {
@@ -43,11 +44,12 @@ const float scale = 0.5f;
 int main(int, char **)
 {
     std::cout << "Hello, WebGPU!!" << std::endl;
+    std::unique_ptr<AssetLoader> assetLoader = AssetLoaderFactory::createAssetLoader();
 
     ParsedData model;
     try
     {
-        model = loadGlb("assets/models/woolly-mammoth-100k-4096_std.glb");
+        model = loadGlb(assetLoader.get(), "assets/models/woolly-mammoth-100k-4096_std.glb");
         std::cout << "Success!" << std::endl;
     }
     catch (ModelParseError &e)
@@ -60,7 +62,7 @@ int main(int, char **)
     application.logQueueCommands();
     application.setWindow(WindowFactory::createWindow("My Window"));
 
-    AppShader shader = AppShader::pipeline(application.device, application.instance, "shaders/shader.wgsl");
+    AppShader shader = AppShader::pipeline(application.device, application.instance, assetLoader.get(), "shaders/shader.wgsl");
 
     AppBuffer vertices(application.device, model.vertices.size() * sizeof(Vertex), WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex);
     application.writeVec(vertices, model.vertices);

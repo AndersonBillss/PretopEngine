@@ -1,5 +1,4 @@
 #include "loadGlb.hpp"
-#include "assetLoaderFactory.hpp"
 #include "modelParseError.hpp"
 #include <nlohmann/json.hpp>
 #include <iostream>
@@ -76,9 +75,8 @@ std::vector<uint16_t> readIndicesU16(uint32_t indicesCount, std::byte *indicesCh
     return indices;
 }
 
-ParsedData loadGlb(const std::string &path)
+ParsedData loadGlb(AssetLoader * assetLoader, const std::string &path)
 {
-    auto assetLoader = AssetLoaderFactory::createAssetLoader();
     auto handle = assetLoader->loadBinaryAsync(path);
     handle.wait();
     auto handleResult = handle.get();

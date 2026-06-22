@@ -1,8 +1,8 @@
 #pragma once
 
-#include "IAssetLoader.hpp"
+#include "assetLoader.hpp"
 
-class NativeAssetLoader final : public IAssetLoader
+class NativeAssetLoader final : public AssetLoader
 {
 public:
     AssetHandle<AssetBytes> loadBinaryAsync(std::string_view path) override;
