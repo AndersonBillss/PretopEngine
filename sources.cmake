@@ -18,6 +18,7 @@ set(AB_ENGINE_SOURCES
   src/application/application.cpp
   src/asset/assetLoaderFactory.cpp
   src/asset/loadGlb.cpp
+  src/demos/loadModel.cpp
   src/math/ceilToBufferOffset.cpp
   src/math/euler.cpp
   src/math/linalg/mat2x2.cpp
