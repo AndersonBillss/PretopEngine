@@ -1,4 +1,5 @@
 #include "mat4x4.hpp"
+#include <cmath>
 
 Mat4x4 transpose(const Mat4x4 &mat)
 {

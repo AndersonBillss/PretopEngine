@@ -61,7 +61,6 @@ If you are using a different version of Visual Studio:
 
 Make sure the following tools are installed and available in your system `PATH`:
 
-- **Go**
 - **Python**
 - **CMake**
 - **Ninja**
@@ -72,6 +71,7 @@ Install the following dependencies:
 - **libxinerama-dev**
 - **libxcursor-dev**
 - **libxi-dev**
+- **libx11-xcb-dev**
 - **libwayland-dev**
 - **libxkbcommon-dev**
 - **mesa-common-dev**

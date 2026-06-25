@@ -1,3 +1,4 @@
+#include <cmath>
 #include "euler.hpp"
 
 Mat4x4 Euler::toMatrix()
