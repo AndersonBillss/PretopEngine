@@ -90,3 +90,25 @@ Install the following dependencies:
    ```
    python tools/cli.py run native
    ```
+
+# Building the Engine for Web
+
+## Prerequisites
+
+Download and install the **[Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html)**.
+
+After installation, activate the Emscripten environment and make sure the following tools are available in your system `PATH`:
+
+* **Python**
+* **CMake**
+* **emcmake** (provided by the Emscripten SDK)
+
+## Build Instructions
+
+Unlike native builds, the web target does **not** require the Dawn setup step.
+
+Build and run the web target with:
+
+```sh
+python tools/cli.py run web
+```
