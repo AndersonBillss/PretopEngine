@@ -25,11 +25,11 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "gmock/gmock.h"
+#include "src/tint/lang/core/ir/evaluator.h"
 
+#include "gmock/gmock.h"
 #include "src/tint/lang/core/fluent_types.h"
 #include "src/tint/lang/core/ir/builder.h"
-#include "src/tint/lang/core/ir/evaluator.h"
 #include "src/tint/lang/core/ir/instruction.h"
 #include "src/tint/lang/core/ir/ir_helper_test.h"
 #include "src/tint/lang/core/type/u32.h"
@@ -247,7 +247,7 @@ TEST_F(IR_EvaluatorTest, ArrayBounds_NestedDynamicAndConstantOutOfBoundsAccess) 
 }
 
 TEST_F(IR_EvaluatorTest, ArrayBounds_NestedVecOverflowBoundsAccess) {
-    auto* arr = b.Var("arr", ty.ptr(storage, ty.array<vec3<u32>, 7>()));
+    auto* arr = b.Var("arr", ty.ptr(storage, ty.array<vec3u, 7>()));
     auto* inst = b.Access(ty.ptr<storage, u32>(), arr, 3_i, 3_i);
     auto res = Eval(b, inst);
 
@@ -257,7 +257,7 @@ TEST_F(IR_EvaluatorTest, ArrayBounds_NestedVecOverflowBoundsAccess) {
 }
 
 TEST_F(IR_EvaluatorTest, ArrayBounds_NestedVecBoundsAccessSuccess) {
-    auto* arr = b.Var("arr", ty.ptr(storage, ty.array<vec3<u32>, 7>()));
+    auto* arr = b.Var("arr", ty.ptr(storage, ty.array<vec3u, 7>()));
     auto* inst = b.Access(ty.ptr<storage, u32>(), arr, 3_i, 2_i);
     auto res = Eval(b, inst);
 

@@ -25,10 +25,9 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "src/tint/lang/wgsl/resolver/resolver.h"
-
 #include "gmock/gmock.h"
 #include "src/tint/lang/core/fluent_types.h"
+#include "src/tint/lang/wgsl/resolver/resolver.h"
 #include "src/tint/lang/wgsl/resolver/resolver_helper_test.h"
 
 using namespace tint::core::number_suffixes;  // NOLINT
@@ -87,7 +86,7 @@ enum class Use {
     kTexelFormat,
     kValueExpression,
     kVariableType,
-    kUnaryOp
+    kUnaryOp,
 };
 
 std::ostream& operator<<(std::ostream& out, Use use) {
@@ -258,10 +257,11 @@ TEST_P(ResolverExpressionKindTest, Test) {
     auto* expr = Expr(ident);
     switch (GetParam().use) {
         case Use::kAccess:
-            GlobalVar("v", ty("texture_storage_2d", "rgba8unorm", expr), Group(0_u), Binding(0_u));
+            GlobalVar("v", ty.AsType("texture_storage_2d", "rgba8unorm", expr), Group(0_u),
+                      Binding(0_u));
             break;
         case Use::kAddressSpace:
-            Func(Symbols().New(), Vector{Param("p", ty("ptr", expr, ty.f32()))}, ty.void_(),
+            Func(Symbols().New(), Vector{Param("p", ty.AsType("ptr", expr, ty.f32()))}, ty.void_(),
                  tint::Empty);
             break;
         case Use::kCallExpr:
@@ -274,20 +274,20 @@ TEST_P(ResolverExpressionKindTest, Test) {
             fn_stmts.Push(Decl(Var("v", Mul(1_a, expr))));
             break;
         case Use::kFunctionReturnType:
-            Func(Symbols().New(), tint::Empty, ty(expr), Return(Call(sym)));
+            Func(Symbols().New(), tint::Empty, ty.AsType(expr), Return(Call(sym)));
             break;
         case Use::kMemberType:
-            Structure(Symbols().New(), Vector{Member("m", ty(expr))});
+            Structure(Symbols().New(), Vector{Member("m", ty.AsType(expr))});
             break;
         case Use::kTexelFormat:
-            GlobalVar(Symbols().New(), ty("texture_storage_2d", ty(expr), "write"), Group(0_u),
-                      Binding(0_u));
+            GlobalVar(Symbols().New(), ty.AsType("texture_storage_2d", ty.AsType(expr), "write"),
+                      Group(0_u), Binding(0_u));
             break;
         case Use::kValueExpression:
             fn_stmts.Push(Decl(Var("v", expr)));
             break;
         case Use::kVariableType:
-            fn_stmts.Push(Decl(Var("v", ty(expr))));
+            fn_stmts.Push(Decl(Var("v", ty.AsType(expr))));
             break;
         case Use::kUnaryOp:
             fn_stmts.Push(Assign(Phony(), Negation(expr)));

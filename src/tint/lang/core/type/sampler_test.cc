@@ -26,6 +26,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "src/tint/lang/core/type/sampler.h"
+
 #include "src/tint/lang/core/type/helper_test.h"
 #include "src/tint/lang/core/type/manager.h"
 #include "src/tint/lang/core/type/void.h"
@@ -42,6 +43,7 @@ TEST_F(SamplerTest, Creation) {
     auto* c = ty.comparison_sampler();
 
     EXPECT_EQ(a->Kind(), SamplerKind::kSampler);
+
     EXPECT_EQ(c->Kind(), SamplerKind::kComparisonSampler);
 
     EXPECT_FALSE(a->IsComparison());

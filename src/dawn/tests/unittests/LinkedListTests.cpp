@@ -5,10 +5,13 @@
 // This file is a copy of Chromium's /src/base/containers/linked_list_unittest.cc
 
 #include <list>
+#include <mutex>
 #include <utility>
 
-#include "dawn/common/LinkedList.h"
 #include "gtest/gtest.h"
+#include "src/dawn/common/LinkedList.h"
+#include "src/dawn/utils/TestUtils.h"
+#include "src/utils/compiler.h"
 
 namespace dawn {
 namespace {
@@ -61,7 +64,7 @@ void ExpectListContentsForDirection(const LinkedList<Node>& list,
          node = (forward ? node->next() : node->previous())) {
         ASSERT_LT(i, num_nodes);
         int index_of_id = forward ? i : num_nodes - i - 1;
-        EXPECT_EQ(node_ids[index_of_id], node->value()->id());
+        DAWN_UNSAFE_TODO(EXPECT_EQ(node_ids[index_of_id], node->value()->id()));
         ++i;
     }
     EXPECT_EQ(num_nodes, i);
@@ -458,6 +461,43 @@ TEST(LinkedList, RangeBasedModify) {
 TEST(LinkedList, RangeBasedEndIsEnd) {
     LinkedList<Node> list;
     EXPECT_EQ(list.end(), *end(list));
+}
+
+// Verify that concurrent Insert/Remove operations require external synchronization (mutex), but
+// IsInList() can be called concurrently without synchronization.
+TEST(LinkedList, ConcurrentInsertRemoveAndIsInList) {
+    LinkedList<Node> list;
+    std::mutex listMutex;
+    constexpr uint32_t kNumThreads = 10;
+    constexpr uint32_t kNodesPerThread = 100;
+
+    dawn::utils::RunInParallel(kNumThreads, [&](uint32_t threadIndex) {
+        for (uint32_t i = 0; i < kNodesPerThread; i++) {
+            Node node(threadIndex * kNodesPerThread + i);
+
+            // Insert and Remove must be protected by mutex
+            {
+                std::lock_guard<std::mutex> lock(listMutex);
+                list.Append(&node);
+            }
+
+            // IsInList() can be called without the mutex - it only needs to be ordered with
+            // this node's own Insert/Remove operations
+            EXPECT_TRUE(node.IsInList());
+
+            // Remove must be protected by mutex
+            {
+                std::lock_guard<std::mutex> lock(listMutex);
+                node.RemoveFromList();
+            }
+
+            // IsInList() can be called without the mutex
+            EXPECT_FALSE(node.IsInList());
+        }
+    });
+
+    // List should be empty after all threads complete
+    EXPECT_TRUE(list.empty());
 }
 
 }  // anonymous namespace

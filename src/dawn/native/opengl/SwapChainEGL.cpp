@@ -25,18 +25,18 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "dawn/native/opengl/SwapChainEGL.h"
+#include "src/dawn/native/opengl/SwapChainEGL.h"
 
 #include <utility>
 
-#include "dawn/native/Surface.h"
-#include "dawn/native/opengl/ContextEGL.h"
-#include "dawn/native/opengl/DeviceGL.h"
-#include "dawn/native/opengl/DisplayEGL.h"
-#include "dawn/native/opengl/PhysicalDeviceGL.h"
-#include "dawn/native/opengl/TextureGL.h"
-#include "dawn/native/opengl/UtilsEGL.h"
-#include "dawn/native/opengl/UtilsGL.h"
+#include "src/dawn/native/Surface.h"
+#include "src/dawn/native/opengl/ContextEGL.h"
+#include "src/dawn/native/opengl/DeviceGL.h"
+#include "src/dawn/native/opengl/DisplayEGL.h"
+#include "src/dawn/native/opengl/PhysicalDeviceGL.h"
+#include "src/dawn/native/opengl/TextureGL.h"
+#include "src/dawn/native/opengl/UtilsEGL.h"
+#include "src/dawn/native/opengl/UtilsGL.h"
 
 namespace dawn::native::opengl {
 
@@ -92,7 +92,7 @@ MaybeError SwapChainEGL::Initialize(SwapChainBase* previousSwapChain) {
     }
 
     EGLint swapInterval = GetPresentMode() == wgpu::PresentMode::Immediate ? 0 : 1;
-    display->egl.SwapInterval(display->GetDisplay(), swapInterval);
+    display->egl->SwapInterval(display->GetDisplay(), swapInterval);
 
     return {};
 }
@@ -178,7 +178,7 @@ MaybeError SwapChainEGL::CreateEGLSurface(const DisplayEGL* display) {
     }
 
     // [[maybe_unused]] to prevent unused variable warnings when platform code is disabled.
-    [[maybe_unused]] const EGLFunctions& egl = display->egl;
+    [[maybe_unused]] const EGLFunctions& egl = display->egl.get();
     [[maybe_unused]] EGLDisplay eglDisplay = display->GetDisplay();
     Surface* surface = GetSurface();
 
@@ -220,8 +220,8 @@ MaybeError SwapChainEGL::CreateEGLSurface(const DisplayEGL* display) {
 #endif  // DAWN_PLATFORM_IS(WIN32)
 #if defined(DAWN_USE_X11)
             case Surface::Type::XlibWindow:
-                mEGLSurface = egl.CreateWindowSurface(eglDisplay, config, surface->GetXWindow(),
-                                                      attribs.data());
+                mEGLSurface = egl.CreateWindowSurface(
+                    eglDisplay, config, uint32_t(surface->GetXWindow()), attribs.data());
                 return {};
 #endif  // defined(DAWN_USE_X11)
 

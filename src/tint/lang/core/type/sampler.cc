@@ -51,7 +51,10 @@ uint32_t Sampler::Align() const {
 }
 
 std::string Sampler::FriendlyName() const {
-    return kind_ == SamplerKind::kSampler ? "sampler" : "sampler_comparison";
+    if (kind_ == SamplerKind::kComparisonSampler) {
+        return "sampler_comparison";
+    }
+    return "sampler";
 }
 
 Sampler* Sampler::Clone(CloneContext& ctx) const {

@@ -27,12 +27,12 @@
 
 #include <vector>
 
-#include "dawn/common/Constants.h"
-#include "dawn/common/Math.h"
-#include "dawn/tests/unittests/validation/ValidationTest.h"
-#include "dawn/utils/ComboRenderPipelineDescriptor.h"
-#include "dawn/utils/TextureUtils.h"
-#include "dawn/utils/WGPUHelpers.h"
+#include "src/dawn/common/Constants.h"
+#include "src/dawn/common/Math.h"
+#include "src/dawn/tests/unittests/validation/ValidationTest.h"
+#include "src/dawn/utils/ComboRenderPipelineDescriptor.h"
+#include "src/dawn/utils/TextureUtils.h"
+#include "src/dawn/utils/WGPUHelpers.h"
 
 namespace dawn {
 namespace {
@@ -639,7 +639,7 @@ TEST_F(TextureValidationTest, TextureFormatNotSupportTextureUsageStorage) {
 
     for (wgpu::TextureFormat format : utils::kAllTextureFormats) {
         descriptor.format = format;
-        if (utils::TextureFormatSupportsStorageTexture(format, device, UseCompatibilityMode())) {
+        if (utils::TextureFormatSupportsStorageTexture(device, format)) {
             device.CreateTexture(&descriptor);
         } else {
             ASSERT_DEVICE_ERROR(device.CreateTexture(&descriptor));
@@ -710,6 +710,23 @@ TEST_F(TextureValidationTest, UseASTCFormatWithoutEnablingFeature) {
         descriptor.format = format;
         ASSERT_DEVICE_ERROR(device.CreateTexture(&descriptor));
     }
+}
+
+class TransientAttachmentValidationTest : public TextureValidationTest {
+  protected:
+    std::vector<const char*> GetEnabledToggles() override {
+        return {"disable_transient_attachment"};
+    }
+};
+
+// Check that using a transient attachment is disabled.
+TEST_F(TransientAttachmentValidationTest, TransientAttachmentDisabled) {
+    wgpu::TextureDescriptor desc;
+    desc.format = wgpu::TextureFormat::RGBA8Unorm;
+    desc.size = {1, 1, 1};
+    desc.usage = wgpu::TextureUsage::RenderAttachment | wgpu::TextureUsage::TransientAttachment;
+
+    ASSERT_DEVICE_ERROR(device.CreateTexture(&desc));
 }
 
 class TextureCompatValidationTest : public ValidationTest {
@@ -1278,6 +1295,70 @@ TEST_F(TextureFormatsTier1TextureTest, StorageBindingSuppport) {
     }
 }
 
+// Test that TextureFormatsTier1 makes Norm16 formats only compatible with the unfilterable-float
+// sample type.
+TEST_F(TextureFormatsTier1TextureTest, Norm16IsUnfilterable) {
+    for (wgpu::TextureFormat format : utils::kNorm16Formats) {
+        SCOPED_TRACE(absl::StrFormat("Test format: %s", format));
+
+        wgpu::TextureDescriptor tDesc = {
+            .usage = wgpu::TextureUsage::TextureBinding,
+            .size = {1, 1},
+            .format = format,
+        };
+        wgpu::Texture t = device.CreateTexture(&tDesc);
+
+        wgpu::BindGroupLayout unfilterableBGL = utils::MakeBindGroupLayout(
+            device, {{0, wgpu::ShaderStage::Fragment, wgpu::TextureSampleType::UnfilterableFloat}});
+        wgpu::BindGroupLayout filterableBGL = utils::MakeBindGroupLayout(
+            device, {{0, wgpu::ShaderStage::Fragment, wgpu::TextureSampleType::Float}});
+
+        // Control case: the texture can be used unfiltered.
+        utils::MakeBindGroup(device, unfilterableBGL, {{0, t.CreateView()}});
+
+        // Error case: the texture cannot be filtered.
+        ASSERT_DEVICE_ERROR(utils::MakeBindGroup(device, filterableBGL, {{0, t.CreateView()}}));
+    }
+}
+
+// Test that TextureFormatsTier1 makes Norm16 formats only compatible with rendering, not resolving.
+TEST_F(TextureFormatsTier1TextureTest, Norm16IsNotResolvable) {
+    for (wgpu::TextureFormat format : utils::kNorm16Formats) {
+        SCOPED_TRACE(absl::StrFormat("Test format: %s", format));
+
+        wgpu::TextureDescriptor tDesc = {
+            .usage = wgpu::TextureUsage::RenderAttachment,
+            .size = {1, 1},
+            .format = format,
+        };
+        wgpu::Texture resolve = device.CreateTexture(&tDesc);
+
+        tDesc.sampleCount = 4;
+        wgpu::Texture colorAttachment = device.CreateTexture(&tDesc);
+
+        // Control case, rendering to the format is allowed.
+        utils::ComboRenderPassDescriptor passDesc;
+        passDesc.colorAttachmentCount = 1;
+        passDesc.cColorAttachments[0].view = colorAttachment.CreateView();
+
+        {
+            wgpu::CommandEncoder encoder = device.CreateCommandEncoder();
+            wgpu::RenderPassEncoder pass = encoder.BeginRenderPass(&passDesc);
+            pass.End();
+            encoder.Finish();
+        }
+
+        // Error case, resolving to the format is not allowed.
+        passDesc.cColorAttachments[0].resolveTarget = resolve.CreateView();
+        {
+            wgpu::CommandEncoder encoder = device.CreateCommandEncoder();
+            wgpu::RenderPassEncoder pass = encoder.BeginRenderPass(&passDesc);
+            pass.End();
+            ASSERT_DEVICE_ERROR(encoder.Finish());
+        }
+    }
+}
+
 class TextureFormatsTier2TextureTest : public TextureValidationTest {
   protected:
     std::vector<wgpu::FeatureName> GetRequiredFeatures() override {
@@ -1295,6 +1376,38 @@ TEST_F(TextureFormatsTier2TextureTest, StorageBindingSuppport) {
         SCOPED_TRACE(absl::StrFormat("Test format: %s", format));
         descriptor.format = format;
         device.CreateTexture(&descriptor);
+    }
+}
+
+// Test that Unorm16Filterable marks the formats as filterable.
+class Unorm16FilterableValidationTests : public TextureValidationTest {
+  protected:
+    std::vector<wgpu::FeatureName> GetRequiredFeatures() override {
+        return {wgpu::FeatureName::TextureFormatsTier1, wgpu::FeatureName::Unorm16Filterable};
+    }
+};
+TEST_F(Unorm16FilterableValidationTests, Unorm16IsFilterable) {
+    for (wgpu::TextureFormat format : utils::kNorm16Formats) {
+        SCOPED_TRACE(absl::StrFormat("Test format: %s", format));
+
+        wgpu::TextureDescriptor tDesc = {
+            .usage = wgpu::TextureUsage::TextureBinding,
+            .size = {1, 1},
+            .format = format,
+        };
+        wgpu::Texture t = device.CreateTexture(&tDesc);
+
+        wgpu::BindGroupLayout unfilterableBGL = utils::MakeBindGroupLayout(
+            device, {{0, wgpu::ShaderStage::Fragment, wgpu::TextureSampleType::UnfilterableFloat}});
+        wgpu::BindGroupLayout filterableBGL = utils::MakeBindGroupLayout(
+            device, {{0, wgpu::ShaderStage::Fragment, wgpu::TextureSampleType::Float}});
+
+        // Control case: the texture can be used unfiltered.
+        utils::MakeBindGroup(device, unfilterableBGL, {{0, t.CreateView()}});
+
+        // Success case: the texture can be filtered.
+        // (this fails in TextureFormatsTier1TextureTest.Norm16IsUnfilterable)
+        utils::MakeBindGroup(device, filterableBGL, {{0, t.CreateView()}});
     }
 }
 

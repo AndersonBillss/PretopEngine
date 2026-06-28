@@ -32,14 +32,14 @@
 #include <string>
 #include <vector>
 
-#include "dawn/native/Device.h"
-#include "dawn/native/ToBackend.h"
 #include "dawn/native/WebGPUBackend.h"
-#include "dawn/native/webgpu/CaptureContext.h"
-#include "dawn/native/webgpu/Forward.h"
-#include "dawn/native/webgpu/ObjectWGPU.h"
-#include "dawn/native/webgpu/QueueWGPU.h"
 #include "partition_alloc/pointers/raw_ptr.h"
+#include "src/dawn/native/Device.h"
+#include "src/dawn/native/ToBackend.h"
+#include "src/dawn/native/webgpu/CaptureContext.h"
+#include "src/dawn/native/webgpu/Forward.h"
+#include "src/dawn/native/webgpu/ObjectWGPU.h"
+#include "src/dawn/native/webgpu/QueueWGPU.h"
 
 namespace dawn::native::webgpu {
 
@@ -60,6 +60,7 @@ class Device final : public DeviceBase, public ObjectWGPU<WGPUDevice> {
     bool CanResolveSubRect() const override;
 
     float GetTimestampPeriodInNS() const override;
+    bool AreTimestampsQuantized() const override;
 
     bool NeedsIndirectGPUValidation() const override;
 
@@ -76,13 +77,14 @@ class Device final : public DeviceBase, public ObjectWGPU<WGPUDevice> {
         }
     }
 
-    const DawnProcTable& wgpu;
+    const raw_ref<const DawnProcTable> wgpu;
 
   private:
     Device(AdapterBase* adapter,
            WGPUAdapter innerAdapter,
            const UnpackedPtr<DeviceDescriptor>& descriptor,
            const TogglesState& deviceToggles,
+           const TogglesState& innerDeviceToggles,
            Ref<DeviceBase::DeviceLostEvent>&& lostEvent);
 
     ResultOrError<Ref<BindGroupBase>> CreateBindGroupImpl(
@@ -91,6 +93,8 @@ class Device final : public DeviceBase, public ObjectWGPU<WGPUDevice> {
         const UnpackedPtr<BindGroupLayoutDescriptor>& descriptor) override;
     ResultOrError<Ref<BufferBase>> CreateBufferImpl(
         const UnpackedPtr<BufferDescriptor>& descriptor) override;
+    ResultOrError<Ref<ExternalTextureBase>> CreateExternalTextureImpl(
+        const ExternalTextureDescriptor* descriptor) override;
     ResultOrError<Ref<CommandBufferBase>> CreateCommandBuffer(
         CommandEncoder* encoder,
         const CommandBufferDescriptor* descriptor) override;
@@ -120,6 +124,10 @@ class Device final : public DeviceBase, public ObjectWGPU<WGPUDevice> {
     ResultOrError<Ref<TextureViewBase>> CreateTextureViewImpl(
         TextureBase* texture,
         const UnpackedPtr<TextureViewDescriptor>& descriptor) override;
+    ResultOrError<Ref<SharedTextureMemoryBase>> ImportSharedTextureMemoryImpl(
+        const SharedTextureMemoryDescriptor* descriptor) override;
+    ResultOrError<Ref<SharedFenceBase>> ImportSharedFenceImpl(
+        const SharedFenceDescriptor* descriptor) override;
 
     MaybeError TickImpl() override;
 

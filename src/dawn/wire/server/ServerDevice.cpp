@@ -25,11 +25,10 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "dawn/wire/server/Server.h"
-
-#include "dawn/common/StringViewUtils.h"
 #include "dawn/wire/Wire.h"
-#include "dawn/wire/WireResult.h"
+#include "src/dawn/common/StringViewUtils.h"
+#include "src/dawn/wire/WireResult.h"
+#include "src/dawn/wire/server/Server.h"
 
 namespace dawn::wire::server {
 
@@ -73,7 +72,7 @@ WireResult Server::DoDevicePopErrorScope(Known<WGPUDevice> device,
     userdata->eventManager = eventManager;
     userdata->future = future;
 
-    mProcs.devicePopErrorScope(
+    mProcs->devicePopErrorScope(
         device->handle,
         MakeCallbackInfo<WGPUPopErrorScopeCallbackInfo, &Server::OnDevicePopErrorScope>(
             userdata.release()));
@@ -107,9 +106,9 @@ WireResult Server::DoDeviceCreateComputePipelineAsync(
     userdata->device = device.AsHandle();
     userdata->eventManager = eventManager;
     userdata->future = future;
-    userdata->pipelineObjectID = pipeline.id;
+    userdata->pipeline = pipeline.AsHandle();
 
-    mProcs.deviceCreateComputePipelineAsync(
+    mProcs->deviceCreateComputePipelineAsync(
         device->handle, descriptor,
         MakeCallbackInfo<WGPUCreateComputePipelineAsyncCallbackInfo,
                          &Server::OnCreateComputePipelineAsyncCallback>(userdata.release()));
@@ -127,7 +126,7 @@ void Server::OnCreateComputePipelineAsyncCallback(CreatePipelineAsyncUserData* d
     cmd.message = message;
 
     if (status == WGPUCreatePipelineAsyncStatus_Success &&
-        FillReservation(data->pipelineObjectID, pipeline) == WireResult::FatalError) {
+        FillReservation(data->pipeline, pipeline) == WireResult::FatalError) {
         cmd.status = WGPUCreatePipelineAsyncStatus_CallbackCancelled;
         cmd.message = ToOutputStringView("Destroyed before request was fulfilled.");
     }
@@ -147,9 +146,9 @@ WireResult Server::DoDeviceCreateRenderPipelineAsync(
     userdata->device = device.AsHandle();
     userdata->eventManager = eventManager;
     userdata->future = future;
-    userdata->pipelineObjectID = pipeline.id;
+    userdata->pipeline = pipeline.AsHandle();
 
-    mProcs.deviceCreateRenderPipelineAsync(
+    mProcs->deviceCreateRenderPipelineAsync(
         device->handle, descriptor,
         MakeCallbackInfo<WGPUCreateRenderPipelineAsyncCallbackInfo,
                          &Server::OnCreateRenderPipelineAsyncCallback>(userdata.release()));
@@ -167,7 +166,7 @@ void Server::OnCreateRenderPipelineAsyncCallback(CreatePipelineAsyncUserData* da
     cmd.message = message;
 
     if (status == WGPUCreatePipelineAsyncStatus_Success &&
-        FillReservation(data->pipelineObjectID, pipeline) == WireResult::FatalError) {
+        FillReservation(data->pipeline, pipeline) == WireResult::FatalError) {
         cmd.status = WGPUCreatePipelineAsyncStatus_CallbackCancelled;
         cmd.message = ToOutputStringView("Destroyed before request was fulfilled.");
     }

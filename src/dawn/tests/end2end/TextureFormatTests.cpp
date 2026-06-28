@@ -31,12 +31,13 @@
 #include <utility>
 #include <vector>
 
-#include "dawn/common/Assert.h"
-#include "dawn/common/Math.h"
-#include "dawn/tests/DawnTest.h"
-#include "dawn/utils/ComboRenderPipelineDescriptor.h"
-#include "dawn/utils/TextureUtils.h"
-#include "dawn/utils/WGPUHelpers.h"
+#include "src/dawn/common/Math.h"
+#include "src/dawn/tests/DawnTest.h"
+#include "src/dawn/utils/ComboRenderPipelineDescriptor.h"
+#include "src/dawn/utils/TextureUtils.h"
+#include "src/dawn/utils/WGPUHelpers.h"
+#include "src/utils/assert.h"
+#include "src/utils/compiler.h"
 
 namespace dawn {
 namespace {
@@ -61,7 +62,7 @@ class ExpectFloatWithTolerance : public detail::Expectation {
 
         for (size_t i = 0; i < mExpected.size(); ++i) {
             float expectedValue = mExpected[i];
-            float actualValue = actual[i];
+            float actualValue = DAWN_UNSAFE_TODO(actual[i]);
 
             if (!FloatsMatch(expectedValue, actualValue)) {
                 testing::AssertionResult result = testing::AssertionFailure()
@@ -108,7 +109,7 @@ class ExpectFloat16 : public detail::Expectation {
 
         for (size_t i = 0; i < mExpected.size(); ++i) {
             uint16_t expectedValue = mExpected[i];
-            uint16_t actualValue = actual[i];
+            uint16_t actualValue = DAWN_UNSAFE_TODO(actual[i]);
 
             if (!Floats16Match(expectedValue, actualValue)) {
                 testing::AssertionResult result = testing::AssertionFailure()
@@ -122,7 +123,7 @@ class ExpectFloat16 : public detail::Expectation {
     }
 
   private:
-    bool Floats16Match(float expected, float actual) {
+    bool Floats16Match(uint16_t expected, uint16_t actual) {
         if (IsFloat16NaN(expected)) {
             return IsFloat16NaN(actual);
         }
@@ -145,7 +146,7 @@ class ExpectRG11B10Ufloat : public detail::Expectation {
 
         for (size_t i = 0; i < mExpected.size(); ++i) {
             uint32_t expectedValue = mExpected[i];
-            uint32_t actualValue = actual[i];
+            uint32_t actualValue = DAWN_UNSAFE_TODO(actual[i]);
 
             if (!RG11B10UfloatMatch(expectedValue, actualValue)) {
                 testing::AssertionResult result = testing::AssertionFailure()
@@ -212,6 +213,11 @@ class ExpectRG11B10Ufloat : public detail::Expectation {
 
 class TextureFormatTest : public DawnTest {
   protected:
+    void SetUp() override {
+        DawnTest::SetUp();
+        // TODO(crbug.com/523211967): Produces incorrect result on Pixel 10.
+        DAWN_SUPPRESS_TEST_IF(IsAndroid() && IsImgTec() && IsVulkan());
+    }
     // Structure containing all the information that tests need to know about the format.
     struct FormatTestInfo {
         wgpu::TextureFormat format;
@@ -583,11 +589,15 @@ TEST_P(TextureFormatTest, RG8Unorm) {
 
 // Test the R16Unorm format
 TEST_P(TextureFormatTest, R16Unorm) {
+    // TODO(crbug.com/40238674): Fails on Pixel 10.
+    DAWN_SUPPRESS_TEST_IF(IsImgTec());
     DoUnormTest<uint16_t>({wgpu::TextureFormat::R16Unorm, 2, TextureComponentType::Float, 1});
 }
 
 // Test the RG16Unorm format
 TEST_P(TextureFormatTest, RG16Unorm) {
+    // TODO(crbug.com/40238674): Fails on Pixel 10.
+    DAWN_SUPPRESS_TEST_IF(IsImgTec());
     DoUnormTest<uint16_t>({wgpu::TextureFormat::RG16Unorm, 4, TextureComponentType::Float, 2});
 }
 
@@ -853,7 +863,7 @@ TEST_P(TextureFormatTest, BGRA8UnormSrgb) {
                           uncompressedData, textureData);
 }
 
-// Test the RGB10A2Unorm format
+// Test the RGB10A2Uint format
 TEST_P(TextureFormatTest, RGB10A2Uint) {
     auto MakeRGB10A2 = [](uint32_t r, uint32_t g, uint32_t b, uint32_t a) -> uint32_t {
         DAWN_ASSERT((r & 0x3FF) == r);
@@ -882,6 +892,9 @@ TEST_P(TextureFormatTest, RGB10A2Uint) {
 
 // Test the RGB10A2Unorm format
 TEST_P(TextureFormatTest, RGB10A2Unorm) {
+    // TODO(crbug.com/40238674): Fails on Pixel 10 for both vulkan and gles.
+    DAWN_SUPPRESS_TEST_IF(IsImgTec() && (IsOpenGLES() || IsVulkan()));
+
     auto MakeRGB10A2 = [](uint32_t r, uint32_t g, uint32_t b, uint32_t a) -> uint32_t {
         DAWN_ASSERT((r & 0x3FF) == r);
         DAWN_ASSERT((g & 0x3FF) == g);

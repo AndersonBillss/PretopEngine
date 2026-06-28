@@ -40,7 +40,7 @@ android {
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         externalNativeBuild {
             cmake {
-                arguments '-DANDROID_STL=c++_shared'
+                arguments '-DANDROID_STL=c++_shared', '-DDAWN_BUILD_PROTOBUF=OFF'
                 version '3.22.1'
                 targets 'webgpu_c_bundled', 'webgpu_wrapper_tests'
             }
@@ -84,6 +84,12 @@ android {
         pickFirst 'lib/arm64-v8a/libc++_shared.so'
     }
     ndkVersion '27.0.12077973'
+}
+
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        variant.sources.assets.addStaticSourceDirectory('meta')
+    }
 }
 
 dependencies {
@@ -136,7 +142,7 @@ tasks.register('generateBindings', Exec) {
     '--targets', 'kotlin',
     '--kotlin-json', 'src/dawn/dawn_kotlin.json',
     '--jinja2-path', 'third_party/jinja2',
-    '--webgpu-json', 'third_party/webgpu-headers/src/webgpu.json'
+    '--webgpu-kt-docs', 'src/dawn/webgpu_kt_docs.json'
 }
 
 tasks.register('createDirectory', Exec) {

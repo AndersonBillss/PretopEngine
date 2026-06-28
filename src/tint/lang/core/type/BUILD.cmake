@@ -96,6 +96,8 @@ tint_add_target(tint_lang_core_type lib
   lang/core/type/pointer.h
   lang/core/type/reference.cc
   lang/core/type/reference.h
+  lang/core/type/resource_table.cc
+  lang/core/type/resource_table.h
   lang/core/type/resource_type.cc
   lang/core/type/resource_type.h
   lang/core/type/sampled_texture.cc
@@ -114,6 +116,8 @@ tint_add_target(tint_lang_core_type lib
   lang/core/type/struct.h
   lang/core/type/subgroup_matrix.cc
   lang/core/type/subgroup_matrix.h
+  lang/core/type/swizzle_view.cc
+  lang/core/type/swizzle_view.h
   lang/core/type/texel_buffer.cc
   lang/core/type/texel_buffer.h
   lang/core/type/texture.cc
@@ -122,6 +126,8 @@ tint_add_target(tint_lang_core_type lib
   lang/core/type/texture_dimension.h
   lang/core/type/type.cc
   lang/core/type/type.h
+  lang/core/type/u16.cc
+  lang/core/type/u16.h
   lang/core/type/u32.cc
   lang/core/type/u32.h
   lang/core/type/u64.cc
@@ -146,6 +152,7 @@ tint_target_add_dependencies(tint_lang_core_type lib
   tint_utils_macros
   tint_utils_math
   tint_utils_memory
+  tint_utils_reflection
   tint_utils_rtti
   tint_utils_symbol
   tint_utils_text
@@ -190,6 +197,7 @@ tint_add_target(tint_lang_core_type_test test
   lang/core/type/texel_buffer_test.cc
   lang/core/type/texture_test.cc
   lang/core/type/type_test.cc
+  lang/core/type/u16_test.cc
   lang/core/type/u32_test.cc
   lang/core/type/u64_test.cc
   lang/core/type/u8_test.cc
@@ -206,6 +214,7 @@ tint_target_add_dependencies(tint_lang_core_type_test test
   tint_utils_macros
   tint_utils_math
   tint_utils_memory
+  tint_utils_reflection
   tint_utils_rtti
   tint_utils_symbol
   tint_utils_text

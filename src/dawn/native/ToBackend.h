@@ -28,8 +28,8 @@
 #ifndef SRC_DAWN_NATIVE_TOBACKEND_H_
 #define SRC_DAWN_NATIVE_TOBACKEND_H_
 
-#include "dawn/native/Forward.h"
 #include "partition_alloc/pointers/raw_ptr.h"
+#include "src/dawn/native/Forward.h"
 
 namespace dawn::native {
 
@@ -70,6 +70,11 @@ struct ToBackendTraits<ComputePipelineBase, BackendTraits> {
 template <typename BackendTraits>
 struct ToBackendTraits<DeviceBase, BackendTraits> {
     using BackendType = typename BackendTraits::DeviceType;
+};
+
+template <typename BackendTraits>
+struct ToBackendTraits<ExternalTextureBase, BackendTraits> {
+    using BackendType = typename BackendTraits::ExternalTextureType;
 };
 
 template <typename BackendTraits>

@@ -34,20 +34,19 @@
 #include <string>
 
 #include "absl/container/flat_hash_map.h"
-#include "dawn/common/Constants.h"
-#include "dawn/common/ContentLessObjectCacheable.h"
-#include "dawn/common/Range.h"
-#include "dawn/common/SlabAllocator.h"
-#include "dawn/common/ityp_span.h"
-#include "dawn/common/ityp_vector.h"
-#include "dawn/native/BindingInfo.h"
-#include "dawn/native/CachedObject.h"
-#include "dawn/native/ChainUtils.h"
-#include "dawn/native/Error.h"
-#include "dawn/native/Forward.h"
-#include "dawn/native/ObjectBase.h"
-
-#include "dawn/native/dawn_platform.h"
+#include "src/dawn/common/Constants.h"
+#include "src/dawn/common/ContentLessObjectCacheable.h"
+#include "src/dawn/common/Range.h"
+#include "src/dawn/common/SlabAllocator.h"
+#include "src/dawn/common/ityp_vector.h"
+#include "src/dawn/native/BindingInfo.h"
+#include "src/dawn/native/CachedObject.h"
+#include "src/dawn/native/ChainUtils.h"
+#include "src/dawn/native/Error.h"
+#include "src/dawn/native/Forward.h"
+#include "src/dawn/native/ObjectBase.h"
+#include "src/dawn/native/dawn_platform.h"
+#include "src/utils/span.h"
 
 namespace dawn::native {
 
@@ -130,14 +129,22 @@ class BindGroupLayoutInternalBase : public ApiObjectBase,
     BindingIndex AsBindingIndex(APIBindingIndex index) const;
     APIBindingIndex GetAPIBindingIndex(BindingNumber bindingNumber) const;
 
+    // Map used to convert APIBindingIndex to indices in BindGroupBase::GetBoundExternalTextures.
+    using BoundExternalTextureMap = absl::flat_hash_map<APIBindingIndex, size_t>;
+    const BoundExternalTextureMap& GetBoundExternalTextureMap() const;
+
     // Returns the number of internal bindings, excluding things like ExternalTexture.
     BindingIndex GetBindingCount() const;
     // Returns |BindingIndex| because dynamic buffers are packed at the front.
     BindingIndex GetDynamicBufferCount() const;
     uint32_t GetDynamicStorageBufferCount() const;
     uint32_t GetUnverifiedBufferCount() const;
+    uint32_t GetAPIStaticSamplerCount() const;
     uint32_t GetStaticSamplerCount() const;
     bool IsStorageBufferBinding(BindingIndex bindingIndex) const;
+    bool IsExternalTextureBinding(APIBindingIndex bindingIndex) const;
+
+    uint32_t GetExternalTextureCount() const;
 
     // Returns the exact ranges of indices that contains specific binding types.
     BeginEndRange<BindingIndex> GetDynamicBufferIndices() const;
@@ -150,6 +157,7 @@ class BindGroupLayoutInternalBase : public ApiObjectBase,
     BeginEndRange<BindingIndex> GetStaticSamplerIndices() const;
     BeginEndRange<BindingIndex> GetNonStaticSamplerIndices() const;
     BeginEndRange<BindingIndex> GetInputAttachmentIndices() const;
+    BeginEndRange<APIBindingIndex> GetExternalTextureIndices() const;
 
     // Functions necessary for the unordered_set<BGLBase*>-based cache.
     size_t ComputeContentHash() override;
@@ -165,13 +173,15 @@ class BindGroupLayoutInternalBase : public ApiObjectBase,
     // used to get the stored counts.
     const BindingCounts& GetValidationBindingCounts() const;
 
-    uint32_t GetUnexpandedBindingCount() const;
+    // Returns the number of bindings that's expected in the BindGroupDescriptor for BindGroups
+    // created from this layout.
+    uint32_t GetBindingCountForBindGroupCreation() const;
 
     bool NeedsCrossBindingValidation() const;
 
     struct BufferBindingData {
-        uint64_t offset;
-        uint64_t size;
+        uint64_t offset = 0;
+        uint64_t size = 0;
     };
 
     struct BindingDataPointers {
@@ -220,7 +230,7 @@ class BindGroupLayoutInternalBase : public ApiObjectBase,
     // "end" of the last binding type)
     BindingIndex GetBindingTypeStart(BindingTypeOrder type) const;
     BindingIndex GetBindingTypeEnd(BindingTypeOrder type) const;
-    std::array<BindingIndex, BindingTypeOrder_Count + 1> mBindingTypeStart;
+    std::array<BindingIndex, BindingTypeOrder_Count + 1> mBindingTypeStart = {};
 
     // Additional counts for types of bindings.
     uint32_t mUnverifiedBufferCount = 0;
@@ -229,6 +239,10 @@ class BindGroupLayoutInternalBase : public ApiObjectBase,
     // Map from BindGroupLayoutEntry.binding as BindingNumber to packed indices as BindingIndex.
     // TODO(https://issues.chromium.org/448578977): Use a more optimized map type.
     BindingMap mBindingMap;
+
+    // Map from APIBindingIndex of External Texture to its index in
+    // BindGroupBase::mBoundExternalTextures.
+    BoundExternalTextureMap mBoundExternalTextureMap;
 
     BindingCounts mValidationBindingCounts = {};
     bool mNeedsCrossBindingValidation = false;

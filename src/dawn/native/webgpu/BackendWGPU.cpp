@@ -25,11 +25,11 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "dawn/native/webgpu/BackendWGPU.h"
+#include "src/dawn/native/webgpu/BackendWGPU.h"
 
 #include "dawn/dawn_proc_table.h"
-#include "dawn/native/Instance.h"
-#include "dawn/native/webgpu/PhysicalDeviceWGPU.h"
+#include "src/dawn/native/Instance.h"
+#include "src/dawn/native/webgpu/PhysicalDeviceWGPU.h"
 
 namespace dawn::native::webgpu {
 
@@ -81,11 +81,15 @@ std::vector<Ref<PhysicalDeviceBase>> Backend::DiscoverPhysicalDevices(
     // RequestAdapter will return null since it's not enabled by default.
     WGPURequestAdapterOptions innerAdapterOption = *ToAPI(*options);
     // Get rid of the request adapter WebGPU backend options extension.
+    // TODO(crbug.com/462137660): Implement for various extensions.
     innerAdapterOption.nextInChain = nullptr;
+
     // Keep DawnTogglesDescriptor.
     WGPUDawnTogglesDescriptor innerToggles = WGPU_DAWN_TOGGLES_DESCRIPTOR_INIT;
     if (auto* toggles = options.Get<DawnTogglesDescriptor>()) {
         innerToggles = *ToAPI(toggles);
+        // Unchain any other extensions if exist.
+        innerToggles.chain.next = nullptr;
         innerAdapterOption.nextInChain = &(innerToggles.chain);
     }
 

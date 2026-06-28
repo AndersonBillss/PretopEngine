@@ -25,22 +25,24 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "dawn/native/vulkan/BackendVk.h"
+#include "src/dawn/native/vulkan/BackendVk.h"
 
 #include <algorithm>
 #include <string>
 #include <utility>
 
-#include "dawn/common/Assert.h"
-#include "dawn/common/Log.h"
-#include "dawn/common/SystemUtils.h"
-#include "dawn/native/ChainUtils.h"
-#include "dawn/native/Instance.h"
 #include "dawn/native/VulkanBackend.h"
-#include "dawn/native/vulkan/DeviceVk.h"
-#include "dawn/native/vulkan/PhysicalDeviceVk.h"
-#include "dawn/native/vulkan/UtilsVulkan.h"
-#include "dawn/native/vulkan/VulkanError.h"
+#include "src/dawn/common/GPUInfo.h"
+#include "src/dawn/common/SystemUtils.h"
+#include "src/dawn/native/ChainUtils.h"
+#include "src/dawn/native/Instance.h"
+#include "src/dawn/native/vulkan/DeviceVk.h"
+#include "src/dawn/native/vulkan/PhysicalDeviceVk.h"
+#include "src/dawn/native/vulkan/UtilsVulkan.h"
+#include "src/dawn/native/vulkan/VulkanError.h"
+#include "src/utils/assert.h"
+#include "src/utils/compiler.h"
+#include "src/utils/log.h"
 
 // TODO(crbug.com/dawn/283): Link against the Vulkan Loader and remove this.
 #if defined(DAWN_ENABLE_SWIFTSHADER)
@@ -170,22 +172,35 @@ constexpr SkippedMessage kSkippedMessages[] = {
      // vkCmdDraw(): the descriptor
      "is being used in draw but has never been updated via vkUpdateDescriptorSets() or a similar "
      "call."},
-};
+
+    // This error gets raised when using MSAARenderToSingleSampled with CreateRenderPass2 because
+    // we have a mismatch in the number of samples in the actual render pass vs. the render pass the
+    // graphics pipeline was created with since we lack MSAARenderToSingleSampled info at pipeline
+    // creation time. This mismatch does not have an effect on any known drivers because they don't
+    // rely on the attachment sample count when rendering with MSAARenderToSingleSampled.
+    // Unfortunately this suppression is overly broad because the check in question is bundled with
+    // all the rest of the render pass compatibility rules. Given that this isn't an issue when
+    // using Dynamic Rendering, however, we should be able to remove the suppression if we ever drop
+    // the CreateRenderPass(2) rendering paths. (ie: if we upgrade to requiring Vulkan 1.3)
+    // http://crbug.com/463893793, https://gitlab.khronos.org/vulkan/vulkan/-/issues/4662
+    {"VUID-vkCmdDraw-renderPass-02684", "The current render pass must be compatible"}};
 
 namespace dawn::native::vulkan {
 
 namespace {
 
+// This should always be sorted such that fallback ICDs are searched first to ensure that we return
+// the correct adapters when users are asking for forced fallback adapters.
 static constexpr ICD kICDs[] = {
+#if defined(DAWN_ENABLE_SWIFTSHADER)
+    ICD::SwiftShader,
+#endif  // defined(DAWN_ENABLE_SWIFTSHADER)
 // Other drivers should not be loaded with MSAN because they don't have MSAN instrumentation.
 // MSAN will produce false positives since it cannot detect changes to memory that the driver
 // has made.
 #if !defined(MEMORY_SANITIZER)
     ICD::None,
 #endif
-#if defined(DAWN_ENABLE_SWIFTSHADER)
-    ICD::SwiftShader,
-#endif  // defined(DAWN_ENABLE_SWIFTSHADER)
 };
 
 // Suppress validation errors that are known. Returns false in that case.
@@ -201,7 +216,7 @@ bool ShouldReportDebugMessage(const char* messageId, const char* message) {
     // The messageId is ignored because drivers may report
     // __FILE__: __LINE__ info here.
     // https://github.com/Mesa3D/mesa/blob/22.2/src/amd/vulkan/radv_device.c#L1201
-    if (strcmp(message, "VK_SUCCESS") == 0) {
+    if (DAWN_UNSAFE_TODO(strcmp(message, "VK_SUCCESS")) == 0) {
         return false;
     }
 
@@ -212,8 +227,8 @@ bool ShouldReportDebugMessage(const char* messageId, const char* message) {
     }
 
     for (const SkippedMessage& msg : kSkippedMessages) {
-        if (strstr(messageId, msg.messageId) != nullptr &&
-            strstr(message, msg.messageContents) != nullptr) {
+        if (DAWN_UNSAFE_TODO(strstr(messageId, msg.messageId)) != nullptr &&
+            DAWN_UNSAFE_TODO(strstr(message, msg.messageContents)) != nullptr) {
             return false;
         }
     }
@@ -258,7 +273,7 @@ OnDebugUtilsCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     // a device debug prefix out of one of them. If a debug prefix is found and matches
     // a registered device, forward the message on to it.
     for (uint32_t i = 0; i < pCallbackData->objectCount; ++i) {
-        const VkDebugUtilsObjectNameInfoEXT& object = pCallbackData->pObjects[i];
+        const VkDebugUtilsObjectNameInfoEXT& object = DAWN_UNSAFE_TODO(pCallbackData->pObjects[i]);
         std::string deviceDebugPrefix = GetDeviceDebugPrefixFromDebugName(object.pObjectName);
         if (deviceDebugPrefix.empty()) {
             continue;
@@ -550,6 +565,16 @@ std::vector<Ref<PhysicalDeviceBase>> Backend::DiscoverPhysicalDevices(
     const UnpackedPtr<RequestAdapterOptions>& options) {
     std::vector<Ref<PhysicalDeviceBase>> physicalDevices;
     InstanceBase* instance = GetInstance();
+
+    auto IsFallbackAdapter = [](const PhysicalDevice* physicalDevice) {
+        // Swiftshader is the only fallback adapter that we currently have.
+        if (gpu_info::IsGoogleSwiftshader(physicalDevice->GetVendorId(),
+                                          physicalDevice->GetDeviceId())) {
+            return true;
+        }
+        return false;
+    };
+
     for (ICD icd : kICDs) {
 #if DAWN_PLATFORM_IS(MACOS)
         // On Mac, we don't expect non-Swiftshader Vulkan to be available.
@@ -557,7 +582,9 @@ std::vector<Ref<PhysicalDeviceBase>> Backend::DiscoverPhysicalDevices(
             continue;
         }
 #endif  // DAWN_PLATFORM_IS(MACOS)
-        if (options->forceFallbackAdapter && icd != ICD::SwiftShader) {
+        // We always search for fallback adapters first, so if we already found one, don't bother
+        // looking for more.
+        if (options->forceFallbackAdapter && !physicalDevices.empty()) {
             continue;
         }
         if (mPhysicalDevices[icd].empty()) {
@@ -583,6 +610,9 @@ std::vector<Ref<PhysicalDeviceBase>> Backend::DiscoverPhysicalDevices(
                 Ref<PhysicalDevice> physicalDevice =
                     AcquireRef(new PhysicalDevice(mVulkanInstances[icd].Get(), vkPhysicalDevice));
                 if (instance->ConsumedErrorAndWarnOnce(physicalDevice->Initialize())) {
+                    continue;
+                }
+                if (options->forceFallbackAdapter && !IsFallbackAdapter(physicalDevice.Get())) {
                     continue;
                 }
                 // This loop can't filter adapters based on SupportsFeatureLevel() since the results

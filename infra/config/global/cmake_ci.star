@@ -28,21 +28,18 @@
 """CI Dawn builders using CMake for the build system instead of GN."""
 
 load("@chromium-luci//builder_config.star", "builder_config")
-load("@chromium-luci//builders.star", "cpu", "os")
 load("@chromium-luci//ci.star", "ci")
 load("@chromium-luci//consoles.star", "consoles")
 load("@chromium-luci//gardener_rotations.star", "gardener_rotations")
+load("//cmake_shared.star", "cmake_builder_defaults")
 load("//constants.star", "siso")
 
 ci.defaults.set(
     executable = "recipe:dawn/cmake",
     builder_group = "ci",
     bucket = "ci",
-    # TODO(crbug.com/459517292): Switch this to the GPU pool once we confirm
-    # we have enough capacity. Also update the builderless dimension since
-    # luci.flex.* does not expose that.
-    pool = "luci.flex.ci",
-    builderless = None,
+    pool = "luci.chromium.gpu.ci",
+    builderless = True,
     triggered_by = ["primary-poller"],
     build_numbers = True,
     contact_team_email = "chrome-gpu-infra@google.com",
@@ -56,10 +53,58 @@ ci.defaults.set(
 )
 
 def dawn_ci_linux_cmake_builder(**kwargs):
-    kwargs.setdefault("cpu", cpu.X86_64)
-    kwargs.setdefault("os", os.LINUX_NOBLE)
-    kwargs.setdefault("ssd", None)
+    kwargs = cmake_builder_defaults.apply_linux_cmake_builder_defaults(kwargs)
     ci.builder(**kwargs)
+
+def dawn_ci_mac_cmake_builder(**kwargs):
+    """Adds a Dawn/Mac/CMake CI builder.
+
+    Args:
+        **kwargs: Builder arguments to forward on to ci.builder()
+    """
+    kwargs = cmake_builder_defaults.apply_mac_cmake_builder_defaults(kwargs)
+    ci.builder(**kwargs)
+
+def dawn_ci_win_cmake_builder(**kwargs):
+    """Adds a Dawn/Win/CMake CI builder.
+
+    Args:
+        **kwargs: Builder arguments to forward on to ci.builder()
+    """
+    kwargs = cmake_builder_defaults.apply_win_cmake_builder_defaults(kwargs)
+    ci.builder(**kwargs)
+
+dawn_ci_linux_cmake_builder(
+    name = "dawn-linux-x64-sws-cmake-dbg",
+    description_html = "Compiles and tests debug Dawn test binaries for Linux/x64 using CMake and Clang",
+    schedule = "triggered",
+    properties = {
+        "asan": False,
+        "clang": True,
+        "debug": True,
+        "target_cpu": "x64",
+        "ubsan": False,
+    },
+    # Not actually used by the recipe, but needed for chromium-luci mirroring
+    # code to work.
+    builder_spec = builder_config.builder_spec(
+        gclient_config = builder_config.gclient_config(
+            config = "dawn",
+            apply_configs = [],
+        ),
+        chromium_config = builder_config.chromium_config(
+            config = "dawn_base",
+            build_config = builder_config.build_config.DEBUG,
+            target_arch = builder_config.target_arch.INTEL,
+            target_bits = 64,
+            target_platform = builder_config.target_platform.LINUX,
+        ),
+    ),
+    console_view_entry = consoles.console_view_entry(
+        category = "linux|build|clang|cmake|dbg",
+        short_name = "x64",
+    ),
+)
 
 dawn_ci_linux_cmake_builder(
     name = "dawn-linux-x64-sws-cmake-rel",
@@ -89,6 +134,166 @@ dawn_ci_linux_cmake_builder(
     ),
     console_view_entry = consoles.console_view_entry(
         category = "linux|build|clang|cmake|rel",
+        short_name = "x64",
+    ),
+)
+
+dawn_ci_linux_cmake_builder(
+    name = "dawn-linux-x64-sws-cmake-asan",
+    description_html = "Compiles and tests release Dawn test binaries for Linux/x64 using CMake and Clang with ASan and UBSan enabled",
+    schedule = "triggered",
+    properties = {
+        "asan": True,
+        "clang": True,
+        "debug": False,
+        "target_cpu": "x64",
+        "ubsan": True,
+    },
+    # Not actually used by the recipe, but needed for chromium-luci mirroring
+    # code to work.
+    builder_spec = builder_config.builder_spec(
+        gclient_config = builder_config.gclient_config(
+            config = "dawn",
+            apply_configs = [],
+        ),
+        chromium_config = builder_config.chromium_config(
+            config = "dawn_base",
+            build_config = builder_config.build_config.RELEASE,
+            target_arch = builder_config.target_arch.INTEL,
+            target_bits = 64,
+            target_platform = builder_config.target_platform.LINUX,
+        ),
+    ),
+    console_view_entry = consoles.console_view_entry(
+        category = "linux|build|clang|cmake|asan",
+        short_name = "x64",
+    ),
+)
+
+dawn_ci_mac_cmake_builder(
+    name = "dawn-mac-x64-sws-cmake-dbg",
+    description_html = "Compiles and tests debug Dawn test binaries for Mac/x64 using CMake and Clang",
+    schedule = "triggered",
+    properties = {
+        "asan": False,
+        "clang": True,
+        "debug": True,
+        "target_cpu": "x64",
+        "ubsan": False,
+    },
+    # Not actually used by the recipe, but needed for chromium-luci mirroring
+    # code to work.
+    builder_spec = builder_config.builder_spec(
+        gclient_config = builder_config.gclient_config(
+            config = "dawn",
+            apply_configs = [],
+        ),
+        chromium_config = builder_config.chromium_config(
+            config = "dawn_base",
+            build_config = builder_config.build_config.DEBUG,
+            target_arch = builder_config.target_arch.INTEL,
+            target_bits = 64,
+            target_platform = builder_config.target_platform.MAC,
+        ),
+    ),
+    console_view_entry = consoles.console_view_entry(
+        category = "mac|build|clang|cmake|dbg",
+        short_name = "x64",
+    ),
+)
+
+dawn_ci_mac_cmake_builder(
+    name = "dawn-mac-x64-sws-cmake-rel",
+    description_html = "Compiles and tests release Dawn test binaries for Mac/x64 using CMake and Clang",
+    schedule = "triggered",
+    properties = {
+        "asan": False,
+        "clang": True,
+        "debug": False,
+        "target_cpu": "x64",
+        "ubsan": False,
+    },
+    # Not actually used by the recipe, but needed for chromium-luci mirroring
+    # code to work.
+    builder_spec = builder_config.builder_spec(
+        gclient_config = builder_config.gclient_config(
+            config = "dawn",
+            apply_configs = [],
+        ),
+        chromium_config = builder_config.chromium_config(
+            config = "dawn_base",
+            build_config = builder_config.build_config.RELEASE,
+            target_arch = builder_config.target_arch.INTEL,
+            target_bits = 64,
+            target_platform = builder_config.target_platform.MAC,
+        ),
+    ),
+    console_view_entry = consoles.console_view_entry(
+        category = "mac|build|clang|cmake|rel",
+        short_name = "x64",
+    ),
+)
+
+dawn_ci_win_cmake_builder(
+    name = "dawn-win-x64-sws-msvc-cmake-dbg",
+    description_html = "Compiles and runs debug Dawn test binaries for Win/x64 using CMake and MSVC",
+    schedule = "triggered",
+    properties = {
+        "asan": False,
+        "clang": False,
+        "debug": True,
+        "target_cpu": "x64",
+        "ubsan": False,
+    },
+    # Not actually used by the recipe, but needed for chromium-luci mirroring
+    # code to work.
+    builder_spec = builder_config.builder_spec(
+        gclient_config = builder_config.gclient_config(
+            config = "dawn",
+            apply_configs = [],
+        ),
+        chromium_config = builder_config.chromium_config(
+            config = "dawn_base",
+            build_config = builder_config.build_config.DEBUG,
+            target_arch = builder_config.target_arch.INTEL,
+            target_bits = 64,
+            target_platform = builder_config.target_platform.WIN,
+        ),
+    ),
+    console_view_entry = consoles.console_view_entry(
+        category = "win|build|msvc|cmake|dbg",
+        short_name = "x64",
+    ),
+)
+
+dawn_ci_win_cmake_builder(
+    name = "dawn-win-x64-sws-msvc-cmake-rel",
+    description_html = "Compiles and runs release Dawn test binaries for Win/x64 using CMake and MSVC",
+    schedule = "triggered",
+    properties = {
+        "asan": False,
+        "clang": False,
+        "debug": False,
+        "target_cpu": "x64",
+        "ubsan": False,
+    },
+    # Not actually used by the recipe, but needed for chromium-luci mirroring
+    # code to work.
+    builder_spec = builder_config.builder_spec(
+        gclient_config = builder_config.gclient_config(
+            config = "dawn",
+            apply_configs = [],
+        ),
+        chromium_config = builder_config.chromium_config(
+            config = "dawn_base",
+            build_config = builder_config.build_config.RELEASE,
+            target_arch = builder_config.target_arch.INTEL,
+            target_bits = 64,
+            target_platform = builder_config.target_platform.WIN,
+        ),
+    ),
+    console_view_entry = consoles.console_view_entry(
+        category = "win|build|msvc|cmake|rel",
         short_name = "x64",
     ),
 )

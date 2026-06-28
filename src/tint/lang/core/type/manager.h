@@ -69,6 +69,7 @@ class Reference;
 class SampledTexture;
 class StorageTexture;
 class U8;
+class U16;
 class U32;
 class U64;
 class Vector;
@@ -156,6 +157,8 @@ class Manager final {
             return Get<core::type::I32>(std::forward<ARGS>(args)...);
         } else if constexpr (std::is_same_v<T, tint::core::u8>) {
             return Get<core::type::U8>(std::forward<ARGS>(args)...);
+        } else if constexpr (std::is_same_v<T, tint::core::u16>) {
+            return Get<core::type::U16>(std::forward<ARGS>(args)...);
         } else if constexpr (std::is_same_v<T, tint::core::u32>) {
             return Get<core::type::U32>(std::forward<ARGS>(args)...);
         } else if constexpr (std::is_same_v<T, tint::core::u64>) {
@@ -190,9 +193,8 @@ class Manager final {
     /// @param args the arguments used to create the temporary used for the search.
     /// @return a pointer to an instance of `T` with the provided arguments, or nullptr if the item
     ///         was not found.
-    template <typename TYPE,
-              typename _ = std::enable_if<tint::traits::IsTypeOrDerived<TYPE, Type>>,
-              typename... ARGS>
+    template <typename TYPE, typename... ARGS>
+        requires(tint::traits::IsTypeOrDerived<TYPE, Type>)
     auto* Find(ARGS&&... args) const {
         return types_.Find<TYPE>(std::forward<ARGS>(args)...);
     }
@@ -220,6 +222,9 @@ class Manager final {
 
     /// @returns a u8 type
     const core::type::U8* u8();
+
+    /// @returns a u16 type
+    const core::type::U16* u16();
 
     /// @returns a u32 type
     const core::type::U32* u32();

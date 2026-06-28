@@ -25,25 +25,25 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "dawn/native/metal/TextureMTL.h"
-
-#include "absl/strings/str_format.h"
-#include "dawn/common/Constants.h"
-#include "dawn/common/IOSurfaceUtils.h"
-#include "dawn/common/Math.h"
-#include "dawn/common/Platform.h"
-#include "dawn/native/ChainUtils.h"
-#include "dawn/native/DynamicUploader.h"
-#include "dawn/native/EnumMaskIterator.h"
-#include "dawn/native/Queue.h"
-#include "dawn/native/metal/BufferMTL.h"
-#include "dawn/native/metal/DeviceMTL.h"
-#include "dawn/native/metal/QueueMTL.h"
-#include "dawn/native/metal/SharedFenceMTL.h"
-#include "dawn/native/metal/SharedTextureMemoryMTL.h"
-#include "dawn/native/metal/UtilsMetal.h"
+#include "src/dawn/native/metal/TextureMTL.h"
 
 #include <CoreVideo/CVPixelBuffer.h>
+
+#include "absl/strings/str_format.h"
+#include "src/dawn/common/Constants.h"
+#include "src/dawn/common/IOSurfaceUtils.h"
+#include "src/dawn/common/Math.h"
+#include "src/dawn/native/ChainUtils.h"
+#include "src/dawn/native/DynamicUploader.h"
+#include "src/dawn/native/EnumMaskIterator.h"
+#include "src/dawn/native/Queue.h"
+#include "src/dawn/native/metal/BufferMTL.h"
+#include "src/dawn/native/metal/DeviceMTL.h"
+#include "src/dawn/native/metal/QueueMTL.h"
+#include "src/dawn/native/metal/SharedFenceMTL.h"
+#include "src/dawn/native/metal/SharedTextureMemoryMTL.h"
+#include "src/dawn/native/metal/UtilsMetal.h"
+#include "src/utils/platform.h"
 
 namespace dawn::native::metal {
 
@@ -78,27 +78,6 @@ MTLTextureUsage MetalTextureUsage(const Format& format, wgpu::TextureUsage usage
     }
 
     return result;
-}
-
-MTLTextureType MetalTextureViewType(wgpu::TextureViewDimension dimension,
-                                    unsigned int sampleCount) {
-    switch (dimension) {
-        case wgpu::TextureViewDimension::e1D:
-            return MTLTextureType1D;
-        case wgpu::TextureViewDimension::e2D:
-            return (sampleCount > 1) ? MTLTextureType2DMultisample : MTLTextureType2D;
-        case wgpu::TextureViewDimension::e2DArray:
-            return MTLTextureType2DArray;
-        case wgpu::TextureViewDimension::Cube:
-            return MTLTextureTypeCube;
-        case wgpu::TextureViewDimension::CubeArray:
-            return MTLTextureTypeCubeArray;
-        case wgpu::TextureViewDimension::e3D:
-            return MTLTextureType3D;
-
-        case wgpu::TextureViewDimension::Undefined:
-            DAWN_UNREACHABLE();
-    }
 }
 
 MTLTextureSwizzle MetalTextureSwizzle(wgpu::ComponentSwizzle swizzle) {
@@ -423,15 +402,15 @@ MaybeError Texture::InitializeFromSharedTextureMemory(
 }
 
 void Texture::SynchronizeTextureBeforeUse(CommandRecordingContext* commandContext) {
-        SharedTextureMemoryBase::PendingFenceList fences;
-        SharedResourceMemoryContents* contents = GetSharedResourceMemoryContents();
-        if (contents != nullptr) {
-            contents->AcquirePendingFences(&fences);
-        }
-        for (const auto& fence : fences) {
-            commandContext->WaitForSharedEvent(ToBackend(fence.object)->GetMTLSharedEvent(),
-                                               fence.signaledValue);
-        }
+    SharedTextureMemoryBase::PendingFenceList fences;
+    SharedResourceMemoryContents* contents = GetSharedResourceMemoryContents();
+    if (contents != nullptr) {
+        contents->AcquirePendingFences(&fences);
+    }
+    for (const auto& fence : fences) {
+        commandContext->WaitForSharedEvent(ToBackend(fence.object)->GetMTLSharedEvent(),
+                                           fence.signaledValue);
+    }
 
     mLastSharedTextureMemoryUsageSerial = GetDevice()->GetQueue()->GetPendingCommandSerial();
 }
@@ -475,20 +454,27 @@ MTLTextureUsage Texture::GetMTLTextureUsage() const {
 }
 
 id<MTLTexture> Texture::GetMTLTexture(Aspect aspect) const {
+    id<MTLTexture> tex;
     switch (aspect) {
         case Aspect::Plane0:
             DAWN_ASSERT(mMtlPlaneTextures.size() > 1);
-            return mMtlPlaneTextures[0].Get();
+            tex = mMtlPlaneTextures[0].Get();
+            break;
         case Aspect::Plane1:
             DAWN_ASSERT(mMtlPlaneTextures.size() > 1);
-            return mMtlPlaneTextures[1].Get();
+            tex = mMtlPlaneTextures[1].Get();
+            break;
         case Aspect::Plane2:
             DAWN_ASSERT(mMtlPlaneTextures.size() > 2);
-            return mMtlPlaneTextures[2].Get();
+            tex = mMtlPlaneTextures[2].Get();
+            break;
         default:
             DAWN_ASSERT(mMtlPlaneTextures.size() == 1);
-            return mMtlPlaneTextures[0].Get();
+            tex = mMtlPlaneTextures[0].Get();
+            break;
     }
+    DAWN_ASSERT(tex != nullptr);
+    return tex;
 }
 
 IOSurfaceRef Texture::GetIOSurface() {
@@ -685,21 +671,23 @@ MaybeError Texture::ClearTexture(CommandRecordingContext* commandContext,
         // Encode a buffer to texture copy to clear each subresource.
         for (Aspect aspect : IterateEnumMask(range.aspects)) {
             // Compute the buffer size big enough to fill the largest mip.
-            const TexelBlockInfo& blockInfo = GetFormat().GetAspectInfo(aspect).block;
+            const TypedTexelBlockInfo& blockInfo = GetFormat().GetAspectInfo(aspect).block;
 
             // Computations for the bytes per row / image height are done using the physical size
             // so that enough data is reserved for compressed textures.
-            Extent3D largestMipSize =
-                GetMipLevelSingleSubresourcePhysicalSize(range.baseMipLevel, aspect);
-            uint32_t largestMipBytesPerRow =
-                (largestMipSize.width / blockInfo.width) * blockInfo.byteSize;
-            uint64_t largestMipBytesPerImage = static_cast<uint64_t>(largestMipBytesPerRow) *
-                                               (largestMipSize.height / blockInfo.height);
-            uint64_t uploadSize = largestMipBytesPerImage * largestMipSize.depthOrArrayLayers;
+            BlockExtent3D largestMipSize = blockInfo.ToBlock(
+                GetMipLevelSingleSubresourcePhysicalSize(range.baseMipLevel, aspect));
+
+            BlockCount uploadBlocks =
+                largestMipSize.width * largestMipSize.height * largestMipSize.depthOrArrayLayers;
+            uint64_t largestMipBytesPerRow = blockInfo.ToBytes(largestMipSize.width);
+            uint64_t largestMipBytesPerImage =
+                blockInfo.ToBytes(largestMipSize.width * largestMipSize.height);
+            uint64_t uploadSize = blockInfo.ToBytes(uploadBlocks);
 
             DAWN_TRY(device->GetDynamicUploader()->WithUploadReservation(
                 uploadSize, blockInfo.byteSize, [&](UploadReservation reservation) -> MaybeError {
-                    memset(reservation.mappedPointer, clearColor, uploadSize);
+                    DAWN_UNSAFE_TODO(memset(reservation.mappedPointer, clearColor, uploadSize));
 
                     id<MTLBuffer> buffer = ToBackend(reservation.buffer)->GetMTLBuffer();
                     for (uint32_t level = range.baseMipLevel;
@@ -803,7 +791,7 @@ MaybeError TextureView::Initialize(const UnpackedPtr<TextureViewDescriptor>& des
         mMtlTextureView = mtlTexture;
     } else {
         MTLTextureType textureViewType =
-            MetalTextureViewType(descriptor->dimension, texture->GetSampleCount());
+            MetalTextureViewType(descriptor->dimension, texture->GetSampleCount() > 1);
         std::optional<MTLTextureSwizzleChannels> mtlSwizzle = ComputeMetalSwizzle();
 
         MTLPixelFormat viewFormat = MetalPixelFormat(device, descriptor->format);

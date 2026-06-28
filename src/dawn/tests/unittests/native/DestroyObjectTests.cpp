@@ -31,28 +31,29 @@
 #include <utility>
 #include <vector>
 
-#include "dawn/native/ChainUtils.h"
-#include "dawn/native/Toggles.h"
-#include "dawn/native/utils/WGPUHelpers.h"
-#include "dawn/tests/DawnNativeTest.h"
-#include "dawn/tests/MockCallback.h"
-#include "dawn/utils/ComboRenderPipelineDescriptor.h"
-#include "dawn/utils/WGPUHelpers.h"
-#include "mocks/BindGroupLayoutMock.h"
-#include "mocks/BindGroupMock.h"
-#include "mocks/BufferMock.h"
-#include "mocks/CommandBufferMock.h"
-#include "mocks/ComputePipelineMock.h"
-#include "mocks/DawnMockTest.h"
-#include "mocks/DeviceMock.h"
-#include "mocks/ExternalTextureMock.h"
-#include "mocks/PipelineLayoutMock.h"
-#include "mocks/QuerySetMock.h"
-#include "mocks/RenderPipelineMock.h"
-#include "mocks/SamplerMock.h"
-#include "mocks/ShaderModuleMock.h"
-#include "mocks/TextureMock.h"
 #include "partition_alloc/pointers/raw_ptr.h"
+#include "src/dawn/native/ChainUtils.h"
+#include "src/dawn/native/Toggles.h"
+#include "src/dawn/native/utils/WGPUHelpers.h"
+#include "src/dawn/tests/DawnNativeTest.h"
+#include "src/dawn/tests/MockCallback.h"
+#include "src/dawn/tests/unittests/native/mocks/BindGroupLayoutMock.h"
+#include "src/dawn/tests/unittests/native/mocks/BindGroupMock.h"
+#include "src/dawn/tests/unittests/native/mocks/BufferMock.h"
+#include "src/dawn/tests/unittests/native/mocks/CommandBufferMock.h"
+#include "src/dawn/tests/unittests/native/mocks/ComputePipelineMock.h"
+#include "src/dawn/tests/unittests/native/mocks/DawnMockTest.h"
+#include "src/dawn/tests/unittests/native/mocks/DeviceMock.h"
+#include "src/dawn/tests/unittests/native/mocks/ExternalTextureMock.h"
+#include "src/dawn/tests/unittests/native/mocks/PipelineLayoutMock.h"
+#include "src/dawn/tests/unittests/native/mocks/QuerySetMock.h"
+#include "src/dawn/tests/unittests/native/mocks/RenderPipelineMock.h"
+#include "src/dawn/tests/unittests/native/mocks/SamplerMock.h"
+#include "src/dawn/tests/unittests/native/mocks/ShaderModuleMock.h"
+#include "src/dawn/tests/unittests/native/mocks/TextureMock.h"
+#include "src/dawn/utils/ComboRenderPipelineDescriptor.h"
+#include "src/dawn/utils/TestUtils.h"
+#include "src/dawn/utils/WGPUHelpers.h"
 
 namespace dawn::native {
 namespace {
@@ -65,7 +66,6 @@ using testing::MockCppCallback;
 using ::testing::NiceMock;
 using ::testing::Return;
 using ::testing::StrictMock;
-using ::testing::Test;
 
 using MockMapAsyncCallback =
     StrictMock<MockCppCallback<void (*)(wgpu::MapAsyncStatus, wgpu::StringView)>>;
@@ -83,6 +83,11 @@ static constexpr std::string_view kVertexShader = R"(
 static constexpr std::string_view kFragmentShader = R"(
         @fragment fn main() {}
     )";
+
+// Use a sampler that's not the default as it would reuse the placeholder sampler, which only gets
+// destroyed during device destruction.
+static constexpr SamplerDescriptor kSamplerDesc = {.label = "",
+                                                   .minFilter = wgpu::FilterMode::Linear};
 
 // Stores and scopes a raw mock object ptr expectation. This is particularly useful on objects that
 // are expected to be destroyed at the end of the scope. In most cases, when the validation in this
@@ -379,7 +384,7 @@ TEST_F(DestroyObjectTests, ExternalTextureNativeExplicit) {
         AcquireRef(new NiceMock<TextureViewMock>(textureMock.Get(), Unpack(&textureViewDesc)));
 
     ExternalTextureDescriptor desc = {};
-    std::array<float, 12> placeholderConstantArray;
+    std::array<float, 12> placeholderConstantArray = {};
     desc.yuvToRgbConversionMatrix = placeholderConstantArray.data();
     desc.gamutConversionMatrix = placeholderConstantArray.data();
     desc.srcTransferFunctionParameters = placeholderConstantArray.data();
@@ -410,7 +415,7 @@ TEST_F(DestroyObjectTests, ExternalTextureApiExplicit) {
         AcquireRef(new NiceMock<TextureViewMock>(textureMock.Get(), Unpack(&textureViewDesc)));
 
     ExternalTextureDescriptor desc = {};
-    std::array<float, 12> placeholderConstantArray;
+    std::array<float, 12> placeholderConstantArray = {};
     desc.yuvToRgbConversionMatrix = placeholderConstantArray.data();
     desc.gamutConversionMatrix = placeholderConstantArray.data();
     desc.srcTransferFunctionParameters = placeholderConstantArray.data();
@@ -445,7 +450,7 @@ TEST_F(DestroyObjectTests, ExternalTextureImplicit) {
         AcquireRef(new NiceMock<TextureViewMock>(textureMock.Get(), Unpack(&textureViewDesc)));
 
     ExternalTextureDescriptor desc = {};
-    std::array<float, 12> placeholderConstantArray;
+    std::array<float, 12> placeholderConstantArray = {};
     desc.yuvToRgbConversionMatrix = placeholderConstantArray.data();
     desc.gamutConversionMatrix = placeholderConstantArray.data();
     desc.srcTransferFunctionParameters = placeholderConstantArray.data();
@@ -612,9 +617,7 @@ TEST_F(DestroyObjectTests, RenderPipelineImplicit) {
 }
 
 TEST_F(DestroyObjectTests, SamplerNativeExplicit) {
-    SamplerDescriptor desc = {};
-
-    Ref<SamplerMock> samplerMock = AcquireRef(new SamplerMock(mDeviceMock, &desc));
+    Ref<SamplerMock> samplerMock = AcquireRef(new SamplerMock(mDeviceMock, &kSamplerDesc));
     EXPECT_CALL(*samplerMock.Get(), DestroyImpl).Times(1);
 
     EXPECT_TRUE(samplerMock->IsAlive());
@@ -625,16 +628,14 @@ TEST_F(DestroyObjectTests, SamplerNativeExplicit) {
 // If the reference count on API objects reach 0, they should delete themselves. Note that GTest
 // will also complain if there is a memory leak.
 TEST_F(DestroyObjectTests, SamplerImplicit) {
-    SamplerDescriptor desc = {};
-
-    Ref<SamplerMock> samplerMock = AcquireRef(new SamplerMock(mDeviceMock, &desc));
+    Ref<SamplerMock> samplerMock = AcquireRef(new SamplerMock(mDeviceMock, &kSamplerDesc));
     EXPECT_CALL(*samplerMock.Get(), DestroyImpl).Times(1);
     {
         ScopedRawPtrExpectation scoped(samplerMock.Get());
 
         EXPECT_CALL(*mDeviceMock, CreateSamplerImpl)
             .WillOnce(Return(ByMove(std::move(samplerMock))));
-        wgpu::Sampler sampler = device.CreateSampler(ToCppAPI(&desc));
+        wgpu::Sampler sampler = device.CreateSampler(ToCppAPI(&kSamplerDesc));
 
         EXPECT_TRUE(FromAPI(sampler.Get())->IsAlive());
     }
@@ -964,12 +965,10 @@ TEST_F(DestroyObjectTests, DestroyObjectsApiExplicit) {
     Ref<SamplerMock> samplerMock;
     wgpu::Sampler sampler;
     {
-        SamplerDescriptor desc = {};
-
         ScopedRawPtrExpectation scoped(mDeviceMock);
-        samplerMock = AcquireRef(new SamplerMock(mDeviceMock, &desc));
+        samplerMock = AcquireRef(new SamplerMock(mDeviceMock, &kSamplerDesc));
         EXPECT_CALL(*mDeviceMock, CreateSamplerImpl).WillOnce(Return(samplerMock));
-        sampler = device.CreateSampler(ToCppAPI(&desc));
+        sampler = device.CreateSampler(ToCppAPI(&kSamplerDesc));
     }
 
     Ref<TextureMock> textureMock;
@@ -1003,7 +1002,7 @@ TEST_F(DestroyObjectTests, DestroyObjectsApiExplicit) {
     wgpu::ExternalTexture externalTexture;
     {
         ExternalTextureDescriptor desc = {};
-        std::array<float, 12> placeholderConstantArray;
+        std::array<float, 12> placeholderConstantArray = {};
         desc.yuvToRgbConversionMatrix = placeholderConstantArray.data();
         desc.gamutConversionMatrix = placeholderConstantArray.data();
         desc.srcTransferFunctionParameters = placeholderConstantArray.data();
@@ -1070,6 +1069,31 @@ TEST_F(DestroyObjectTests, DestroyObjectsApiExplicit) {
     EXPECT_FALSE(FromAPI(csModule.Get())->IsAlive());
     EXPECT_FALSE(FromAPI(texture.Get())->IsAlive());
     EXPECT_FALSE(FromAPI(textureView.Get())->IsAlive());
+}
+
+// Verify that the object's destruction (which modifies the internal object list) shouldn't race
+// with other objects' IsAlive() checks. Each thread creates a buffer, checks IsAlive(), and drops
+// the ref, causing the buffer to be removed from the tracking list.
+TEST_F(DestroyObjectTests, IsAliveRace) {
+    constexpr uint32_t kNumThreads = 10;
+    constexpr uint32_t kBuffersPerThread = 100;
+
+    dawn::utils::RunInParallel(kNumThreads, [&](uint32_t threadIndex) {
+        for (uint32_t i = 0; i < kBuffersPerThread; i++) {
+            // Create a buffer
+            BufferDescriptor desc = {};
+            desc.size = 16;
+            desc.usage = wgpu::BufferUsage::Uniform;
+            Ref<BufferMock> bufferMock = AcquireRef(new BufferMock(mDeviceMock, &desc));
+            EXPECT_CALL(*bufferMock.Get(), DestroyImpl).Times(1);
+
+            // Check that it's alive
+            EXPECT_TRUE(bufferMock->IsAlive());
+
+            // Drop the ref, causing destruction which removes it from the tracking list
+            bufferMock = nullptr;
+        }
+    });
 }
 
 class DestroyObjectRegressionTests : public DawnNativeTest {};

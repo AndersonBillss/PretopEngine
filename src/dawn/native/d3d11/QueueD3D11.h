@@ -28,11 +28,18 @@
 #ifndef SRC_DAWN_NATIVE_D3D11_QUEUED3D11_H_
 #define SRC_DAWN_NATIVE_D3D11_QUEUED3D11_H_
 
-#include "dawn/common/MutexProtected.h"
-#include "dawn/common/SerialMap.h"
-#include "dawn/native/d3d/QueueD3D.h"
-#include "dawn/native/d3d11/CommandRecordingContextD3D11.h"
-#include "dawn/native/d3d11/Forward.h"
+#include <map>
+#include <optional>
+#include <vector>
+
+#include "absl/container/flat_hash_map.h"
+#include "absl/hash/hash.h"
+#include "partition_alloc/pointers/raw_ptr.h"
+#include "src/dawn/common/LinkedList.h"
+#include "src/dawn/common/MutexProtected.h"
+#include "src/dawn/native/d3d/QueueD3D.h"
+#include "src/dawn/native/d3d11/CommandRecordingContextD3D11.h"
+#include "src/dawn/native/d3d11/Forward.h"
 
 namespace dawn::native::d3d11 {
 
@@ -45,6 +52,9 @@ class Queue : public d3d::Queue {
 
     ScopedCommandRecordingContext GetScopedPendingCommandContext(SubmitMode submitMode,
                                                                  bool lockD3D11Scope = true);
+    std::optional<ScopedCommandRecordingContext> TryGetScopedPendingCommandContext(
+        SubmitMode submitMode,
+        bool lockD3D11Scope = true);
     ScopedSwapStateCommandRecordingContext GetScopedSwapStatePendingCommandContext(
         SubmitMode submitMode);
     virtual MaybeError NextSerial() = 0;
@@ -53,10 +63,22 @@ class Queue : public d3d::Queue {
     // DeviceBase is fully created.
     MaybeError InitializePendingContext();
 
-    // Register the pending map buffer to be checked.
-    void TrackPendingMapBuffer(Ref<Buffer>&& buffer,
-                               wgpu::MapMode mode,
-                               ExecutionSerial readySerial);
+    // The request for buffer mapping.
+    // We make it a linked list node to support O(1) removal when cancelling.
+    struct BufferMapRequest : public LinkNode<BufferMapRequest> {
+        BufferMapRequest(Buffer* b, wgpu::MapMode m) : buffer(b), mode(m) {}
+
+        raw_ptr<Buffer> buffer = nullptr;
+        wgpu::MapMode mode;
+    };
+
+    // Schedule a buffer for mapping.
+    // The request is expected to be allocated by the caller. Any existing schedule will be
+    // canceled before the new one is added.
+    void ScheduleBufferMapping(BufferMapRequest* request, ExecutionSerial readySerial);
+
+    // Cancel a scheduled buffer mapping by removing it from the pending list.
+    void CancelScheduledBufferMapping(Buffer* buffer);
 
     const Ref<SharedFence>& GetSharedFence() const { return mSharedFence; }
 
@@ -90,19 +112,50 @@ class Queue : public d3d::Queue {
 
     virtual ResultOrError<ExecutionSerial> CheckCompletedSerialsImpl() = 0;
 
-    // Check all pending map buffers, and actually map the ready ones.
-    MaybeError CheckAndMapReadyBuffers(ExecutionSerial completedSerial);
+    // Check and process scheduled buffer mappings.
+    MaybeError CheckScheduledBufferMappings(ExecutionSerial completedSerial);
+
+    // Helper template to create scoped command contexts with common logic
+    template <typename ScopedContextType, typename... Args>
+    ScopedContextType CreateScopedCommandContext(SubmitMode submitMode,
+                                                 CommandRecordingContext::Guard&& commands,
+                                                 Args&&... args);
 
     ComPtr<ID3D11Fence> mFence;
     Ref<SharedFence> mSharedFence;
     MutexProtected<CommandRecordingContext, CommandRecordingContextGuard> mPendingCommands;
     std::atomic<bool> mPendingCommandsNeedSubmit = false;
 
-    struct BufferMapEntry {
-        Ref<Buffer> buffer;
-        wgpu::MapMode mode;
+    struct BufferRefHash {
+        using is_transparent = void;
+        size_t operator()(const Ref<Buffer>& buffer) const {
+            return absl::DefaultHashContainerHash<const Buffer*>()(buffer.Get());
+        }
+        size_t operator()(const Buffer* buffer) const {
+            return absl::DefaultHashContainerHash<const Buffer*>()(buffer);
+        }
     };
-    SerialMap<ExecutionSerial, BufferMapEntry> mPendingMapBuffers;
+
+    struct BufferRefEq {
+        using is_transparent = void;
+        bool operator()(const Ref<Buffer>& a, const Ref<Buffer>& b) const {
+            return a.Get() == b.Get();
+        }
+        bool operator()(const Ref<Buffer>& a, const Buffer* b) const { return a.Get() == b; }
+        bool operator()(const Buffer* a, const Ref<Buffer>& b) const { return a == b.Get(); }
+    };
+
+    struct BufferMapList {
+        // Map from ExecutionSerial to a list of buffers to be mapped when the serial passes.
+        // The map is used to process the requests in order of serial.
+        // We use LinkedList to allow O(1) removal of an entry when it's cancelled.
+        std::map<ExecutionSerial, LinkedList<BufferMapRequest>> serialQueue;
+        // Map from Buffer* to BufferMapRequest*.
+        // This map table serves 2 purposes: first is to keep the buffer alive via Ref.
+        // 2nd is fast lookup for the existing schedule.
+        absl::flat_hash_map<Ref<Buffer>, BufferMapRequest*, BufferRefHash, BufferRefEq> requestMap;
+    };
+    MutexProtected<BufferMapList> mPendingMapBuffers;
 };
 
 }  // namespace dawn::native::d3d11

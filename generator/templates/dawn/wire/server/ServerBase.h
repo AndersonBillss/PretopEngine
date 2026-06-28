@@ -28,29 +28,30 @@
 #ifndef DAWNWIRE_SERVER_SERVERBASE_AUTOGEN_H_
 #define DAWNWIRE_SERVER_SERVERBASE_AUTOGEN_H_
 
+#include <memory>
 #include <tuple>
 
-#include "dawn/common/Mutex.h"
 #include "dawn/dawn_proc_table.h"
-#include "dawn/wire/ChunkedCommandHandler.h"
 #include "dawn/wire/Wire.h"
 #include "dawn/wire/WireCmd_autogen.h"
-#include "dawn/wire/WireDeserializeAllocator.h"
-#include "dawn/wire/server/ObjectStorage.h"
 #include "dawn/wire/server/WGPUTraits_autogen.h"
+#include "src/dawn/common/Mutex.h"
+#include "src/dawn/wire/ChunkedCommandHandler.h"
+#include "src/dawn/wire/WireDeserializeAllocator.h"
+#include "src/dawn/wire/server/ObjectStorage.h"
 
 namespace dawn::wire::server {
 
     class ServerBase : public ChunkedCommandHandler, public ObjectIdResolver {
       public:
-        ServerBase(const DawnProcTable& procs) : mProcs(procs) {}
+        ServerBase(const DawnProcTable& procs) : mProcs(std::make_shared<DawnProcTable>(procs)) {}
         ~ServerBase() override = default;
 
         Mutex::AutoLock GetGuard() { return Mutex::AutoLock(&mMutex); }
 
       protected:
         // Proc table may be used by children as well.
-        DawnProcTable mProcs;
+        std::shared_ptr<const DawnProcTable> mProcs;
 
         // Template functions that implement helpers on KnownObjects.
         template <typename T>
@@ -62,21 +63,21 @@ namespace dawn::wire::server {
             return std::get<KnownObjects<T>>(mKnown).Get(id, result);
         }
         template <typename T>
-        WireResult FillReservation(ObjectId id, T handle, Known<T>* known = nullptr) {
-            auto result = std::get<KnownObjects<T>>(mKnown).FillReservation(id, handle, known);
+        WireResult FillReservation(ObjectHandle handle, T nativeHandle, Known<T>* known = nullptr) {
+            auto result = std::get<KnownObjects<T>>(mKnown).FillReservation(handle, nativeHandle, known);
             if (result == WireResult::FatalError) {
-                Release(handle);
+                Release(nativeHandle);
             }
             return result;
         }
         template <typename T>
         WireResult Allocate(Reserved<T>* result,
-                            ObjectHandle handler,
+                            ObjectHandle handle,
                             AllocationState state = AllocationState::Allocated) {
             // Allocations always take the lock because |vector::push_back| may be called which
             // can invalidate pointers.
             auto serverGuard = GetGuard();
-            return std::get<KnownObjects<T>>(mKnown).Allocate(result, handler, state);
+            return std::get<KnownObjects<T>>(mKnown).Allocate(result, handle, state);
         }
         template <typename T>
         WireResult Free(ObjectId id, ObjectData<T>* data) {
@@ -103,7 +104,7 @@ namespace dawn::wire::server {
 
         template <typename T>
         void Release(T handle) {
-            (mProcs.*WGPUTraits<T>::Release)(handle);
+            ((*mProcs).*WGPUTraits<T>::Release)(handle);
         }
         void DestroyAllObjects() {
             //* Release devices first to force completion of any async work.

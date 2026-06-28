@@ -54,6 +54,7 @@ libtint_source_set("common") {
     "substitute_overrides_config.h",
     "vertex_pulling_config.cc",
     "vertex_pulling_config.h",
+    "workgroup_info.h",
   ]
   deps = [
     "${dawn_root}/src/utils",
@@ -63,6 +64,7 @@ libtint_source_set("common") {
     "${tint_src_dir}/utils/macros",
     "${tint_src_dir}/utils/math",
     "${tint_src_dir}/utils/memory",
+    "${tint_src_dir}/utils/reflection",
     "${tint_src_dir}/utils/rtti",
   ]
 }
@@ -83,6 +85,7 @@ if (tint_build_unittests) {
       "${tint_src_dir}/utils/macros",
       "${tint_src_dir}/utils/math",
       "${tint_src_dir}/utils/memory",
+      "${tint_src_dir}/utils/reflection",
       "${tint_src_dir}/utils/rtti",
     ]
   }

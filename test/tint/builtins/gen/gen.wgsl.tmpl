@@ -13,7 +13,19 @@ See:
 
 {{- /* For each permutation of each overload of each function... */ -}}
 {{- range $I.Sem.Builtins -}}
-{{    if and (and (and (not (HasPrefix .Name "_")) (not (HasPrefix .Name "getResource"))) (not (HasPrefix .Name "bufferView"))) (not (HasPrefix .Name "bufferLength")) }}
+{{    if and
+          (
+            and
+            (
+              and
+              (not (HasPrefix .Name "getResource")) (not (HasPrefix .Name "hasResource"))
+            )
+            (
+              and
+              (not (HasPrefix .Name "bufferView")) (not (HasPrefix .Name "bufferArrayView"))
+            )
+          )
+          (not (HasPrefix .Name "bufferLength")) }}
 {{-     range .Overloads  -}}
 {{-       range $I.Permute . -}}
 {{- /*      Generate a ./literal/<function>/<permuataion-hash>.wgsl file using
@@ -275,20 +287,24 @@ fn vertex_main() -> VertexOutput {
 {{-   $overload := $permutation.Overload -}}
 {{-   $builtin_name := $permutation.Intrinsic.Name -}}
 
+{{/* HLSL LinAlg operations require Shader Model 6.10 (DXC) */}}
+{{-   if (HasPrefix $builtin_name "subgroupMatrix")}}
+// [hlsl-dxc] flags: --hlsl-shader-model 6.10
+
 {{/* Check and emit dot4I8Packed and dot4U8Packed */}}
-{{-   if or (eq "pack4xI8" $builtin_name) (eq "pack4xU8" $builtin_name) (eq "pack4xI8Clamp" $builtin_name) (eq "unpack4xI8" $builtin_name) (eq "unpack4xU8" $builtin_name)}}
-// [hlsl-dxc] flags: --hlsl-shader-model 66
+{{-   else if or (eq "pack4xI8" $builtin_name) (eq "pack4xU8" $builtin_name) (eq "pack4xI8Clamp" $builtin_name) (eq "unpack4xI8" $builtin_name) (eq "unpack4xU8" $builtin_name) (HasPrefix $builtin_name "atomicStoreMax") (HasPrefix $builtin_name "atomicStoreMin") }}
+// [hlsl-dxc] flags: --hlsl-shader-model 6.6
 
 {{-   else if or (eq "dot4I8Packed" $builtin_name) (eq "dot4U8Packed" $builtin_name)}}
-// [hlsl-dxc] flags: --hlsl-shader-model 64
+// [hlsl-dxc] flags: --hlsl-shader-model 6.4
 
 {{/* Check and emit f16 */}}
 {{-   else if OverloadUsesType $overload "f16"}}
-// flags: --hlsl-shader-model 62
+// flags: --hlsl-shader-model 6.2
 
 {{/* HLSL Wave operations require Shader Model 6.0 (DXC) */}}
 {{-   else if or (HasPrefix $builtin_name "subgroup") (HasPrefix $builtin_name "quad")}}
-// [hlsl-dxc] flags: --hlsl-shader-model 60
+// [hlsl-dxc] flags: --hlsl-shader-model 6.0
 
 {{    end -}}
 
@@ -305,6 +321,8 @@ fn vertex_main() -> VertexOutput {
 
 {{-   if eq "print" $builtin_name}}
 // [msl] flags: --msl-version 3.2
+{{    else if or (HasPrefix $builtin_name "atomicStoreMax") (HasPrefix $builtin_name "atomicStoreMin") }}
+// [msl] flags: --msl-version 2.4
 {{    end -}}
 
 {{- end -}}
@@ -326,9 +344,9 @@ enable chromium_experimental_subgroup_matrix;
 enable subgroups;
 {{    end -}}
 
-{{- /* Emit 'enable chromium_experimental_resource_table' if required */ -}}
-{{-   if or (HasPrefix $builtin_name "getResource") (HasPrefix $builtin_name "hasResource")}}
-enable chromium_experimental_resource_table;
+{{- /* Emit enable atomic_vec2u_min_max for limited 64 bit atomics*/ -}}
+{{-   if or (HasPrefix $builtin_name "atomicStoreMax") (HasPrefix $builtin_name "atomicStoreMin") }}
+enable atomic_vec2u_min_max;
 {{    end -}}
 
 {{- /* Emit 'enable chromium_internal_input_attachments' if required */ -}}
@@ -339,11 +357,6 @@ enable chromium_internal_input_attachments;
 {{- /* Emit 'enable f16' if required */ -}}
 {{-   if OverloadUsesType $overload "f16"}}
 enable f16;
-{{    end -}}
-
-{{- /* Emit 'enable chromium_internal_graphite' if required */ -}}
-{{-   if OverloadUsesType $overload "r8unorm"}}
-enable chromium_internal_graphite;
 {{    end -}}
 
 {{- /* Emit 'requires texel_buffers' if required */ -}}
@@ -481,6 +494,8 @@ requires texel_buffers;
 {{-     else if eq .Target.Name "unsized_buffer" -}}buffer
 {{-     else if HasPrefix .Target.Name "vec" -}}{{.Target.Name}}<{{template "Type" (ElementType .)}}>
 {{-     else if HasPrefix .Target.Name "mat" -}}{{.Target.Name}}<{{template "Type" (ElementType .)}}>
+{{-     else if eq .Target.Name "sampler_filtered" -}}sampler<{{template "Type" (index .TemplateArguments 0)}}>
+{{-     else if and (HasPrefix .Target.Name "texture_") (HasSuffix .Target.Name "_filtered") -}}{{TrimSuffix .Target.Name "_filtered"}}<{{template "Type" (index .TemplateArguments 0)}}, {{template "Type" (index .TemplateArguments 1)}}>
 {{-     else                                 -}}{{.Target.Name}}{{template "TemplateArguments" .TemplateArguments}}
 {{-     end                                  -}}
 {{-   else if IsEnumEntry   .Target -}}{{.Target.Name}}

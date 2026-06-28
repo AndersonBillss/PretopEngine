@@ -27,16 +27,15 @@
 
 #include <vector>
 
-#include "dawn/tests/MockCallback.h"
-#include "dawn/tests/unittests/validation/ValidationTest.h"
-#include "dawn/utils/ComboRenderBundleEncoderDescriptor.h"
-#include "dawn/utils/ComboRenderPipelineDescriptor.h"
-#include "dawn/utils/WGPUHelpers.h"
+#include "src/dawn/tests/MockCallback.h"
+#include "src/dawn/tests/unittests/validation/ValidationTest.h"
+#include "src/dawn/utils/ComboRenderBundleEncoderDescriptor.h"
+#include "src/dawn/utils/ComboRenderPipelineDescriptor.h"
+#include "src/dawn/utils/WGPUHelpers.h"
 
 namespace dawn {
 namespace {
 
-using testing::HasSubstr;
 
 class UnsafeAPIValidationTest : public ValidationTest {
   protected:
@@ -103,16 +102,6 @@ TEST_F(UnsafeAPIValidationTest, BindingArrayInWGSL) {
             return 0;
         }
     )"));
-}
-
-// Check that using a transient attachment is an unsafe API.
-TEST_F(UnsafeAPIValidationTest, TransientAttachment) {
-    wgpu::TextureDescriptor desc;
-    desc.format = wgpu::TextureFormat::RGBA8Unorm;
-    desc.size = {1, 1, 1};
-    desc.usage = wgpu::TextureUsage::RenderAttachment | wgpu::TextureUsage::TransientAttachment;
-
-    ASSERT_DEVICE_ERROR(device.CreateTexture(&desc));
 }
 
 class TimestampQueryUnsafeAPIValidationTest : public ValidationTest {

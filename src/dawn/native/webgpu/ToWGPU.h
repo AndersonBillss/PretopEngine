@@ -29,10 +29,12 @@
 #define SRC_DAWN_NATIVE_WEBGPU_TOWGPU_H_
 
 #include <webgpu/webgpu.h>
+
 #include <string>
 #include <vector>
-#include "dawn/native/ShaderModule.h"
+
 #include "dawn/native/wgpu_structs_autogen.h"
+#include "src/dawn/native/ShaderModule.h"
 
 // A bunch of ToWGPU helper functions to convert dawn::native descriptors to WGPU C descriptors.
 
@@ -47,6 +49,8 @@ struct TexelExtent3D;
 struct TextureCopy;
 struct TimestampWrites;
 struct TypedTexelBlockInfo;
+struct Origin2D;
+struct Extent2D;
 
 }  // namespace dawn::native
 
@@ -56,6 +60,8 @@ WGPUBlendState ToWGPU(const BlendState* desc);
 WGPUColor ToWGPU(const dawn::native::Color& color);
 WGPUDepthStencilState ToWGPU(const DepthStencilState* desc);
 WGPUExtent3D ToWGPU(const TexelExtent3D& extent);
+WGPUOrigin2D ToWGPU(const Origin2D& origin);
+WGPUExtent2D ToWGPU(const Extent2D& extent);
 WGPUIndexFormat ToWGPU(const wgpu::IndexFormat format);
 WGPULoadOp ToWGPU(const wgpu::LoadOp op);
 WGPUMultisampleState ToWGPU(const MultisampleState* desc);

@@ -33,12 +33,12 @@
 #include <thread>
 #include <utility>
 
-#include "dawn/common/Assert.h"
-#include "dawn/common/Compiler.h"
-#include "dawn/common/NonCopyable.h"
-#include "dawn/common/NonMovable.h"
-#include "dawn/common/Ref.h"
-#include "dawn/common/RefCounted.h"
+#include "src/dawn/common/Compiler.h"
+#include "src/dawn/common/Ref.h"
+#include "src/dawn/common/RefCounted.h"
+#include "src/utils/assert.h"
+#include "src/utils/non_copyable.h"
+#include "src/utils/non_movable.h"
 
 namespace dawn {
 
@@ -46,12 +46,30 @@ template <typename MutexT>
 class DAWN_MUTEX_CAPABILITY MutexBase : public RefCounted, NonCopyable {
   public:
     template <typename MutexRef>
-    struct DAWN_SCOPED_LOCKABLE AutoLockBase : NonMovable {
+    struct DAWN_SCOPED_LOCKABLE AutoLockBase : NonCopyable {
         AutoLockBase() : mMutex(nullptr) {}
         explicit AutoLockBase(MutexRef mutex) : mMutex(std::move(mutex)) {
             if (mMutex != nullptr) {
                 mMutex->Lock();
             }
+        }
+
+        AutoLockBase(AutoLockBase&& other) : mMutex(std::move(other.mMutex)) {
+            other.mMutex = nullptr;
+        }
+
+        // The move operator conditionally unlocks, and the static thread-safety analysis cannot
+        // currently handle conditional locking, so we turn off the analysis here to avoid spurious
+        // warnings.
+        AutoLockBase& operator=(AutoLockBase&& other) DAWN_NO_THREAD_SAFETY_ANALYSIS {
+            if (this != &other) {
+                if (mMutex != nullptr) {
+                    mMutex->Unlock();
+                }
+                mMutex = std::move(other.mMutex);
+                other.mMutex = nullptr;
+            }
+            return *this;
         }
 
         ~AutoLockBase() {
@@ -79,7 +97,7 @@ class DAWN_MUTEX_CAPABILITY MutexBase : public RefCounted, NonCopyable {
         return mOwner.load(std::memory_order_acquire) == std::this_thread::get_id();
 #else
         // This is not supported.
-        DAWN_CHECK(false);
+        DAWN_UNREACHABLE();
 #endif
     }
 

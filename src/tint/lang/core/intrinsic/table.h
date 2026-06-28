@@ -29,8 +29,10 @@
 #define SRC_TINT_LANG_CORE_INTRINSIC_TABLE_H_
 
 #include <memory>
+#include <ostream>
 #include <string>
 #include <utility>
+#include <variant>
 
 #include "src/tint/lang/core/binary_op.h"
 #include "src/tint/lang/core/enums.h"
@@ -43,12 +45,10 @@
 #include "src/tint/utils/text/string_stream.h"
 #include "src/tint/utils/text/styled_text.h"
 
-// Forward declarations
-namespace tint::diag {
-class List;
-}  // namespace tint::diag
-
 namespace tint::core::intrinsic {
+
+// Note: Ensure any new enum here is also added to TemplateInfo::Kind (and sem.go).
+using TemplateParameter = std::variant<const core::type::Type*, core::Majorness>;
 
 /// Overload describes a fully matched builtin function overload
 struct Overload {
@@ -60,12 +60,14 @@ struct Overload {
         const core::type::Type* const type;
         /// Parameter usage
         core::ParameterUsage const usage = core::ParameterUsage::kNone;
+        /// True if the parameter is required to be const.
+        const bool is_const;
 
         /// Equality operator
         /// @param other the parameter to compare against
         /// @returns true if this parameter and @p other are the same
         bool operator==(const Parameter& other) const {
-            return type == other.type && usage == other.usage;
+            return type == other.type && usage == other.usage && is_const == other.is_const;
         }
 
         /// Inequality operator
@@ -142,7 +144,7 @@ void PrintCandidate(StyledText& ss,
                     Context& context,
                     const Candidate& candidate,
                     std::string_view intrinsic_name,
-                    VectorRef<const core::type::Type*> template_args,
+                    VectorRef<TemplateParameter> template_args,
                     VectorRef<const core::type::Type*> args);
 
 /// Lookup looks for the builtin overload with the given signature, raising an error diagnostic
@@ -162,7 +164,7 @@ void PrintCandidate(StyledText& ss,
 Result<Overload, StyledText> LookupFn(Context& context,
                                       std::string_view function_name,
                                       size_t function_id,
-                                      VectorRef<const core::type::Type*> template_args,
+                                      VectorRef<TemplateParameter> template_args,
                                       VectorRef<const core::type::Type*> args,
                                       EvaluationStage earliest_eval_stage);
 
@@ -183,7 +185,7 @@ Result<Overload, StyledText> LookupFn(Context& context,
 Result<Overload, StyledText> LookupMemberFn(Context& context,
                                             std::string_view function_name,
                                             size_t function_id,
-                                            VectorRef<const core::type::Type*> template_args,
+                                            VectorRef<TemplateParameter> template_args,
                                             VectorRef<const core::type::Type*> args,
                                             EvaluationStage earliest_eval_stage);
 
@@ -241,7 +243,7 @@ Result<Overload, StyledText> LookupBinary(Context& context,
 Result<Overload, StyledText> LookupCtorConv(Context& context,
                                             std::string_view type_name,
                                             size_t type_id,
-                                            VectorRef<const core::type::Type*> template_args,
+                                            VectorRef<TemplateParameter> template_args,
                                             VectorRef<const core::type::Type*> args,
                                             EvaluationStage earliest_eval_stage);
 
@@ -275,7 +277,7 @@ struct Table {
     ///        (EvaluationStage::kConstant).
     /// @return the resolved builtin function overload
     Result<Overload, StyledText> Lookup(BuiltinFn builtin_fn,
-                                        VectorRef<const core::type::Type*> template_args,
+                                        VectorRef<TemplateParameter> template_args,
                                         VectorRef<const core::type::Type*> args,
                                         EvaluationStage earliest_eval_stage) {
         std::string_view name = DIALECT::ToString(builtin_fn);
@@ -299,7 +301,7 @@ struct Table {
     /// @return the resolved builtin function overload
     Result<Overload, StyledText> Lookup(BuiltinFn builtin_fn,
                                         const core::type::Type* object,
-                                        VectorRef<const core::type::Type*> template_args,
+                                        VectorRef<TemplateParameter> template_args,
                                         VectorRef<const core::type::Type*> args,
                                         EvaluationStage earliest_eval_stage) {
         // Push the object type into the argument list.
@@ -365,7 +367,7 @@ struct Table {
     ///        after shader creation time (EvaluationStage::kConstant).
     /// @return the resolved type constructor or conversion function overload
     Result<Overload, StyledText> Lookup(CtorConv type,
-                                        VectorRef<const core::type::Type*> template_args,
+                                        VectorRef<TemplateParameter> template_args,
                                         VectorRef<const core::type::Type*> args,
                                         EvaluationStage earliest_eval_stage) {
         std::string_view name = DIALECT::ToString(type);
@@ -395,6 +397,19 @@ struct Hasher<core::intrinsic::Overload> {
         return Hash(hash, i.info, i.return_type);
     }
 };
+
+template <typename STREAM, typename... TYPES>
+    requires(traits::IsOStream<STREAM>)
+auto& operator<<(STREAM& out, const core::intrinsic::TemplateParameter param) {
+    if (std::holds_alternative<const core::type::Type*>(param)) {
+        out << (std::get<const core::type::Type*>(param))->FriendlyName();
+    } else if (std::holds_alternative<core::Majorness>(param)) {
+        out << std::get<core::Majorness>(param);
+    } else {
+        TINT_UNREACHABLE() << "Unhandled template kind";
+    }
+    return out;
+}
 
 }  // namespace tint
 

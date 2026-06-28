@@ -25,25 +25,26 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "dawn/native/d3d12/RenderPipelineD3D12.h"
+#include "src/dawn/native/d3d12/RenderPipelineD3D12.h"
 
 #include <d3dcompiler.h>
 
 #include <memory>
 #include <utility>
 
-#include "dawn/common/Assert.h"
-#include "dawn/native/CreatePipelineAsyncEvent.h"
-#include "dawn/native/Instance.h"
-#include "dawn/native/d3d/BlobD3D.h"
-#include "dawn/native/d3d/D3DError.h"
-#include "dawn/native/d3d12/DeviceD3D12.h"
-#include "dawn/native/d3d12/PipelineLayoutD3D12.h"
-#include "dawn/native/d3d12/PlatformFunctionsD3D12.h"
-#include "dawn/native/d3d12/ShaderModuleD3D12.h"
-#include "dawn/native/d3d12/TextureD3D12.h"
-#include "dawn/native/d3d12/UtilsD3D12.h"
-#include "dawn/platform/metrics/HistogramMacros.h"
+#include "src/dawn/native/CreatePipelineAsyncEvent.h"
+#include "src/dawn/native/Instance.h"
+#include "src/dawn/native/d3d/BlobD3D.h"
+#include "src/dawn/native/d3d/D3DError.h"
+#include "src/dawn/native/d3d12/DeviceD3D12.h"
+#include "src/dawn/native/d3d12/PipelineLayoutD3D12.h"
+#include "src/dawn/native/d3d12/PlatformFunctionsD3D12.h"
+#include "src/dawn/native/d3d12/ShaderModuleD3D12.h"
+#include "src/dawn/native/d3d12/TextureD3D12.h"
+#include "src/dawn/native/d3d12/UtilsD3D12.h"
+#include "src/dawn/platform/metrics/HistogramMacros.h"
+#include "src/utils/assert.h"
+#include "src/utils/compiler.h"
 
 namespace dawn::native::d3d12 {
 namespace {
@@ -359,6 +360,11 @@ MaybeError RenderPipeline::InitializeImpl() {
             fragmentEntryPoint.usedInterStageVariables);
     }
 
+    DAWN_TRY_ASSIGN(
+        mPipelineLayoutHandle,
+        ToBackend(GetLayout())
+            ->GetOrCreatePipelineLayoutHandle(static_cast<uint32_t>(GetImmediateMask().count())));
+
     for (auto stage : IterateStages(GetStageMask())) {
         const ProgrammableStage& programmableStage = GetStage(stage);
         uint32_t additionalCompileFlags = 0;
@@ -371,16 +377,14 @@ MaybeError RenderPipeline::InitializeImpl() {
             ToBackend(programmableStage.module)
                 ->Compile(programmableStage, stage, ToBackend(GetLayout()),
                           compileFlags | additionalCompileFlags, usedInterstageVariables));
-        *shaders[stage] = {compiledShader[stage].shaderBlob.Data(),
+        *shaders[stage] = {compiledShader[stage].shaderBlob.DataPtr(),
                            compiledShader[stage].shaderBlob.Size()};
     }
 
     mUsesVertexOrInstanceIndex = compiledShader[SingleShaderStage::Vertex].usesVertexIndex ||
                                  compiledShader[SingleShaderStage::Vertex].usesInstanceIndex;
 
-    PipelineLayout* layout = ToBackend(GetLayout());
-
-    descriptorD3D12.pRootSignature = layout->GetRootSignature();
+    descriptorD3D12.pRootSignature = mPipelineLayoutHandle->GetRootSignature();
 
     // D3D12 logs warnings if any empty input state is used
     std::array<D3D12_INPUT_ELEMENT_DESC, kMaxVertexAttributes> inputElementDescriptors;
@@ -412,16 +416,17 @@ MaybeError RenderPipeline::InitializeImpl() {
     auto highestColorAttachmentIndexPlusOne = GetHighestBitIndexPlusOne(GetColorAttachmentsMask());
     for (uint8_t i = 0; i < kMaxColorAttachments; i++) {
         if (i < static_cast<uint8_t>(highestColorAttachmentIndexPlusOne)) {
-            descriptorD3D12.RTVFormats[i] = GetNullRTVDXGIFormatForD3D12RenderPass();
+            DAWN_UNSAFE_TODO(descriptorD3D12.RTVFormats[i]) =
+                GetNullRTVDXGIFormatForD3D12RenderPass();
         } else {
-            descriptorD3D12.RTVFormats[i] = DXGI_FORMAT_UNKNOWN;
+            DAWN_UNSAFE_TODO(descriptorD3D12.RTVFormats[i]) = DXGI_FORMAT_UNKNOWN;
         }
-        descriptorD3D12.BlendState.RenderTarget[i].LogicOp = D3D12_LOGIC_OP_NOOP;
+        DAWN_UNSAFE_TODO(descriptorD3D12.BlendState.RenderTarget[i]).LogicOp = D3D12_LOGIC_OP_NOOP;
     }
     for (auto i : GetColorAttachmentsMask()) {
-        descriptorD3D12.RTVFormats[static_cast<uint8_t>(i)] =
+        DAWN_UNSAFE_TODO(descriptorD3D12.RTVFormats[static_cast<uint8_t>(i)]) =
             d3d::DXGITextureFormat(device, GetColorAttachmentFormat(i));
-        descriptorD3D12.BlendState.RenderTarget[static_cast<uint8_t>(i)] =
+        DAWN_UNSAFE_TODO(descriptorD3D12.BlendState.RenderTarget[static_cast<uint8_t>(i)]) =
             ComputeColorDesc(device, GetColorTargetState(i));
     }
     DAWN_ASSERT(highestColorAttachmentIndexPlusOne <= kMaxColorAttachmentsTyped);
@@ -439,14 +444,14 @@ MaybeError RenderPipeline::InitializeImpl() {
 
     mD3d12PrimitiveTopology = D3D12PrimitiveTopology(GetPrimitiveTopology());
 
-    StreamIn(&mCacheKey, descriptorD3D12, *layout->GetRootSignatureBlob());
+    StreamIn(&mCacheKey, descriptorD3D12, *mPipelineLayoutHandle->GetRootSignatureBlob());
 
     // Try to see if we have anything in the blob cache.
     Blob blob = device->LoadCachedBlob(GetCacheKey());
     bool cacheHit = !blob.Empty();
     if (cacheHit) {
         // Cache hits, attach cached blob to descriptor.
-        descriptorD3D12.CachedPSO.pCachedBlob = blob.Data();
+        descriptorD3D12.CachedPSO.pCachedBlob = blob.DataPtr();
         descriptorD3D12.CachedPSO.CachedBlobSizeInBytes = blob.Size();
     }
 
@@ -490,6 +495,7 @@ RenderPipeline::~RenderPipeline() = default;
 void RenderPipeline::DestroyImpl(DestroyReason reason) {
     RenderPipelineBase::DestroyImpl(reason);
     ToBackend(GetDevice())->ReferenceUntilUnused(mPipelineState);
+    mPipelineLayoutHandle = nullptr;
 }
 
 D3D12_PRIMITIVE_TOPOLOGY RenderPipeline::GetD3D12PrimitiveTopology() const {
@@ -504,13 +510,17 @@ bool RenderPipeline::UsesVertexOrInstanceIndex() const {
     return mUsesVertexOrInstanceIndex;
 }
 
+PipelineLayoutHandle* RenderPipeline::GetPipelineLayoutHandle() const {
+    return mPipelineLayoutHandle.Get();
+}
+
 void RenderPipeline::SetLabelImpl() {
     SetDebugName(ToBackend(GetDevice()), GetPipelineState(), "Dawn_RenderPipeline", GetLabel());
 }
 
 ComPtr<ID3D12CommandSignature> RenderPipeline::GetDrawIndirectCommandSignature() {
     if (mUsesVertexOrInstanceIndex) {
-        return ToBackend(GetLayout())->GetDrawIndirectCommandSignatureWithInstanceVertexOffsets();
+        return mPipelineLayoutHandle->GetDrawIndirectCommandSignatureWithInstanceVertexOffsets();
     }
 
     return ToBackend(GetDevice())->GetDrawIndirectSignature();
@@ -518,7 +528,7 @@ ComPtr<ID3D12CommandSignature> RenderPipeline::GetDrawIndirectCommandSignature()
 
 ComPtr<ID3D12CommandSignature> RenderPipeline::GetDrawIndexedIndirectCommandSignature() {
     if (mUsesVertexOrInstanceIndex) {
-        return ToBackend(GetLayout())
+        return mPipelineLayoutHandle
             ->GetDrawIndexedIndirectCommandSignatureWithInstanceVertexOffsets();
     }
 

@@ -25,27 +25,27 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "dawn/native/vulkan/SwapChainVk.h"
+#include "src/dawn/native/vulkan/SwapChainVk.h"
 
 #include <algorithm>
 #include <limits>
 #include <utility>
 
-#include "dawn/common/Compiler.h"
-#include "dawn/native/ChainUtils.h"
-#include "dawn/native/Instance.h"
-#include "dawn/native/Surface.h"
-#include "dawn/native/vulkan/BackendVk.h"
-#include "dawn/native/vulkan/DeviceVk.h"
-#include "dawn/native/vulkan/FencedDeleter.h"
-#include "dawn/native/vulkan/PhysicalDeviceVk.h"
-#include "dawn/native/vulkan/QueueVk.h"
-#include "dawn/native/vulkan/TextureVk.h"
-#include "dawn/native/vulkan/VulkanError.h"
+#include "src/dawn/common/Compiler.h"
+#include "src/dawn/native/ChainUtils.h"
+#include "src/dawn/native/Instance.h"
+#include "src/dawn/native/Surface.h"
+#include "src/dawn/native/vulkan/BackendVk.h"
+#include "src/dawn/native/vulkan/DeviceVk.h"
+#include "src/dawn/native/vulkan/FencedDeleter.h"
+#include "src/dawn/native/vulkan/PhysicalDeviceVk.h"
+#include "src/dawn/native/vulkan/QueueVk.h"
+#include "src/dawn/native/vulkan/TextureVk.h"
+#include "src/dawn/native/vulkan/VulkanError.h"
 #include "vulkan/vulkan_core.h"
 
 #if defined(DAWN_USE_X11)
-#include "dawn/native/X11Functions.h"
+#include "src/dawn/native/X11Functions.h"
 #endif  // defined(DAWN_USE_X11)
 
 namespace dawn::native::vulkan {
@@ -316,8 +316,9 @@ ResultOrError<SwapChain::Config> SwapChain::ChooseConfig(
         VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR,
     };
     for (uint32_t i = 0; i < 4; i++) {
-        if (surfaceInfo.capabilities.supportedCompositeAlpha & compositeAlphaFlags[i]) {
-            config.alphaMode = compositeAlphaFlags[i];
+        if (surfaceInfo.capabilities.supportedCompositeAlpha &
+            DAWN_UNSAFE_TODO(compositeAlphaFlags[i])) {
+            config.alphaMode = DAWN_UNSAFE_TODO(compositeAlphaFlags[i]);
             break;
         }
     }
@@ -667,7 +668,7 @@ ResultOrError<VkSurfaceKHR> CreateVulkanSurface(InstanceBase* instance,
 
 #if defined(DAWN_USE_WAYLAND)
         case Surface::Type::WaylandSurface: {
-            if (info.HasExt(InstanceExt::XlibSurface)) {
+            if (info.HasExt(InstanceExt::WaylandSurface)) {
                 VkWaylandSurfaceCreateInfoKHR createInfo;
                 createInfo.sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
                 createInfo.pNext = nullptr;
@@ -693,7 +694,7 @@ ResultOrError<VkSurfaceKHR> CreateVulkanSurface(InstanceBase* instance,
                 createInfo.pNext = nullptr;
                 createInfo.flags = 0;
                 createInfo.dpy = static_cast<Display*>(surface->GetXDisplay());
-                createInfo.window = surface->GetXWindow();
+                createInfo.window = uint32_t(surface->GetXWindow());
 
                 VkSurfaceKHR vkSurface = VK_NULL_HANDLE;
                 DAWN_TRY(CheckVkSuccess(
@@ -716,7 +717,7 @@ ResultOrError<VkSurfaceKHR> CreateVulkanSurface(InstanceBase* instance,
                 // The XCB connection lives as long as the X11 display.
                 createInfo.connection =
                     x11->xGetXCBConnection(static_cast<Display*>(surface->GetXDisplay()));
-                createInfo.window = surface->GetXWindow();
+                createInfo.window = uint32_t(surface->GetXWindow());
 
                 VkSurfaceKHR vkSurface = VK_NULL_HANDLE;
                 DAWN_TRY(CheckVkSuccess(

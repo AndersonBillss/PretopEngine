@@ -49,6 +49,8 @@ tint_add_target(tint_lang_hlsl_writer_raise lib
   lang/hlsl/writer/raise/builtin_polyfill.h
   lang/hlsl/writer/raise/decompose_storage_access.cc
   lang/hlsl/writer/raise/decompose_storage_access.h
+  lang/hlsl/writer/raise/extract_ternary_values.cc
+  lang/hlsl/writer/raise/extract_ternary_values.h
   lang/hlsl/writer/raise/localize_struct_array_assignment.cc
   lang/hlsl/writer/raise/localize_struct_array_assignment.h
   lang/hlsl/writer/raise/pixel_local.cc
@@ -61,6 +63,10 @@ tint_add_target(tint_lang_hlsl_writer_raise lib
   lang/hlsl/writer/raise/replace_default_only_switch.h
   lang/hlsl/writer/raise/replace_non_indexable_mat_vec_stores.cc
   lang/hlsl/writer/raise/replace_non_indexable_mat_vec_stores.h
+  lang/hlsl/writer/raise/replace_subgroup_matrix_init.cc
+  lang/hlsl/writer/raise/replace_subgroup_matrix_init.h
+  lang/hlsl/writer/raise/resource_table_helper.cc
+  lang/hlsl/writer/raise/resource_table_helper.h
   lang/hlsl/writer/raise/shader_io.cc
   lang/hlsl/writer/raise/shader_io.h
 )
@@ -85,6 +91,7 @@ tint_target_add_dependencies(tint_lang_hlsl_writer_raise lib
   tint_utils_macros
   tint_utils_math
   tint_utils_memory
+  tint_utils_reflection
   tint_utils_rtti
   tint_utils_symbol
   tint_utils_text
@@ -104,11 +111,13 @@ tint_add_target(tint_lang_hlsl_writer_raise_test test
   lang/hlsl/writer/raise/binary_polyfill_test.cc
   lang/hlsl/writer/raise/builtin_polyfill_test.cc
   lang/hlsl/writer/raise/decompose_storage_access_test.cc
+  lang/hlsl/writer/raise/extract_ternary_values_test.cc
   lang/hlsl/writer/raise/localize_struct_array_assignment_test.cc
   lang/hlsl/writer/raise/pixel_local_test.cc
   lang/hlsl/writer/raise/promote_initializers_test.cc
   lang/hlsl/writer/raise/replace_default_only_switch_test.cc
   lang/hlsl/writer/raise/replace_non_indexable_mat_vec_stores_test.cc
+  lang/hlsl/writer/raise/replace_subgroup_matrix_init_test.cc
   lang/hlsl/writer/raise/shader_io_test.cc
 )
 
@@ -134,6 +143,7 @@ tint_target_add_dependencies(tint_lang_hlsl_writer_raise_test test
   tint_utils_macros
   tint_utils_math
   tint_utils_memory
+  tint_utils_reflection
   tint_utils_rtti
   tint_utils_symbol
   tint_utils_text
@@ -154,7 +164,7 @@ tint_add_target(tint_lang_hlsl_writer_raise_fuzz fuzz
 
 tint_target_add_dependencies(tint_lang_hlsl_writer_raise_fuzz fuzz
   tint_api_common
-  tint_cmd_fuzz_ir_fuzz
+  tint_cmd_fuzz_common
   tint_lang_core
   tint_lang_core_constant
   tint_lang_core_ir
@@ -168,6 +178,7 @@ tint_target_add_dependencies(tint_lang_hlsl_writer_raise_fuzz fuzz
   tint_utils_macros
   tint_utils_math
   tint_utils_memory
+  tint_utils_reflection
   tint_utils_rtti
   tint_utils_symbol
   tint_utils_text

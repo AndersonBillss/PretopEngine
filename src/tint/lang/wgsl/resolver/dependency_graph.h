@@ -29,7 +29,6 @@
 #define SRC_TINT_LANG_WGSL_RESOLVER_DEPENDENCY_GRAPH_H_
 
 #include <string>
-#include <vector>
 
 #include "src/tint/lang/core/enums.h"
 #include "src/tint/lang/wgsl/ast/module.h"
@@ -50,6 +49,7 @@ namespace tint::resolver {
 /// - core::AddressSpace
 /// - core::BuiltinType
 /// - core::TexelFormat
+/// - core::Majorness
 class ResolvedIdentifier {
   public:
     /// UnresolvedIdentifier is the variant value used to represent an unresolved identifier
@@ -124,6 +124,13 @@ class ResolvedIdentifier {
         return core::TexelFormat::kUndefined;
     }
 
+    core::Majorness Majorness() const {
+        if (auto n = std::get_if<core::Majorness>(&value_)) {
+            return *n;
+        }
+        return core::Majorness::kUndefined;
+    }
+
     /// @param value the value to compare the ResolvedIdentifier to
     /// @return true if the ResolvedIdentifier is equal to @p value
     template <typename T>
@@ -151,7 +158,8 @@ class ResolvedIdentifier {
                  core::Access,
                  core::AddressSpace,
                  core::BuiltinType,
-                 core::TexelFormat>
+                 core::TexelFormat,
+                 core::Majorness>
         value_;
 };
 
@@ -178,12 +186,6 @@ struct DependencyGraph {
 
     /// Map of ast::Identifier to a ResolvedIdentifier
     Hashmap<const ast::Identifier*, ResolvedIdentifier, 64> resolved_identifiers;
-
-    /// Map of ast::Variable to a type, function, or variable that is shadowed by
-    /// the variable key. A declaration (X) shadows another (Y) if X and Y use
-    /// the same symbol, and X is declared in a sub-scope of the scope that
-    /// declares Y.
-    Hashmap<const ast::Variable*, const ast::Node*, 16> shadows;
 };
 
 }  // namespace tint::resolver

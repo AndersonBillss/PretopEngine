@@ -27,13 +27,12 @@
 
 #include "src/tint/lang/wgsl/sem/materialize.h"
 
+#include "gmock/gmock.h"
 #include "src/tint/lang/core/type/helper_test.h"
 #include "src/tint/lang/wgsl/resolver/resolver.h"
 #include "src/tint/lang/wgsl/resolver/resolver_helper_test.h"
 #include "src/tint/lang/wgsl/sem/array.h"
 #include "src/tint/utils/rtti/switch.h"
-
-#include "gmock/gmock.h"
 
 namespace tint::resolver {
 namespace {
@@ -366,7 +365,7 @@ TEST_P(MaterializeAbstractNumericToConcreteType, Test) {
             Func("F", tint::Empty, target_ty(), Vector{Return(abstract_expr)});
             break;
         case Method::kArray:
-            WrapInFunction(Call(ty.array(target_ty(), 1_i), abstract_expr));
+            WrapInFunction(Call(ty.array(target_ty(), Expr(1_i)), abstract_expr));
             break;
         case Method::kStruct:
             Structure("S", Vector{Member("v", target_ty())});
@@ -843,9 +842,6 @@ enum class Method {
 
     // abstract_expr[runtime-index]
     kRuntimeIndex,
-
-    // _tint_materialize()
-    kTintMaterializeBuiltin,
 };
 
 static std::ostream& operator<<(std::ostream& o, Method m) {
@@ -868,8 +864,6 @@ static std::ostream& operator<<(std::ostream& o, Method m) {
             return o << "index";
         case Method::kRuntimeIndex:
             return o << "runtime-index";
-        case Method::kTintMaterializeBuiltin:
-            return o << "_tint_materialize";
     }
     return o << "<unknown>";
 }
@@ -966,11 +960,6 @@ TEST_P(MaterializeAbstractNumericToDefaultType, Test) {
             WrapInFunction(runtime_index, IndexAccessor(abstract_expr(), runtime_index));
             break;
         }
-        case Method::kTintMaterializeBuiltin: {
-            auto* call = Call(wgsl::BuiltinFn::kTintMaterialize, abstract_expr());
-            WrapInFunction(Decl(Const("c", call)));
-            break;
-        }
     }
 
     switch (expectation) {
@@ -1006,7 +995,6 @@ constexpr Method kScalarMethods[] = {
     Method::kLet,
     Method::kVar,
     Method::kBitcastI32Arg,
-    Method::kTintMaterializeBuiltin,
 };
 
 /// Methods that support vector materialization
@@ -1015,21 +1003,18 @@ constexpr Method kVectorMethods[] = {
     Method::kVar,
     Method::kBitcastVec3I32Arg,
     Method::kRuntimeIndex,
-    Method::kTintMaterializeBuiltin,
 };
 
 /// Methods that support matrix materialization
 constexpr Method kMatrixMethods[] = {
     Method::kLet,
     Method::kVar,
-    Method::kTintMaterializeBuiltin,
 };
 
 /// Methods that support array materialization
 constexpr Method kArrayMethods[] = {
     Method::kLet,
     Method::kVar,
-    Method::kTintMaterializeBuiltin,
 };
 
 INSTANTIATE_TEST_SUITE_P(
@@ -1246,7 +1231,7 @@ using MaterializeAbstractNumericToUnrelatedType = resolver::ResolverTest;
 
 TEST_F(MaterializeAbstractNumericToUnrelatedType, AIntToStructVarInit) {
     Structure("S", Vector{Member("a", ty.i32())});
-    WrapInFunction(Decl(Var("v", ty("S"), Expr(Source{{12, 34}}, 1_a))));
+    WrapInFunction(Decl(Var("v", ty.AsType("S"), Expr(Source{{12, 34}}, 1_a))));
     EXPECT_FALSE(r()->Resolve());
     EXPECT_THAT(
         r()->error(),
@@ -1255,7 +1240,7 @@ TEST_F(MaterializeAbstractNumericToUnrelatedType, AIntToStructVarInit) {
 
 TEST_F(MaterializeAbstractNumericToUnrelatedType, AIntToStructLetInit) {
     Structure("S", Vector{Member("a", ty.i32())});
-    WrapInFunction(Decl(Let("v", ty("S"), Expr(Source{{12, 34}}, 1_a))));
+    WrapInFunction(Decl(Let("v", ty.AsType("S"), Expr(Source{{12, 34}}, 1_a))));
     EXPECT_FALSE(r()->Resolve());
     EXPECT_THAT(
         r()->error(),

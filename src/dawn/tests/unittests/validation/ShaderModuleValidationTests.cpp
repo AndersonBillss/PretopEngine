@@ -34,12 +34,13 @@
 #include <utility>
 #include <vector>
 
-#include "dawn/common/Constants.h"
-#include "dawn/native/CompilationMessages.h"
-#include "dawn/native/ShaderModule.h"
-#include "dawn/tests/unittests/validation/ValidationTest.h"
-#include "dawn/utils/ComboRenderPipelineDescriptor.h"
-#include "dawn/utils/WGPUHelpers.h"
+#include "src/dawn/common/Constants.h"
+#include "src/dawn/native/CompilationMessages.h"
+#include "src/dawn/native/ShaderModule.h"
+#include "src/dawn/tests/unittests/validation/ValidationTest.h"
+#include "src/dawn/utils/ComboRenderPipelineDescriptor.h"
+#include "src/dawn/utils/WGPUHelpers.h"
+#include "src/utils/compiler.h"
 
 #if TINT_BUILD_SPV_READER && !defined(__EMSCRIPTEN__)
 #include "spirv-tools/optimizer.hpp"
@@ -399,7 +400,7 @@ TEST_F(ShaderModuleValidationTest, GetCompilationMessages) {
                 reinterpret_cast<const wgpu::DawnCompilationMessageUtf16*>(message->nextInChain);
             EXPECT_EQ(0u, utf16->linePos);
 
-            message = &info->messages[1];
+            message = &DAWN_UNSAFE_TODO(info->messages[1]);
             ASSERT_EQ("Warning Message", std::string_view(message->message));
             ASSERT_EQ(wgpu::CompilationMessageType::Warning, message->type);
             ASSERT_EQ(0u, message->lineNum);
@@ -410,7 +411,7 @@ TEST_F(ShaderModuleValidationTest, GetCompilationMessages) {
                 reinterpret_cast<const wgpu::DawnCompilationMessageUtf16*>(message->nextInChain);
             EXPECT_EQ(0u, utf16->linePos);
 
-            message = &info->messages[2];
+            message = &DAWN_UNSAFE_TODO(info->messages[2]);
             ASSERT_EQ("Error Message", std::string_view(message->message));
             ASSERT_EQ(wgpu::CompilationMessageType::Error, message->type);
             ASSERT_EQ(3u, message->lineNum);
@@ -421,7 +422,7 @@ TEST_F(ShaderModuleValidationTest, GetCompilationMessages) {
                 reinterpret_cast<const wgpu::DawnCompilationMessageUtf16*>(message->nextInChain);
             EXPECT_EQ(4u, utf16->linePos);
 
-            message = &info->messages[3];
+            message = &DAWN_UNSAFE_TODO(info->messages[3]);
             ASSERT_EQ("Complete Message", std::string_view(message->message));
             ASSERT_EQ(wgpu::CompilationMessageType::Info, message->type);
             ASSERT_EQ(3u, message->lineNum);
@@ -745,7 +746,7 @@ class ShaderModuleMaxInterStageShaderVariablesValidationTest : public Validation
         adapter.GetFeatures(&supportedFeatures);
         std::vector<wgpu::FeatureName> requiredFeatures(
             supportedFeatures.features,
-            supportedFeatures.features + supportedFeatures.featureCount);
+            DAWN_UNSAFE_TODO(supportedFeatures.features + supportedFeatures.featureCount));
         return requiredFeatures;
     }
 };
@@ -921,7 +922,7 @@ TEST_F(ShaderModuleMaxInterStageShaderVariablesValidationTest, Test) {
             bool canTest = true;
             for (uint8_t b = 0; b < std::size(builtins); ++b) {
                 if (mask & (1 << b)) {
-                    const Builtin& builtin = builtins[b];
+                    const Builtin& builtin = DAWN_UNSAFE_TODO(builtins[b]);
                     builtInDeclarations += "@builtin(" + std::string(builtin.name) + ") b_" +
                                            std::string(builtin.name) + ": " +
                                            std::string(builtin.type) + ",";
@@ -973,10 +974,11 @@ const WGSLExtensionInfo kExtensions[] = {
     {"primitive_index", false, {wgpu::FeatureName::PrimitiveIndex}, {}},
     {"chromium_experimental_pixel_local", true, {wgpu::FeatureName::PixelLocalStorageCoherent}, {}},
     {"chromium_disable_uniformity_analysis", true, {}, {}},
-    {"chromium_internal_graphite", true, {}, {}},
     {"chromium_experimental_framebuffer_fetch", true, {wgpu::FeatureName::FramebufferFetch}, {}},
     {"chromium_experimental_subgroup_matrix", true, {wgpu::FeatureName::ChromiumExperimentalSubgroupMatrix}, {}},
-    {"chromium_experimental_resource_table", true, {wgpu::FeatureName::ChromiumExperimentalSamplingResourceTable}, {}}
+    {"chromium_experimental_resource_table", true, {wgpu::FeatureName::ChromiumExperimentalSamplingResourceTable}, {}},
+    {"subgroup_size_control", false, {wgpu::FeatureName::SubgroupSizeControl}, {"subgroups"}},
+    {"atomic_vec2u_min_max", true, {wgpu::FeatureName::AtomicVec2uMinMax}, {}}
 
     // Currently the following WGSL extensions are not enabled under any situation.
     /*
@@ -999,7 +1001,7 @@ class ShaderModuleExtensionValidationTest : public ValidationTest {
         wgpu::SupportedFeatures supportedFeatures;
         adapter.GetFeatures(&supportedFeatures);
         for (uint32_t i = 0; i < supportedFeatures.featureCount; ++i) {
-            requiredFeatures.push_back(supportedFeatures.features[i]);
+            requiredFeatures.push_back(DAWN_UNSAFE_TODO(supportedFeatures.features[i]));
         }
         return requiredFeatures;
     }
@@ -1150,6 +1152,72 @@ INSTANTIATE_TEST_SUITE_P(,
                          ShaderModuleExtensionValidationTestUnsafeOnlyRequiredFeatures,
                          ::testing::Combine(::testing::ValuesIn(kExtensions),
                                             ::testing::Values(true, false)));
+
+class SubgroupSizeControlValidationTest : public ValidationTest {
+  protected:
+    std::vector<wgpu::FeatureName> GetRequiredFeatures() override {
+        return {wgpu::FeatureName::SubgroupSizeControl};
+    }
+    void TestTotalInvocationsPerWorkgroupAndSubgroupSize(const std::vector<uint32_t>& workgroupSize,
+                                                         uint32_t subgroupSize,
+                                                         bool success) {
+        for (bool setSubgroupSizeAsOverride : {true, false}) {
+            std::ostringstream stream;
+            stream << R"(
+enable subgroups;
+enable subgroup_size_control;)";
+
+            if (setSubgroupSizeAsOverride) {
+                stream << "override kSubgroupSize : u32;\n";
+            } else {
+                stream << "const kSubgroupSize = " << subgroupSize << ";\n";
+            }
+
+            stream << "@compute @subgroup_size(kSubgroupSize) @workgroup_size(" << workgroupSize[0];
+            for (uint32_t i = 1; i < workgroupSize.size(); ++i) {
+                stream << ", " << workgroupSize[i];
+            }
+            stream << ")\n";
+            stream << R"(
+fn main(@builtin(subgroup_invocation_id) sg_id : u32,
+        @builtin(subgroup_size) sg_size : u32) {
+    _ = sg_id + sg_size;
+})";
+
+            wgpu::ComputePipelineDescriptor pipelineDesc = {};
+            pipelineDesc.compute.module = utils::CreateShaderModule(device, stream.str().c_str());
+
+            wgpu::ConstantEntry entry = {};
+            if (setSubgroupSizeAsOverride) {
+                entry.key = "kSubgroupSize";
+                entry.value = static_cast<double>(subgroupSize);
+                pipelineDesc.compute.constantCount = 1;
+                pipelineDesc.compute.constants = &entry;
+            }
+
+            if (success) {
+                device.CreateComputePipeline(&pipelineDesc);
+            } else {
+                ASSERT_DEVICE_ERROR(device.CreateComputePipeline(&pipelineDesc));
+            }
+        }
+    }
+};
+
+// Test the X-dimension of the work group size must be a multiple of subgroup size when the
+// `@subgroup_size` attribute is used.
+TEST_F(SubgroupSizeControlValidationTest, ValidateTotalInvocationsPerWorkgroupAndSubgroupSize) {
+    TestTotalInvocationsPerWorkgroupAndSubgroupSize({32}, 16, true);
+    TestTotalInvocationsPerWorkgroupAndSubgroupSize({16, 4}, 16, true);
+    TestTotalInvocationsPerWorkgroupAndSubgroupSize({16, 4, 2}, 16, true);
+    TestTotalInvocationsPerWorkgroupAndSubgroupSize({4, 16}, 16, false);
+    TestTotalInvocationsPerWorkgroupAndSubgroupSize({4, 2, 16}, 16, false);
+    TestTotalInvocationsPerWorkgroupAndSubgroupSize({8, 4}, 16, false);
+    TestTotalInvocationsPerWorkgroupAndSubgroupSize({8, 4, 2}, 32, false);
+    TestTotalInvocationsPerWorkgroupAndSubgroupSize({24}, 16, false);
+    TestTotalInvocationsPerWorkgroupAndSubgroupSize({8, 3, 2}, 32, false);
+    TestTotalInvocationsPerWorkgroupAndSubgroupSize({32}, 32, true);
+}
 
 }  // anonymous namespace
 }  // namespace dawn

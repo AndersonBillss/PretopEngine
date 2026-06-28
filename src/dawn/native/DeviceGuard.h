@@ -31,10 +31,10 @@
 #include <mutex>
 #include <optional>
 
-#include "dawn/common/Compiler.h"
-#include "dawn/common/Defer.h"
-#include "dawn/common/MutexProtected.h"
-#include "dawn/common/Ref.h"
+#include "src/dawn/common/Compiler.h"
+#include "src/dawn/common/Defer.h"
+#include "src/dawn/common/MutexProtected.h"
+#include "src/dawn/common/Ref.h"
 
 namespace dawn::native {
 
@@ -59,6 +59,7 @@ namespace detail {
 
 struct DeviceMutexTraits {
     using MutexType = Ref<DeviceMutex>;
+    template <typename Unused>
     using LockType = DeviceMutex::AutoLockBase<DeviceMutex*>;
 
     static DeviceMutex* GetMutex(MutexType& m) { return m.Get(); }
@@ -71,6 +72,7 @@ struct DeviceMutexTraits {
 class DeviceGuardBase {
   protected:
     explicit DeviceGuardBase(DeviceMutex* mutex = nullptr);
+    DeviceGuardBase(DeviceGuardBase&&) = default;
 
   private:
     // Optionally, this base class may hold a strong reference to the actual mutex. This is used
@@ -88,6 +90,8 @@ class DeviceGuard : public detail::DeviceGuardBase,
                     private ::dawn::detail::Guard<DeviceBase, detail::DeviceMutexTraits> {
   public:
     using GuardBase = ::dawn::detail::Guard<DeviceBase, detail::DeviceMutexTraits>;
+
+    DeviceGuard(DeviceGuard&&);
 
   private:
     friend class DeviceBase;

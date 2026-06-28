@@ -27,9 +27,9 @@
 
 #include <vector>
 
-#include "dawn/tests/DawnTest.h"
-#include "dawn/utils/ComboRenderPipelineDescriptor.h"
-#include "dawn/utils/WGPUHelpers.h"
+#include "src/dawn/tests/DawnTest.h"
+#include "src/dawn/utils/ComboRenderPipelineDescriptor.h"
+#include "src/dawn/utils/WGPUHelpers.h"
 
 namespace dawn {
 namespace {
@@ -294,7 +294,7 @@ class PixelLocalStorageTests : public DawnTest {
             // that would be done.
             int32_t expectedValue = 0;
             if (!attachment.discardAfterInit) {
-                expectedValue = attachment.clearValue.r;
+                expectedValue = static_cast<int32_t>(attachment.clearValue.r);
             }
             expectedValue += (slot + 1) * kIterations;
 
@@ -595,27 +595,18 @@ TEST_P(PixelLocalStorageTests, InvertedOffsetOrder) {
 
 // Test implicit pixel local slot.
 TEST_P(PixelLocalStorageTests, ImplicitSlot) {
-    // crbug.com/450817278.
-    DAWN_SUPPRESS_TEST_IF(IsWindows() && IsD3D11() && IsWARP());
-
     PLSSpec spec = {4, {}, CheckMethod::StorageBuffer};
     DoTest(spec);
 }
 
 // Test multiple implicit pixel local slot.
 TEST_P(PixelLocalStorageTests, MultipleImplicitSlot) {
-    // crbug.com/450817278.
-    DAWN_SUPPRESS_TEST_IF(IsWindows() && IsD3D11() && IsWARP());
-
     PLSSpec spec = {16, {}, CheckMethod::StorageBuffer};
     DoTest(spec);
 }
 
 // Test mixed implicit / explicit pixel local slot.
 TEST_P(PixelLocalStorageTests, MixedImplicitExplicit) {
-    // crbug.com/450817278.
-    DAWN_SUPPRESS_TEST_IF(IsWindows() && IsD3D11() && IsWARP());
-
     {
         PLSSpec spec = {16,
                         {{4, wgpu::TextureFormat::R32Uint}, {8, wgpu::TextureFormat::R32Float}},

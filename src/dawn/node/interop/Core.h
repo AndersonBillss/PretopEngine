@@ -82,7 +82,7 @@ using DataView = Napi::TypedArray;
 
 // Datatype used for undefined values.
 struct UndefinedType {};
-static constexpr UndefinedType Undefined;
+inline constexpr UndefinedType Undefined;
 
 template <typename T>
 using FrozenArray = std::vector<T>;
@@ -95,7 +95,7 @@ struct ClampedInteger {
     using IntegerType = T;
     ClampedInteger() : value(0) {}
     // NOLINTNEXTLINE(runtime/explicit)
-    ClampedInteger(T value) : value(value) {}
+    ClampedInteger(T v) : value(v) {}
     operator T() const { return value; }
     T value;
 };
@@ -108,7 +108,7 @@ struct EnforceRangeInteger {
     using IntegerType = T;
     EnforceRangeInteger() : value(0) {}
     // NOLINTNEXTLINE(runtime/explicit)
-    EnforceRangeInteger(T value) : value(value) {}
+    EnforceRangeInteger(T v) : value(v) {}
     operator T() const { return value; }
     T value;
 };
@@ -267,7 +267,7 @@ class PromiseBase {
 
 // A tag used in a Promise constructor to say it won't be used and doesn't need to be initialized.
 struct UnusedPromiseTag {};
-static constexpr UnusedPromiseTag kUnusedPromise;
+inline constexpr UnusedPromiseTag kUnusedPromise;
 
 // Promise<T> is a templated wrapper around a JavaScript promise, which can
 // resolve to the template type T.
@@ -478,7 +478,7 @@ class Converter<uint64_t> {
 // unique type, otherwise we have C++ compilation error for the redefinition of a template.
 namespace detail {
 struct InvalidType;
-static constexpr bool kSizetIsUniqueType =
+inline constexpr bool kSizetIsUniqueType =
     !std::is_same_v<size_t, uint32_t> && !std::is_same_v<size_t, uint64_t>;
 }  // namespace detail
 

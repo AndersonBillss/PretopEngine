@@ -31,10 +31,10 @@
 #include <memory>
 #include <utility>
 
-#include "dawn/common/MutexProtected.h"
-#include "dawn/wire/ChunkedCommandSerializer.h"
 #include "dawn/wire/server/ServerBase_autogen.h"
 #include "partition_alloc/pointers/raw_ptr.h"
+#include "src/dawn/common/MutexProtected.h"
+#include "src/dawn/wire/ChunkedCommandSerializer.h"
 
 namespace dawn::wire::server {
 
@@ -67,9 +67,11 @@ class MemoryTransferService;
 // void Server::MyCallbackHandler(MyUserdata* userdata, Other args) { }
 struct CallbackUserdata {
     const std::weak_ptr<Server> server;
+    const std::shared_ptr<const DawnProcTable> procs;
 
     CallbackUserdata() = delete;
-    explicit CallbackUserdata(const std::weak_ptr<Server>& server);
+    CallbackUserdata(const std::weak_ptr<Server>& server,
+                     std::shared_ptr<const DawnProcTable>& procs);
 };
 
 template <auto F, typename _ = decltype(F)>
@@ -84,13 +86,22 @@ struct ForwardToServerHelper<F, void (Server::*)(UserdataT*, Args...)> {
         std::unique_ptr<Userdata> data(static_cast<Userdata*>(userdata));
         auto server = data->server.lock();
         if (!server) {
-            // Do nothing if the server has already been destroyed.
+            // If the server is destroyed, release any callback owned results and return.
+            (
+                []<typename T>(const DawnProcTable& procs, T arg) {
+                    if constexpr (WGPUTraits<T>::Release != nullptr) {
+                        if (arg) {
+                            (procs.*WGPUTraits<T>::Release)(arg);
+                        }
+                    }
+                }(*(data->procs), std::forward<Args>(args)),
+                ...);
             return;
         }
         // Forward the arguments and the typed userdata to the Server:: member function.
         {
             auto serverGuard = server.get()->GetGuard();
-            (server.get()->*F)(data.get(), std::forward<decltype(args)>(args)...);
+            (server.get()->*F)(data.get(), std::forward<Args>(args)...);
         }
         server.get()->Flush();
     }
@@ -103,8 +114,8 @@ struct MapUserdata : CallbackUserdata {
     WGPUBuffer bufferObj;
     ObjectHandle eventManager;
     WGPUFuture future;
-    uint64_t offset;
-    uint64_t size;
+    size_t offset;
+    size_t size;
     WGPUMapMode mode;
 };
 
@@ -137,7 +148,7 @@ struct CreatePipelineAsyncUserData : CallbackUserdata {
     ObjectHandle device;
     ObjectHandle eventManager;
     WGPUFuture future;
-    ObjectId pipelineObjectID;
+    ObjectHandle pipeline;
 };
 
 struct RequestAdapterUserdata : CallbackUserdata {
@@ -145,7 +156,7 @@ struct RequestAdapterUserdata : CallbackUserdata {
 
     ObjectHandle eventManager;
     WGPUFuture future;
-    ObjectId adapterObjectId;
+    ObjectHandle adapter;
 };
 
 struct RequestDeviceUserdata : CallbackUserdata {
@@ -153,7 +164,7 @@ struct RequestDeviceUserdata : CallbackUserdata {
 
     ObjectHandle eventManager;
     WGPUFuture future;
-    ObjectId deviceObjectId;
+    ObjectHandle device;
     WGPUFuture deviceLostFuture;
 };
 
@@ -188,10 +199,10 @@ class Server : public ServerBase {
     // Flushes the command serialized from server->client if spontaneous callbacks are enabled.
     void Flush();
 
-    template <typename T,
-              typename Enable = std::enable_if<std::is_base_of<CallbackUserdata, T>::value>>
+    template <typename T>
+        requires(std::is_base_of_v<CallbackUserdata, T>)
     std::unique_ptr<T> MakeUserdata() {
-        return std::unique_ptr<T>(new T(mSelf));
+        return std::unique_ptr<T>(new T(mSelf, mProcs));
     }
 
     template <typename CallbackInfo,
@@ -222,15 +233,15 @@ class Server : public ServerBase {
     template <typename Struct>
     class FreeMembers : public Struct {
       public:
-        explicit FreeMembers(const DawnProcTable& procs) : Struct({}), mProcs(procs) {}
-        ~FreeMembers() { (mProcs.*WGPUTraits<Struct>::FreeMembers)(*this); }
+        explicit FreeMembers(std::shared_ptr<const DawnProcTable>& procs)
+            : Struct({}), mProcs(procs) {}
+        ~FreeMembers() { ((*mProcs).*WGPUTraits<Struct>::FreeMembers)(*this); }
 
       private:
-        const DawnProcTable& mProcs;
+        std::shared_ptr<const DawnProcTable> mProcs;
     };
 
     void SetForwardingDeviceCallbacks(Known<WGPUDevice> device);
-    void ClearDeviceCallbacks(WGPUDevice device);
 
     // Async event callbacks:
     //   These callbacks are expected to be called while holding the server object lock via
