@@ -27,9 +27,9 @@
 
 #include <vector>
 
-#include "dawn/common/Constants.h"
-#include "dawn/tests/DawnTest.h"
-#include "dawn/utils/WGPUHelpers.h"
+#include "src/dawn/common/Constants.h"
+#include "src/dawn/tests/DawnTest.h"
+#include "src/dawn/utils/WGPUHelpers.h"
 
 namespace dawn {
 namespace {
@@ -168,9 +168,6 @@ TEST_P(PipelineLayoutTests, ComputeAndRenderSamePipelineLayout) {
 
 // Test creating a PipelineLayout with null and non-null bind group layouts work correctly.
 TEST_P(PipelineLayoutTests, PipelineLayoutCreatedWithNullBindGroupLayout) {
-    // TODO(crbug.com/473886640): [Capture] validation error: sparse bind group layout.
-    DAWN_SUPPRESS_TEST_IF(IsCaptureReplayCheckingEnabled());
-
     for (uint32_t nonEmptyGroupIndex = 0; nonEmptyGroupIndex <= 1; ++nonEmptyGroupIndex) {
         std::ostringstream stream;
         stream << "@group(" << nonEmptyGroupIndex << R"()

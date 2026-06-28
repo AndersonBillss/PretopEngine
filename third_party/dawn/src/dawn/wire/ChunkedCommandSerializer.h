@@ -35,13 +35,14 @@
 #include <memory>
 #include <utility>
 
-#include "dawn/common/Alloc.h"
-#include "dawn/common/Compiler.h"
-#include "dawn/common/Constants.h"
-#include "dawn/common/Math.h"
 #include "dawn/wire/Wire.h"
 #include "dawn/wire/WireCmd_autogen.h"
 #include "partition_alloc/pointers/raw_ptr.h"
+#include "src/dawn/common/Alloc.h"
+#include "src/dawn/common/Compiler.h"
+#include "src/dawn/common/Constants.h"
+#include "src/dawn/common/Math.h"
+#include "src/utils/span.h"
 
 namespace dawn::wire {
 
@@ -49,7 +50,7 @@ namespace dawn::wire {
 // that is not baked directly into the command already.
 struct CommandExtension {
     size_t size;
-    std::function<void(char*)> serialize;
+    std::function<void(Span<std::byte>)> serialize;
 };
 
 namespace detail {
@@ -62,9 +63,11 @@ template <typename Extension, typename... Extensions>
 WireResult SerializeCommandExtension(SerializeBuffer* serializeBuffer,
                                      Extension&& e,
                                      Extensions&&... es) {
-    char* buffer;
+    std::byte* buffer;
     WIRE_TRY(serializeBuffer->NextN(e.size, &buffer));
-    e.serialize(buffer);
+
+    // TODO(https://crbug.com/492456046): Spanify NextN to return a Span.
+    e.serialize(DAWN_UNSAFE_TODO(Span<std::byte>(buffer, e.size)));
 
     WIRE_TRY(SerializeCommandExtension(serializeBuffer, std::forward<Extensions>(es)...));
     return WireResult::Success;
@@ -135,10 +138,10 @@ class ChunkedCommandSerializer {
             return;
         }
 
-        auto cmdSpace = std::unique_ptr<char[]>(AllocNoThrow<char>(requiredSize));
-        if (!cmdSpace) {
-            return;
-        }
+        // Allocate as zero-initialized because padding won't get initialized during command
+        // serialization (and this whole buffer is sent raw to the other end of the wire).
+        auto cmdSpace = std::unique_ptr<char[]>(new char[requiredSize]{});
+
         SerializeBuffer serializeBuffer(cmdSpace.get(), requiredSize);
         WireResult rCmd = SerializeCmd(cmd, requiredSize, &serializeBuffer);
         WireResult rExts = detail::SerializeCommandExtension(&serializeBuffer, extensions...);

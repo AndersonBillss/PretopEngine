@@ -25,10 +25,9 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "dawn/tests/DawnTest.h"
-
-#include "dawn/utils/ComboRenderPipelineDescriptor.h"
-#include "dawn/utils/WGPUHelpers.h"
+#include "src/dawn/tests/DawnTest.h"
+#include "src/dawn/utils/ComboRenderPipelineDescriptor.h"
+#include "src/dawn/utils/WGPUHelpers.h"
 
 namespace dawn {
 namespace {
@@ -65,6 +64,9 @@ class ScissorTest : public DawnTest {
 
 // Test that by default the scissor test is disabled and the whole attachment can be drawn to.
 TEST_P(ScissorTest, DefaultsToWholeRenderTarget) {
+    // TODO(crbug.com/523272953): Produces incorrect result on Pixel 10.
+    DAWN_SUPPRESS_TEST_IF(IsAndroid() && IsImgTec() && IsVulkan());
+
     utils::BasicRenderPass renderPass = utils::CreateBasicRenderPass(device, 100, 100);
     wgpu::RenderPipeline pipeline = CreateQuadPipeline(renderPass.colorFormat);
 
@@ -144,7 +146,6 @@ TEST_P(ScissorTest, EmptyRect) {
 TEST_P(ScissorTest, ZeroRectPointList2Draws) {
     // TODO(464436694): Zero size scissor fails on Intel Mac for this case.
     DAWN_SUPPRESS_TEST_IF(IsMetal() && IsIntel());
-    DAWN_SUPPRESS_TEST_IF(IsWebGPUOn(wgpu::BackendType::Metal) && IsIntel());
 
     utils::BasicRenderPass renderPass = utils::CreateBasicRenderPass(device, 1, 1);
 
@@ -190,6 +191,9 @@ TEST_P(ScissorTest, ZeroRectPointList2Draws) {
 
 // Test that the scissor setting doesn't get inherited between renderpasses
 TEST_P(ScissorTest, NoInheritanceBetweenRenderPass) {
+    // TODO(crbug.com/523272953): Produces incorrect result on Pixel 10.
+    DAWN_SUPPRESS_TEST_IF(IsAndroid() && IsImgTec() && IsVulkan());
+
     utils::BasicRenderPass renderPass = utils::CreateBasicRenderPass(device, 100, 100);
     wgpu::RenderPipeline pipeline = CreateQuadPipeline(renderPass.colorFormat);
 

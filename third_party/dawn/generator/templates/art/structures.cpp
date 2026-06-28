@@ -34,8 +34,8 @@
 #include <jni.h>
 #include <webgpu/webgpu.h>
 
-#include "dawn/common/Assert.h"
-#include "dawn/common/Log.h"
+#include "src/utils/assert.h"
+#include "src/utils/log.h"
 #include "JNIClasses.h"
 #include "JNIContext.h"
 
@@ -174,7 +174,8 @@ jobject ToKotlin(JNIEnv* env, const WGPUStringView* s) {
             {{KotlinRecord}} kotlinRecord;
             {% for member in kotlin_record_members(structure.members) %}
                 {
-                    jmethodID getter = env->GetMethodID(clz, "get{{member.name.CamelCase()}}", "(){{jni_signature(member)}}");
+                    {% set prefix = "is" if member.type.name.get() == "bool" else "get" %}
+                    jmethodID getter = env->GetMethodID(clz, "{{prefix}}{{member.name.CamelCase()}}", "(){{jni_signature(member)}}");
                     CallGetter(env, getter, obj, &kotlinRecord.{{as_varName(member.name)}});
                 }
             {% endfor %}

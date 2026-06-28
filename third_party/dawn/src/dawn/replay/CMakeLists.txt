@@ -31,19 +31,25 @@ set(headers
 )
 
 set(private_headers
+    "BlitBufferToDepthTexture.h"
     "Capture.h"
     "Deserialization.h"
     "Error.h"
     "ReadHead.h"
     "ReplayImpl.h"
+    "CaptureWalker.h"
+    "SurfaceDiscovery.h"
 )
 
 set(sources
+    "BlitBufferToDepthTexture.cpp"
     "Capture.cpp"
     "Deserialization.cpp"
     "Error.cpp"
     "ReadHead.cpp"
     "Replay.cpp"
+    "CaptureWalker.cpp"
+    "SurfaceDiscovery.cpp"
 )
 
 dawn_add_library(

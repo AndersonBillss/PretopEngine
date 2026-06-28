@@ -25,10 +25,9 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "src/tint/lang/wgsl/resolver/resolver.h"
-
 #include "gmock/gmock.h"
 #include "src/tint/lang/core/fluent_types.h"
+#include "src/tint/lang/wgsl/resolver/resolver.h"
 #include "src/tint/lang/wgsl/resolver/resolver_helper_test.h"
 #include "src/tint/lang/wgsl/sem/struct.h"
 
@@ -214,8 +213,8 @@ TEST_F(ResolverStructLayoutTest, ImplicitStrideArrayOfStructure) {
                                          Member("a", ty.vec2<i32>()),
                                          Member("b", ty.vec3<i32>()),
                                          Member("c", ty.vec4<i32>()),
-                                     });        // size: 48
-    auto outer = ty.array(ty.Of(inner), 12_u);  // size: 12 * 48
+                                     });       // size: 48
+    auto outer = ty.array(ty.Of(inner), 12u);  // size: 12 * 48
     auto* s = Structure("S", Vector{
                                  Member("c", outer),
                              });

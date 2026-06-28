@@ -25,6 +25,13 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#ifdef UNSAFE_BUFFERS_BUILD
+// TODO(crbug.com/40285824): Remove this and convert code to safer constructs.
+#pragma allow_unsafe_buffers
+#endif
+
+#include "src/dawn/tests/unittests/validation/ValidationTest.h"
+
 #include <webgpu/webgpu.h>
 
 #include <algorithm>
@@ -32,17 +39,17 @@
 #include <utility>
 #include <vector>
 
-#include "dawn/common/Assert.h"
-#include "dawn/common/SystemUtils.h"
 #include "dawn/dawn_proc.h"
-#include "dawn/native/Adapter.h"
 #include "dawn/native/NullBackend.h"
-#include "dawn/tests/PartitionAllocSupport.h"
-#include "dawn/tests/StringViewMatchers.h"
-#include "dawn/tests/ToggleParser.h"
-#include "dawn/tests/unittests/validation/ValidationTest.h"
-#include "dawn/utils/WireHelper.h"
 #include "dawn/webgpu_cpp_print.h"
+#include "src/dawn/common/SystemUtils.h"
+#include "src/dawn/native/Adapter.h"
+#include "src/dawn/tests/PartitionAllocSupport.h"
+#include "src/dawn/tests/StringViewMatchers.h"
+#include "src/dawn/tests/ToggleParser.h"
+#include "src/dawn/utils/WireHelper.h"
+#include "src/utils/assert.h"
+#include "src/utils/crash_handler.h"
 
 namespace {
 
@@ -55,6 +62,7 @@ static ValidationTest* gCurrentTest = nullptr;
 }  // namespace
 
 void InitDawnValidationTestEnvironment(int argc, char** argv) {
+    dawn::InstallCrashHandler(argv[0]);
     dawn::InitializePartitionAllocForTesting();
     dawn::InitializeDanglingPointerDetectorForTesting();
 
@@ -259,6 +267,23 @@ std::string ValidationTest::GetLastDeviceErrorMessage() const {
     return mDeviceErrorMessage;
 }
 
+void ValidationTest::StartExpectDeviceLog(wgpu::LoggingType type,
+                                          testing::Matcher<std::string> message) {
+    mExpectLog = std::tuple(type, message);
+    mGotLog = false;
+}
+bool ValidationTest::EndExpectDeviceLog() {
+    mExpectLog.reset();
+    return mGotLog;
+}
+
+void ValidationTest::StartExpectNoDeviceLog() {
+    mExpectLog = std::tuple(kExpectNoLog, testing::_);
+}
+void ValidationTest::EndExpectNoDeviceLog() {
+    mExpectLog.reset();
+}
+
 void ValidationTest::ExpectDeviceDestruction() {
     mExpectDestruction = true;
 }
@@ -410,6 +435,22 @@ void ValidationTest::SetUp(const wgpu::InstanceDescriptor* nativeDesc,
 
     device = RequestDeviceSync(deviceDescriptor);
     DAWN_ASSERT(device);
+    device.SetLoggingCallback(
+        [](wgpu::LoggingType type, wgpu::StringView message, ValidationTest* self) {
+            // Note we ignore all logs that happen outside of ASSERT_(NO_)DEVICE_LOG.
+            if (self->mExpectLog) {
+                const auto& [expectedType, expectedMessage] = self->mExpectLog.value();
+                if (expectedType == kExpectNoLog) {
+                    FAIL() << "Unexpected log during ASSERT_NO_DEVICE_LOG:\n" << message;
+                } else {
+                    ASSERT_EQ(type, expectedType);
+                    ASSERT_THAT(message, testing::SizedStringMatches(expectedMessage));
+                    self->mGotLog = true;
+                }
+            }
+        },
+        this);
+
     device.GetLimits(deviceLimits.GetLinked());
 
     // We only want to set the backendDevice when the device was created via the test setup.

@@ -25,16 +25,16 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef SRC_DAWN_NATIVE_VULKAN_ADAPTERVK_H_
-#define SRC_DAWN_NATIVE_VULKAN_ADAPTERVK_H_
+#ifndef SRC_DAWN_NATIVE_VULKAN_PHYSICALDEVICEVK_H_
+#define SRC_DAWN_NATIVE_VULKAN_PHYSICALDEVICEVK_H_
 
 #include <memory>
 #include <vector>
 
-#include "dawn/common/Ref.h"
-#include "dawn/common/vulkan_platform.h"
-#include "dawn/native/PhysicalDevice.h"
-#include "dawn/native/vulkan/VulkanInfo.h"
+#include "src/dawn/common/Ref.h"
+#include "src/dawn/common/vulkan_platform.h"
+#include "src/dawn/native/PhysicalDevice.h"
+#include "src/dawn/native/vulkan/VulkanInfo.h"
 
 namespace dawn::native {
 class AHBFunctions;
@@ -61,17 +61,27 @@ class PhysicalDevice : public PhysicalDeviceBase {
     bool IsDepthStencilFormatSupported(VkFormat format) const;
     bool IsTextureCompressionASTCSliced3DSupported(VkFormat format) const;
 
+    static bool IsAndroid();
     bool IsAndroidQualcomm() const;
     bool IsAndroidARM() const;
     bool IsAndroidSamsung() const;
     bool IsAndroidImgTec() const;
+    bool IsAndroidHuawei() const;
     bool IsPixel10() const;
+    bool IsSwiftshader() const;
+    static bool IsWindows();
+    bool IsWindowsAMD() const;
+
+    // Check using VkDriverId, which is available in Vk 1.2 or an extension.
     bool IsIntelMesa() const;
     bool IsAmdMesa() const;
-    bool IsAndroidHuawei() const;
-    bool IsSwiftshader() const;
 
-    uint32_t GetDefaultComputeSubgroupSize() const;
+    // Assumes that we might be on the proprietary driver if VkDriverId is not available.
+    bool MayBeArmProprietary() const;
+    bool MayBeQualcommProprietary() const;
+    bool MayBeImaginationProprietary() const;
+
+    std::optional<uint32_t> GetDefaultComputeSubgroupSize() const;
     std::vector<SubgroupMatrixConfig> EnumerateSubgroupMatrixConfigs(
         const TogglesState& toggles) const;
 
@@ -102,7 +112,7 @@ class PhysicalDevice : public PhysicalDeviceBase {
         const TogglesState& deviceToggles,
         Ref<DeviceBase::DeviceLostEvent>&& lostEvent) override;
 
-    uint32_t FindDefaultComputeSubgroupSize() const;
+    std::optional<uint32_t> FindDefaultComputeSubgroupSize() const;
     bool CheckSemaphoreSupport(DeviceExt deviceExt,
                                VkExternalSemaphoreHandleTypeFlagBits handleType) const;
 
@@ -120,7 +130,7 @@ class PhysicalDevice : public PhysicalDeviceBase {
     Ref<VulkanInstance> mVulkanInstance;
     VulkanDeviceInfo mDeviceInfo = {};
 
-    uint32_t mDefaultComputeSubgroupSize = 0;
+    std::optional<uint32_t> mDefaultComputeSubgroupSize;
     bool mSupportsCoreFeatureLevel = true;
     mutable std::unique_ptr<ErrorData> mCoreError;
 
@@ -131,4 +141,4 @@ class PhysicalDevice : public PhysicalDeviceBase {
 
 }  // namespace dawn::native::vulkan
 
-#endif  // SRC_DAWN_NATIVE_VULKAN_ADAPTERVK_H_
+#endif  // SRC_DAWN_NATIVE_VULKAN_PHYSICALDEVICEVK_H_

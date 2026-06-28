@@ -25,12 +25,12 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "dawn/native/DeviceGuard.h"
+#include "src/dawn/native/DeviceGuard.h"
 
 #include <utility>
 
-#include "dawn/common/Assert.h"
-#include "dawn/native/Device.h"
+#include "src/dawn/native/Device.h"
+#include "src/utils/assert.h"
 
 namespace dawn::native {
 
@@ -65,5 +65,8 @@ DeviceGuardBase::DeviceGuardBase(DeviceMutex* mutex) : mMutex(mutex) {}
 
 DeviceGuard::DeviceGuard(DeviceBase* device, DeviceMutex* mutex)
     : detail::DeviceGuardBase(mutex), GuardBase(device, device->mMutex) {}
+
+DeviceGuard::DeviceGuard(DeviceGuard&& other)
+    : detail::DeviceGuardBase(std::move(other)), GuardBase(std::move(other)) {}
 
 }  // namespace dawn::native

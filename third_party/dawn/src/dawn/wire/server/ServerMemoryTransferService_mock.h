@@ -30,33 +30,38 @@
 
 #include <gmock/gmock.h>
 
+#include <memory>
+#include <span>
+
 #include "dawn/wire/WireServer.h"
-#include "dawn/wire/server/Server.h"
 #include "partition_alloc/pointers/raw_ptr.h"
+#include "src/dawn/wire/server/Server.h"
 
 namespace dawn::wire::server {
 
 class MockMemoryTransferService : public MemoryTransferService {
   public:
-    class MockReadHandle : public ReadHandle {
+    class MockMemoryHandle : public MemoryHandle {
       public:
-        ~MockReadHandle() override;
+        ~MockMemoryHandle() override;
         MOCK_METHOD(void, Destroy, ());
 
-        MOCK_METHOD(size_t, SizeOfSerializeDataUpdate, (size_t, size_t), (override));
-        MOCK_METHOD(void, SerializeDataUpdate, (const void*, size_t, size_t, void*), (override));
+        MOCK_METHOD(std::span<std::byte>, GetSource, (), (const, override));
+        MOCK_METHOD(size_t, GetSerializeDataUpdateSize, (size_t, size_t), (const, override));
+        MOCK_METHOD(void,
+                    SerializeDataUpdate,
+                    (std::span<std::byte>, size_t, size_t, std::span<const std::byte>),
+                    (const, override));
+        MOCK_METHOD(bool,
+                    DeserializeDataUpdate,
+                    (std::span<const std::byte>, size_t, size_t, std::span<std::byte>),
+                    (override));
     };
 
-    class MockWriteHandle : public WriteHandle {
-      public:
-        ~MockWriteHandle() override;
-        MOCK_METHOD(void, Destroy, ());
-
-        MOCK_METHOD(bool, DeserializeDataUpdate, (const void*, size_t, size_t, size_t), (override));
-    };
-
-    MOCK_METHOD(bool, DeserializeReadHandle, (const void*, size_t, ReadHandle**), (override));
-    MOCK_METHOD(bool, DeserializeWriteHandle, (const void*, size_t, WriteHandle**), (override));
+    MOCK_METHOD(std::unique_ptr<MemoryHandle>,
+                DeserializeMemoryHandle,
+                (std::span<const std::byte>),
+                (override));
 };
 
 }  // namespace dawn::wire::server

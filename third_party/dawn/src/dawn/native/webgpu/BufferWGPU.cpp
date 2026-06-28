@@ -25,18 +25,19 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "dawn/native/webgpu/BufferWGPU.h"
+#include "src/dawn/native/webgpu/BufferWGPU.h"
 
 #include <algorithm>
 #include <string>
 #include <utility>
 
-#include "dawn/common/StringViewUtils.h"
-#include "dawn/native/Buffer.h"
-#include "dawn/native/webgpu/CaptureContext.h"
-#include "dawn/native/webgpu/DeviceWGPU.h"
-#include "dawn/native/webgpu/QueueWGPU.h"
-#include "dawn/native/webgpu/Serialization.h"
+#include "src/dawn/common/StringViewUtils.h"
+#include "src/dawn/native/Buffer.h"
+#include "src/dawn/native/webgpu/CaptureContext.h"
+#include "src/dawn/native/webgpu/DeviceWGPU.h"
+#include "src/dawn/native/webgpu/QueueWGPU.h"
+#include "src/dawn/native/webgpu/Serialization.h"
+#include "src/utils/compiler.h"
 
 namespace dawn::native::webgpu {
 
@@ -70,7 +71,7 @@ ResultOrError<Ref<Buffer>> Buffer::Create(Device* device,
     desc.size = descriptor->size;
     desc.mappedAtCreation = descriptor->mappedAtCreation;
 
-    WGPUBuffer innerBuffer = device->wgpu.deviceCreateBuffer(device->GetInnerHandle(), &desc);
+    WGPUBuffer innerBuffer = device->wgpu->deviceCreateBuffer(device->GetInnerHandle(), &desc);
     if (innerBuffer == nullptr) {
         // innerBuffer can be nullptr when mappedAtCreation == true and fails.
         // Return an error buffer.
@@ -87,22 +88,24 @@ Buffer::Buffer(Device* device,
                WGPUBuffer innerBuffer)
     : BufferBase(device, descriptor),
       RecordableObject(schema::ObjectType::Buffer),
-      ObjectWGPU(device->wgpu.bufferRelease) {
+      ObjectWGPU(device->wgpu->bufferRelease) {
     mInnerHandle = innerBuffer;
     mAllocatedSize = GetSize();
 }
 
 bool Buffer::IsCPUWritableAtCreation() const {
-    return ToBackend(GetDevice())->wgpu.bufferGetMapState(mInnerHandle) ==
+    return ToBackend(GetDevice())->wgpu->bufferGetMapState(mInnerHandle) ==
            WGPUBufferMapState_Mapped;
 }
 
 MaybeError Buffer::MapAtCreationImpl() {
-    mMappedData = ToBackend(GetDevice())->wgpu.bufferGetMappedRange(mInnerHandle, 0, GetSize());
+    mMappedData = ToBackend(GetDevice())->wgpu->bufferGetMappedRange(mInnerHandle, 0, GetSize());
     return {};
 }
 
 MaybeError Buffer::MapAsyncImpl(wgpu::MapMode mode, size_t offset, size_t size) {
+    auto deviceGuard = GetDevice()->GetGuard();
+
     struct MapAsyncResult {
         WGPUMapAsyncStatus status;
         std::string message;
@@ -119,7 +122,7 @@ MaybeError Buffer::MapAsyncImpl(wgpu::MapMode mode, size_t offset, size_t size) 
     innerCallbackInfo.userdata1 = &mapAsyncResult;
     innerCallbackInfo.userdata2 = this;
 
-    auto& wgpu = ToBackend(GetDevice())->wgpu;
+    auto& wgpu = ToBackend(GetDevice())->wgpu.get();
 
     // TODO(crbug.com/413053623): We do not have a way to efficiently process the async event
     // on the inner webgpu layer. For now we simply wait on the future.
@@ -135,12 +138,13 @@ MaybeError Buffer::MapAsyncImpl(wgpu::MapMode mode, size_t offset, size_t size) 
     // The frontend asks that the pointer returned by GetMappedPointer is from the start of
     // the resource but WGPU gives us the pointer at offset. Remove the offset.
     if (bool{mode & wgpu::MapMode::Write}) {
-        mMappedData =
-            static_cast<uint8_t*>(wgpu.bufferGetMappedRange(mInnerHandle, offset, size)) - offset;
+        mMappedData = DAWN_UNSAFE_TODO(
+            static_cast<uint8_t*>(wgpu.bufferGetMappedRange(mInnerHandle, offset, size)) - offset);
     } else if (bool{mode & wgpu::MapMode::Read}) {
-        mMappedData = static_cast<uint8_t*>(const_cast<void*>(
-                          wgpu.bufferGetConstMappedRange(mInnerHandle, offset, size))) -
-                      offset;
+        mMappedData =
+            DAWN_UNSAFE_TODO(static_cast<uint8_t*>(const_cast<void*>(
+                                 wgpu.bufferGetConstMappedRange(mInnerHandle, offset, size))) -
+                             offset);
     } else {
         DAWN_UNREACHABLE();
     }
@@ -161,22 +165,21 @@ void Buffer::UnmapImpl(BufferState oldState, BufferState newState) {
 
     if (IsMappedState(oldState) && MapMode() == wgpu::MapMode::Write &&
         newState != BufferState::Destroyed) {
-        CaptureContext* captureContext = ToBackend(GetDevice()->GetQueue())->GetCaptureContext();
-        if (captureContext != nullptr) {
-            [[maybe_unused]] auto result =
-                captureContext->CaptureUnmapBuffer(this, MapOffset(), mMappedData, MapSize());
-        }
+        // TODO(477349135): Optimize this by tracking the ranges. As it is we'll
+        // capture the entire buffer even if only a few bytes were updated. Instead
+        // of mNeedsCapture we could have mDirtySpans. When size is 0 there's nothing to do.
+        mNeedsCapture = true;
     }
 
     if (mInnerHandle) {
-        ToBackend(GetDevice())->wgpu.bufferUnmap(mInnerHandle);
+        ToBackend(GetDevice())->wgpu->bufferUnmap(mInnerHandle);
     }
     mMappedData = nullptr;
 }
 
 void Buffer::DestroyImpl(DestroyReason reason) {
     BufferBase::DestroyImpl(reason);
-    auto& wgpu = ToBackend(GetDevice())->wgpu;
+    auto& wgpu = ToBackend(GetDevice())->wgpu.get();
     wgpu.bufferDestroy(mInnerHandle);
 }
 
@@ -204,15 +207,17 @@ MaybeError Buffer::CaptureContentIfNeeded(CaptureContext& captureContext,
     // TODO(451338754): If it's a new resource and we know the buffer is all zero then don't
     // capture.
     wgpu::BufferUsage usage = GetUsage();
-    bool unwritableOnPlayback = usage & wgpu::BufferUsage::MapWrite;
-    if (!newResource || unwritableOnPlayback) {
+    if (!mNeedsCapture && !newResource) {
         return {};
     }
+
     // A MapRead buffer is never used as input since it's only allowed CopyDst
     // so we don't need its contents.
     if (usage & wgpu::BufferUsage::MapRead) {
         return {};
     }
+
+    mNeedsCapture = false;
 
     return AddContentToCapture(captureContext);
 }
@@ -253,7 +258,7 @@ MaybeError Buffer::AddContentToCapture(CaptureContext& captureContext) {
 
     Device* device = ToBackend(GetDevice());
     WGPUDevice innerDevice = device->GetInnerHandle();
-    auto& wgpu = device->wgpu;
+    auto& wgpu = device->wgpu.get();
 
     CaptureContext::ScopedContentWriter writer(captureContext);
     for (uint64_t offset = 0; offset < copyableSize; offset += CaptureContext::kCopyBufferSize) {

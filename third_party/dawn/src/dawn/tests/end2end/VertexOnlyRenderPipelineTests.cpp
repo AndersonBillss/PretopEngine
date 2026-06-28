@@ -25,10 +25,9 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "dawn/tests/DawnTest.h"
-
-#include "dawn/utils/ComboRenderPipelineDescriptor.h"
-#include "dawn/utils/WGPUHelpers.h"
+#include "src/dawn/tests/DawnTest.h"
+#include "src/dawn/utils/ComboRenderPipelineDescriptor.h"
+#include "src/dawn/utils/WGPUHelpers.h"
 
 namespace dawn {
 namespace {
@@ -195,6 +194,9 @@ class VertexOnlyRenderPipelineTest : public DawnTest {
 // Test that a vertex-only render pipeline modify the stencil attachment as same as a complete
 // render pipeline do.
 TEST_P(VertexOnlyRenderPipelineTest, Stencil) {
+    // TODO(crbug.com/523272964): Produces incorrect result on Pixel 10.
+    DAWN_SUPPRESS_TEST_IF(IsAndroid() && IsImgTec() && IsVulkan());
+
     auto doStencilTest = [&](const wgpu::RenderPassDescriptor* renderPass,
                              const wgpu::RenderPipeline& pipeline,
                              const utils::RGBA8& colorExpect) -> void {
@@ -232,6 +234,8 @@ TEST_P(VertexOnlyRenderPipelineTest, Stencil) {
 // Test that a vertex-only render pipeline modify the depth attachment as same as a complete render
 // pipeline do.
 TEST_P(VertexOnlyRenderPipelineTest, Depth) {
+    // TODO(crbug.com/40238674): Fails on Pixel 10.
+    DAWN_SUPPRESS_TEST_IF(IsImgTec());
     // TODO(crbug.com/dawn/2295): diagnose this failure on Pixel 4 OpenGLES
     DAWN_SUPPRESS_TEST_IF(IsOpenGLES() && IsAndroid() && IsQualcomm());
 
@@ -278,6 +282,9 @@ TEST_P(VertexOnlyRenderPipelineTest, Depth) {
 // draw, and make sure that it correctly use the stencil and depth result set in previous
 // vertex-only pipelines.
 TEST_P(VertexOnlyRenderPipelineTest, MultiplePass) {
+    // TODO(crbug.com/40238674): Fails on Pixel 10 vulkan.
+    DAWN_SUPPRESS_TEST_IF(IsImgTec() && (IsOpenGLES() || IsVulkan()));
+
     wgpu::CommandEncoder encoder = device.CreateCommandEncoder();
 
     ClearAttachment(encoder);

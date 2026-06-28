@@ -48,6 +48,7 @@ tint_add_target(tint_api_common lib
   api/common/substitute_overrides_config.h
   api/common/vertex_pulling_config.cc
   api/common/vertex_pulling_config.h
+  api/common/workgroup_info.h
 )
 
 tint_target_add_dependencies(tint_api_common lib
@@ -57,6 +58,7 @@ tint_target_add_dependencies(tint_api_common lib
   tint_utils_macros
   tint_utils_math
   tint_utils_memory
+  tint_utils_reflection
   tint_utils_rtti
 )
 
@@ -82,6 +84,7 @@ tint_target_add_dependencies(tint_api_common_test test
   tint_utils_macros
   tint_utils_math
   tint_utils_memory
+  tint_utils_reflection
   tint_utils_rtti
 )
 

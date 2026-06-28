@@ -28,12 +28,12 @@
 #include <limits>
 #include <vector>
 
-#include "dawn/common/Constants.h"
-#include "dawn/common/Math.h"
-#include "dawn/tests/DawnTest.h"
-#include "dawn/utils/ComboRenderPipelineDescriptor.h"
-#include "dawn/utils/TextureUtils.h"
-#include "dawn/utils/WGPUHelpers.h"
+#include "src/dawn/common/Constants.h"
+#include "src/dawn/common/Math.h"
+#include "src/dawn/tests/DawnTest.h"
+#include "src/dawn/utils/ComboRenderPipelineDescriptor.h"
+#include "src/dawn/utils/TextureUtils.h"
+#include "src/dawn/utils/WGPUHelpers.h"
 
 namespace dawn {
 namespace {
@@ -46,6 +46,7 @@ class DepthBiasTests : public DawnTest {
   protected:
     void SetUp() override {
         DawnTest::SetUp();
+
         // TODO(crbug.com/473870505): [Capture] support depth/stencil and multi-planar textures.
         DAWN_SUPPRESS_TEST_IF(IsCaptureReplayCheckingEnabled());
     }
@@ -165,6 +166,8 @@ class DepthBiasTests : public DawnTest {
 
 // Test adding positive bias to output
 TEST_P(DepthBiasTests, PositiveBiasOnFloat) {
+    // TODO(crbug.com/40238674): Fails on Pixel 10.
+    DAWN_SUPPRESS_TEST_IF(IsImgTec());
     // NVIDIA GPUs under Vulkan seem to be using a different scale than everyone else.
     DAWN_SUPPRESS_TEST_IF(IsVulkan() && IsNvidia());
 
@@ -191,6 +194,9 @@ TEST_P(DepthBiasTests, PositiveBiasOnFloatWithClamp) {
     // https://github.com/gpuweb/gpuweb/blob/main/proposals/compatibility-mode.md#9-depth-bias-clamp-must-be-zero
     DAWN_TEST_UNSUPPORTED_IF(IsCompatibilityMode());
 
+    // TODO(crbug.com/519266536): Produces incorrect result on Pixel 10.
+    DAWN_SUPPRESS_TEST_IF(IsAndroid() && IsImgTec() && IsVulkan());
+
     // Draw quad flat on z = 0.25 with 0.25 bias clamped at 0.125.
     RunDepthBiasTest(wgpu::TextureFormat::Depth32Float, 0, QuadAngle::Flat,
                      kPointTwoFiveBiasForPointTwoFiveZOnFloat, 0, 0.125);
@@ -207,6 +213,8 @@ TEST_P(DepthBiasTests, PositiveBiasOnFloatWithClamp) {
 
 // Test adding negative bias to output
 TEST_P(DepthBiasTests, NegativeBiasOnFloat) {
+    // TODO(crbug.com/40238674): Fails on Pixel 10.
+    DAWN_SUPPRESS_TEST_IF(IsImgTec());
     // NVIDIA GPUs seems to be using a different scale than everyone else
     DAWN_SUPPRESS_TEST_IF(IsVulkan() && IsNvidia());
     // Draw quad flat on z = 0.25 with -0.25 bias, depth clear of 0.125
@@ -229,6 +237,9 @@ TEST_P(DepthBiasTests, NegativeBiasOnFloatWithClamp) {
     // https://github.com/gpuweb/gpuweb/blob/main/proposals/compatibility-mode.md#9-depth-bias-clamp-must-be-zero
     DAWN_TEST_UNSUPPORTED_IF(IsCompatibilityMode());
 
+    // TODO(crbug.com/519266536): Produces incorrect result on Pixel 10.
+    DAWN_SUPPRESS_TEST_IF(IsAndroid() && IsImgTec() && IsVulkan());
+
     // Draw quad flat on z = 0.25 with -0.25 bias clamped at -0.125.
     RunDepthBiasTest(wgpu::TextureFormat::Depth32Float, 0, QuadAngle::Flat,
                      -kPointTwoFiveBiasForPointTwoFiveZOnFloat, 0, -0.125);
@@ -245,6 +256,8 @@ TEST_P(DepthBiasTests, NegativeBiasOnFloatWithClamp) {
 
 // Test tiledX quad with no bias
 TEST_P(DepthBiasTests, NoBiasTiltedXOnFloat) {
+    // TODO(crbug.com/40238674): Fails on Pixel 10.
+    DAWN_SUPPRESS_TEST_IF(IsImgTec());
     // Draw quad with z from 0 to 0.5 with no bias
     RunDepthBiasTest(wgpu::TextureFormat::Depth32Float, 0, QuadAngle::TiltedX, 0, 0, 0);
 
@@ -260,6 +273,8 @@ TEST_P(DepthBiasTests, NoBiasTiltedXOnFloat) {
 
 // Test adding positive slope bias to output
 TEST_P(DepthBiasTests, PositiveSlopeBiasOnFloat) {
+    // TODO(crbug.com/40238674): Fails on Pixel 10.
+    DAWN_SUPPRESS_TEST_IF(IsImgTec());
     // Draw quad with z from 0 to 0.5 with a slope bias of 1
     RunDepthBiasTest(wgpu::TextureFormat::Depth32Float, 0, QuadAngle::TiltedX, 0, 1, 0);
 
@@ -275,6 +290,8 @@ TEST_P(DepthBiasTests, PositiveSlopeBiasOnFloat) {
 
 // Test adding negative half slope bias to output
 TEST_P(DepthBiasTests, NegativeHalfSlopeBiasOnFloat) {
+    // TODO(crbug.com/40238674): Fails on Pixel 10.
+    DAWN_SUPPRESS_TEST_IF(IsImgTec());
     // Draw quad with z from 0 to 0.5 with a slope bias of -0.5
     RunDepthBiasTest(wgpu::TextureFormat::Depth32Float, 0, QuadAngle::TiltedX, 0, -0.5, 0);
 
@@ -290,9 +307,12 @@ TEST_P(DepthBiasTests, NegativeHalfSlopeBiasOnFloat) {
 
 // Test adding positive bias to output
 TEST_P(DepthBiasTests, PositiveBiasOn24bit) {
+    // TODO(crbug.com/519266536): Produces incorrect result on Pixel 10.
+    DAWN_SUPPRESS_TEST_IF(IsAndroid() && IsImgTec() && IsVulkan());
+
     // Draw quad flat on z = 0.25 with 0.25 bias
     RunDepthBiasTest(wgpu::TextureFormat::Depth24PlusStencil8, 0.4f, QuadAngle::Flat,
-                     0.25f * (1 << 25), 0, 0);
+                     kPointTwoFiveBiasForPointTwoFiveZOnFloat, 0, 0);
 
     // Only the bottom left quad has colors. 0.5 quad > 0.4 clear.
     // TODO(crbug.com/dawn/820): Switch to depth sampling once feature has been enabled.
@@ -312,7 +332,7 @@ TEST_P(DepthBiasTests, PositiveBiasOn24bitWithClamp) {
 
     // Draw quad flat on z = 0.25 with 0.25 bias clamped at 0.125.
     RunDepthBiasTest(wgpu::TextureFormat::Depth24PlusStencil8, 0.4f, QuadAngle::Flat,
-                     0.25f * (1 << 25), 0, 0.1f);
+                     kPointTwoFiveBiasForPointTwoFiveZOnFloat, 0, 0.1f);
 
     // Since we cleared with a depth of 0.4 and clamped bias at 0.4, the depth test will fail. 0.25
     // + 0.125 < 0.4 clear.
@@ -327,6 +347,9 @@ TEST_P(DepthBiasTests, PositiveBiasOn24bitWithClamp) {
 
 // Test adding positive bias to output
 TEST_P(DepthBiasTests, PositiveSlopeBiasOn24bit) {
+    // TODO(crbug.com/519266536): Produces incorrect result on Pixel 10.
+    DAWN_SUPPRESS_TEST_IF(IsAndroid() && IsImgTec() && IsVulkan());
+
     // Draw quad with z from 0 to 0.5 with a slope bias of 1
     RunDepthBiasTest(wgpu::TextureFormat::Depth24PlusStencil8, 0.4f, QuadAngle::TiltedX, 0, 1, 0);
 

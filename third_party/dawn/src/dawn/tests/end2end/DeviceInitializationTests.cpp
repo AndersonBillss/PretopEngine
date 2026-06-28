@@ -30,9 +30,9 @@
 #include <vector>
 
 #include "dawn/dawn_proc.h"
-#include "dawn/tests/DawnTest.h"
-#include "dawn/utils/SystemUtils.h"
-#include "dawn/utils/WGPUHelpers.h"
+#include "src/dawn/tests/DawnTest.h"
+#include "src/dawn/utils/SystemUtils.h"
+#include "src/dawn/utils/WGPUHelpers.h"
 
 namespace dawn {
 namespace {
@@ -144,6 +144,14 @@ TEST_F(DeviceInitializationTest, AdapterOutlivesInstance) {
             if (info.backendType == wgpu::BackendType::Null) {
                 continue;
             }
+
+            // TODO(crbug.com/472472701): Flakily kills test process when run with
+            // software backends and MSVC-compiled binaries.
+#if DAWN_COMPILER_IS(MSVC)
+            if (info.adapterType == wgpu::AdapterType::CPU) {
+                DAWN_SUPPRESS_TEST_IF(true);
+            }
+#endif  // DAWN_COMPILER_IS(MSVC)
 
             availableAdapterInfo.push_back(std::move(info));
         }

@@ -25,28 +25,32 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "dawn/native/vulkan/QueueVk.h"
+#include "src/dawn/native/vulkan/QueueVk.h"
 
 #include <limits>
 #include <optional>
 #include <utility>
 
-#include "dawn/common/Math.h"
-#include "dawn/native/Buffer.h"
-#include "dawn/native/CommandValidation.h"
-#include "dawn/native/Commands.h"
-#include "dawn/native/DynamicUploader.h"
-#include "dawn/native/vulkan/CommandBufferVk.h"
-#include "dawn/native/vulkan/CommandRecordingContextVk.h"
-#include "dawn/native/vulkan/DeviceVk.h"
-#include "dawn/native/vulkan/FencedDeleter.h"
-#include "dawn/native/vulkan/TextureVk.h"
-#include "dawn/native/vulkan/UniqueVkHandle.h"
-#include "dawn/native/vulkan/UtilsVulkan.h"
-#include "dawn/native/vulkan/VulkanError.h"
+#include "absl/cleanup/cleanup.h"
 #include "dawn/platform/DawnPlatform.h"
-#include "dawn/platform/tracing/TraceEvent.h"
 #include "partition_alloc/pointers/raw_ptr.h"
+#include "src/dawn/common/Math.h"
+#include "src/dawn/native/Buffer.h"
+#include "src/dawn/native/CommandValidation.h"
+#include "src/dawn/native/Commands.h"
+#include "src/dawn/native/DynamicUploader.h"
+#include "src/dawn/native/vulkan/CommandBufferVk.h"
+#include "src/dawn/native/vulkan/CommandRecordingContextVk.h"
+#include "src/dawn/native/vulkan/DeviceVk.h"
+#include "src/dawn/native/vulkan/FencedDeleter.h"
+#include "src/dawn/native/vulkan/TextureVk.h"
+#include "src/dawn/native/vulkan/UniqueVkHandle.h"
+#include "src/dawn/native/vulkan/UtilsVulkan.h"
+#include "src/dawn/native/vulkan/VulkanError.h"
+#include "src/dawn/platform/metrics/HistogramMacros.h"
+#include "src/dawn/platform/tracing/TraceEvent.h"
+#include "src/dawn/utils/SystemUtils.h"
+#include "src/utils/compiler.h"
 
 namespace dawn::native::vulkan {
 
@@ -99,7 +103,7 @@ MaybeError Queue::SubmitImpl(uint32_t commandCount, CommandBufferBase* const* co
     TRACE_EVENT_BEGIN0(GetDevice()->GetPlatform(), Recording, "CommandBufferVk::RecordCommands");
     CommandRecordingContext* recordingContext = GetPendingRecordingContext();
     for (uint32_t i = 0; i < commandCount; ++i) {
-        DAWN_TRY(ToBackend(commands[i])->RecordCommands(recordingContext));
+        DAWN_UNSAFE_TODO(DAWN_TRY(ToBackend(commands[i])->RecordCommands(recordingContext)));
     }
     TRACE_EVENT_END0(GetDevice()->GetPlatform(), Recording, "CommandBufferVk::RecordCommands");
 
@@ -129,7 +133,7 @@ ResultOrError<ExecutionSerial> Queue::CheckAndUpdateCompletedSerials() {
 
     Device* device = ToBackend(GetDevice());
     return mFencesInFlight.Use([&](auto fencesInFlight) -> ResultOrError<ExecutionSerial> {
-        ExecutionSerial fenceSerial(0);
+        ExecutionSerial fenceSerial(0u);
         while (!fencesInFlight->empty()) {
             VkFence fence = fencesInFlight->front().first;
             ExecutionSerial tentativeSerial = fencesInFlight->front().second;
@@ -174,8 +178,12 @@ MaybeError Queue::WaitForIdleForDestructionImpl() {
     // Ignore the result of QueueWaitIdle: it can return OOM which we can't really do anything
     // about, Device lost, which means workloads running on the GPU are no longer accessible
     // (so they are as good as waited on) or success.
-    [[maybe_unused]] VkResult waitIdleResult =
-        VkResult::WrapUnsafe(device->fn.QueueWaitIdle(mQueue));
+    VkResult waitIdleResult = VkResult::WrapUnsafe(device->fn.QueueWaitIdle(mQueue));
+
+    if (waitIdleResult == VK_ERROR_DEVICE_LOST &&
+        GetDevice()->IsToggleEnabled(Toggle::VulkanSleepAfterLostDeviceWait)) {
+        dawn::utils::USleep(1000);
+    }
 
     DAWN_TRY(WaitForQueueSerial(GetLastSubmittedCommandSerial(),
                                 std::numeric_limits<Nanoseconds>::max()));
@@ -292,6 +300,14 @@ MaybeError Queue::SubmitPendingCommandsImpl() {
 
     Device* device = ToBackend(GetDevice());
 
+    // Ensure that after calling this method we have a fresh recording context even if one of the
+    // DAWN_TRY calls below fail.
+    absl::Cleanup recycleContext = [&]() {
+        [[maybe_unused]] bool hadError = GetDevice()->ConsumedError(
+            RecycleRecordingContext(), "Recycling recording context after submit failed for %s",
+            this);
+    };
+
     if (!mRecordingContext.mappableBuffersForEagerTransition.empty()) {
         // Transition mappable buffers back to map usages with the submit.
         Buffer::TransitionMappableBuffersEagerly(
@@ -322,6 +338,7 @@ MaybeError Queue::SubmitPendingCommandsImpl() {
     VkFence fence = VK_NULL_HANDLE;
     DAWN_TRY_ASSIGN(fence, GetUnusedFence());
 
+    platform::metrics::DawnHistogramTimer timer(device->GetPlatform());
     TRACE_EVENT_BEGIN0(device->GetPlatform(), Recording, "vkQueueSubmit");
     DAWN_TRY_WITH_CLEANUP(
         CheckVkSuccess(device->fn.QueueSubmit(mQueue, 1, &submitInfo, fence), "vkQueueSubmit"), {
@@ -331,6 +348,7 @@ MaybeError Queue::SubmitPendingCommandsImpl() {
             mUnusedFences->push_back(fence);
         });
     TRACE_EVENT_END0(device->GetPlatform(), Recording, "vkQueueSubmit");
+    timer.RecordMicroseconds("Vulkan.VkQueueSubmitUS");
 
     // Enqueue the semaphores before incrementing the serial, so that they can be deleted as
     // soon as the current submission is finished.
@@ -338,13 +356,22 @@ MaybeError Queue::SubmitPendingCommandsImpl() {
         device->GetFencedDeleter()->DeleteWhenUnused(semaphore);
     }
     IncrementLastSubmittedCommandSerial();
+    mFencesInFlight->emplace_back(fence, GetLastSubmittedCommandSerial());
+
+    for (auto texture : mRecordingContext.specialSyncTextures) {
+        DAWN_TRY(texture->OnAfterSubmit());
+    }
+
+    return {};
+}
+
+MaybeError Queue::RecycleRecordingContext() {
     ExecutionSerial lastSubmittedSerial = GetLastSubmittedCommandSerial();
-    mFencesInFlight->emplace_back(fence, lastSubmittedSerial);
 
     for (size_t i = 0; i < mRecordingContext.commandBufferList.size(); ++i) {
         CommandPoolAndBuffer commands = {mRecordingContext.commandPoolList[i],
                                          mRecordingContext.commandBufferList[i]};
-        TrackSerialTask(lastSubmittedSerial, [commands, this]() {
+        TrackSerialTask(QueuePriority::UserVisible, lastSubmittedSerial, [commands, this]() {
             Device* device = ToBackend(GetDevice());
             VkDevice vkDevice = device->GetVkDevice();
 
@@ -358,10 +385,6 @@ MaybeError Queue::SubmitPendingCommandsImpl() {
 
             mUnusedCommands->push_back(commands);
         });
-    }
-
-    for (auto texture : mRecordingContext.specialSyncTextures) {
-        DAWN_TRY(texture->OnAfterSubmit());
     }
 
     mRecordingContext = CommandRecordingContext();
@@ -475,15 +498,6 @@ ResultOrError<ExecutionSerial> Queue::WaitForQueueSerialImpl(ExecutionSerial wai
                 // Return a VK_SUCCESS status.
                 completedSerial = waitSerial;
                 return VkResult::WrapUnsafe(VK_SUCCESS);
-            }
-            // Wait for the fence.
-            if (GetDevice()->GetState() == Device::State::Disconnected) [[unlikely]] {
-                // If WaitForQueueSerialImpl is called while we are Disconnected, it means that
-                // the device lost came from the ErrorInjector and we need to wait without allowing
-                // any more error to be injected. This is because the device lost was "fake" and
-                // commands might still be running.
-                return VkResult::WrapUnsafe(device->fn.WaitForFences(
-                    vkDevice, 1, &*waitFence, true, static_cast<uint64_t>(timeout)));
             }
             return VkResult::WrapUnsafe(
                 INJECT_ERROR_OR_RUN(device->fn.WaitForFences(vkDevice, 1, &*waitFence, true,

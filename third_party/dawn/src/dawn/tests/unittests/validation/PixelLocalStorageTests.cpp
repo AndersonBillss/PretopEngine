@@ -28,10 +28,10 @@
 #include <string>
 #include <vector>
 
-#include "dawn/common/NonMovable.h"
-#include "dawn/tests/unittests/validation/ValidationTest.h"
-#include "dawn/utils/ComboRenderPipelineDescriptor.h"
-#include "dawn/utils/WGPUHelpers.h"
+#include "src/dawn/tests/unittests/validation/ValidationTest.h"
+#include "src/dawn/utils/ComboRenderPipelineDescriptor.h"
+#include "src/dawn/utils/WGPUHelpers.h"
+#include "src/utils/non_movable.h"
 
 namespace dawn {
 namespace {
@@ -1188,9 +1188,9 @@ TEST_F(PixelLocalStorageAndRenderToSingleSampledTest, CombinationIsNotAllowed) {
     RecordRenderPass(&desc.rpDesc);
 
     // Error case: MSAA render to single sampled is added to the color attachment.
-    wgpu::DawnRenderPassColorAttachmentRenderToSingleSampled msaaRenderToSingleSampledDesc;
-    msaaRenderToSingleSampledDesc.implicitSampleCount = 4;
-    desc.colorAttachment.nextInChain = &msaaRenderToSingleSampledDesc;
+    wgpu::DawnRenderPassSampleCount renderPassSampleCount;
+    renderPassSampleCount.sampleCount = 4;
+    desc.rpDesc.nextInChain = &renderPassSampleCount;
     ASSERT_DEVICE_ERROR(RecordRenderPass(&desc.rpDesc));
 }
 

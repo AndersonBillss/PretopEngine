@@ -27,9 +27,10 @@
 
 #include <vector>
 
-#include "dawn/tests/DawnTest.h"
-#include "dawn/utils/ComboRenderPipelineDescriptor.h"
-#include "dawn/utils/WGPUHelpers.h"
+#include "src/dawn/common/ExternalTextureParams.h"
+#include "src/dawn/tests/DawnTest.h"
+#include "src/dawn/utils/ComboRenderPipelineDescriptor.h"
+#include "src/dawn/utils/WGPUHelpers.h"
 
 namespace dawn {
 namespace {
@@ -151,13 +152,22 @@ class CopyExternalTextureForBrowserTests : public Parent {
                                  &externalTexturePlane1DataLayout, &externalTexturePlane1Desc.size);
 
         // Create an ExternalTextureDescriptor from the texture views
+        ExternalTextureColorSpaceParams params;
+        wgpu::Status status = ComputeExternalTextureParams(
+            {
+                .primaries = wgpu::ColorSpacePrimariesDawn::Rec709,
+                .transfer = wgpu::ColorSpaceTransferDawn::SMPTE_170M,
+                .yCbCrRange = wgpu::ColorSpaceYCbCrRangeDawn::Narrow,
+                .yCbCrMatrix = wgpu::ColorSpaceYCbCrMatrixDawn::Rec709,
+            },
+            wgpu::PredefinedColorSpace::SRGB, &params);
+        DAWN_ASSERT(status == wgpu::Status::Success);
+
         wgpu::ExternalTextureDescriptor externalDesc;
-        utils::ColorSpaceConversionInfo info =
-            utils::GetYUVBT709ToRGBSRGBColorSpaceConversionInfo();
-        externalDesc.yuvToRgbConversionMatrix = info.yuvToRgbConversionMatrix.data();
-        externalDesc.gamutConversionMatrix = info.gamutConversionMatrix.data();
-        externalDesc.srcTransferFunctionParameters = info.srcTransferFunctionParameters.data();
-        externalDesc.dstTransferFunctionParameters = info.dstTransferFunctionParameters.data();
+        externalDesc.yuvToRgbConversionMatrix = params.yuvToRgbConversionMatrix.data();
+        externalDesc.gamutConversionMatrix = params.gamutConversionMatrix.data();
+        externalDesc.srcTransferFunctionParameters = params.srcTransferFunction.data();
+        externalDesc.dstTransferFunctionParameters = params.dstTransferFunction.data();
 
         externalDesc.plane0 = externalTexturePlane0.CreateView();
         externalDesc.plane1 = externalTexturePlane1.CreateView();
@@ -303,6 +313,9 @@ class CopyExternalTextureForBrowserTests_Basic
 TEST_P(CopyExternalTextureForBrowserTests_Basic, Copy) {
     DAWN_SUPPRESS_TEST_IF(IsOpenGL() && IsLinux());
 
+    // TODO(crbug.com/519266534): Produces incorrect result on Pixel 10.
+    DAWN_SUPPRESS_TEST_IF(IsAndroid() && IsImgTec() && IsVulkan());
+
     wgpu::CopyTextureForBrowserOptions options = {};
     options.flipY = GetParam().mFlipY;
 
@@ -402,11 +415,10 @@ TEST_P(CopyExternalTextureForBrowserTests_Basic, Copy) {
     DoBasicCopyTest(srcOrigin, dstOrigin, copySize, naturalSize, dstTextureSize, options);
 }
 
-// TODO(crbug.com/465184041): Implement external texture for WebGPUBackend.
 DAWN_INSTANTIATE_TEST_P(
     CopyExternalTextureForBrowserTests_Basic,
     {D3D11Backend(), D3D12Backend(), MetalBackend(), OpenGLBackend(), OpenGLESBackend(),
-     VulkanBackend()},
+     VulkanBackend(), WebGPUBackend()},
     std::vector<CopyRect>({CopyRect::TopLeft, CopyRect::TopRight, CopyRect::BottomLeft,
                            CopyRect::BottomRight, CopyRect::FullSize}),
     std::vector<CopyRect>({CopyRect::TopLeft, CopyRect::TopRight, CopyRect::BottomLeft,
@@ -420,6 +432,9 @@ class CopyExternalTextureForBrowserTests_Aspect : public CopyExternalTextureForB
 
 TEST_P(CopyExternalTextureForBrowserTests_Aspect, Copy) {
     DAWN_SUPPRESS_TEST_IF(IsOpenGL() && IsLinux());
+
+    // TODO(crbug.com/519266534): Produces incorrect result on Pixel 10.
+    DAWN_SUPPRESS_TEST_IF(IsAndroid() && IsImgTec() && IsVulkan());
 
     wgpu::Origin3D srcOrigin = {};
     wgpu::Origin3D dstOrigin = {};
@@ -438,7 +453,9 @@ DAWN_INSTANTIATE_TEST(CopyExternalTextureForBrowserTests_Aspect,
                       MetalBackend(),
                       OpenGLBackend(),
                       OpenGLESBackend(),
-                      VulkanBackend());
+                      VulkanBackend(),
+                      VulkanBackend({"vulkan_force_static_samplers_for_external_textures"}),
+                      WebGPUBackend());
 
 }  // anonymous namespace
 }  // namespace dawn

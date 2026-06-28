@@ -25,15 +25,13 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "src/tint/lang/core/ir/validator_test.h"
-
 #include <string>
 
 #include "gtest/gtest.h"
-
 #include "src/tint/lang/core/ir/builder.h"
 #include "src/tint/lang/core/ir/function_param.h"
 #include "src/tint/lang/core/ir/validator.h"
+#include "src/tint/lang/core/ir/validator_test.h"
 #include "src/tint/lang/core/number.h"
 #include "src/tint/lang/core/type/abstract_float.h"
 #include "src/tint/lang/core/type/abstract_int.h"
@@ -459,8 +457,8 @@ TEST_F(IR_ValidatorTest, CallToBuiltin_Modf_UserDeclaredResultStruct) {
 
     auto* f = b.Function("f", ty.vec4f());
     b.Append(f->Block(), [&] {
-        auto* c = b.Call(str_ty, BuiltinFn::kModf, b.Splat<vec4<f32>>(1_f));
-        b.Return(f, b.Access<vec4<f32>>(c, 0_u));
+        auto* c = b.Call(str_ty, BuiltinFn::kModf, b.Splat<vec4f>(1_f));
+        b.Return(f, b.Access<vec4f>(c, 0_u));
     });
 
     auto res = ir::Validate(mod);
@@ -519,11 +517,11 @@ TEST_F(IR_ValidatorTest, CallBuiltinFn_Component_TooSmall) {
     auto* func = b.Function("foo", ty.void_(), core::ir::Function::PipelineStage::kFragment);
     b.Append(func->Block(), [&] {
         auto* coords = b.Construct(ty.vec2f(), b.Value(1_f), b.Value(2_f));
-        auto* offset = b.Composite<vec2<i32>>(1_i, 3_i);
+        auto* offset = b.Composite<vec2i>(1_i, 3_i);
 
         auto* t = b.Load(tex);
         auto* s = b.Load(sampler);
-        b.Let("x", b.Call<vec4<i32>>(core::BuiltinFn::kTextureGather, -2_i, t, s, coords, offset));
+        b.Let("x", b.Call<vec4i>(core::BuiltinFn::kTextureGather, -2_i, t, s, coords, offset));
         b.Return(func);
     });
 
@@ -551,11 +549,11 @@ TEST_F(IR_ValidatorTest, CallBuiltinFn_Component_TooBig) {
     auto* func = b.Function("foo", ty.void_(), core::ir::Function::PipelineStage::kFragment);
     b.Append(func->Block(), [&] {
         auto* coords = b.Construct(ty.vec2f(), b.Value(1_f), b.Value(2_f));
-        auto* offset = b.Composite<vec2<i32>>(1_i, 3_i);
+        auto* offset = b.Composite<vec2i>(1_i, 3_i);
 
         auto* t = b.Load(tex);
         auto* s = b.Load(sampler);
-        b.Let("x", b.Call<vec4<i32>>(core::BuiltinFn::kTextureGather, 6_u, t, s, coords, offset));
+        b.Let("x", b.Call<vec4i>(core::BuiltinFn::kTextureGather, 6_u, t, s, coords, offset));
         b.Return(func);
     });
 
@@ -584,12 +582,12 @@ TEST_F(IR_ValidatorTest, CallBuiltinFn_Offset_TooSmall) {
     b.Append(func->Block(), [&] {
         auto* coords = b.Construct(ty.vec2f(), b.Value(1_f), b.Value(2_f));
         auto* array_idx = b.Value(1_i);
-        auto* offset = b.Composite<vec2<i32>>(1_i, -9_i);
+        auto* offset = b.Composite<vec2i>(1_i, -9_i);
 
         auto* t = b.Load(tex);
         auto* s = b.Load(sampler);
-        b.Let("x", b.Call<vec4<i32>>(core::BuiltinFn::kTextureGather, 2_u, t, s, coords, array_idx,
-                                     offset));
+        b.Let("x",
+              b.Call<vec4i>(core::BuiltinFn::kTextureGather, 2_u, t, s, coords, array_idx, offset));
         b.Return(func);
     });
 
@@ -619,12 +617,12 @@ TEST_F(IR_ValidatorTest, CallBuiltinFn_Offset_TooBig) {
     b.Append(func->Block(), [&] {
         auto* coords = b.Construct(ty.vec2f(), b.Value(1_f), b.Value(2_f));
         auto* array_idx = b.Value(1_i);
-        auto* offset = b.Composite<vec2<i32>>(8_i, -2_i);
+        auto* offset = b.Composite<vec2i>(8_i, -2_i);
 
         auto* t = b.Load(tex);
         auto* s = b.Load(sampler);
-        b.Let("x", b.Call<vec4<i32>>(core::BuiltinFn::kTextureGather, 2_u, t, s, coords, array_idx,
-                                     offset));
+        b.Let("x",
+              b.Call<vec4i>(core::BuiltinFn::kTextureGather, 2_u, t, s, coords, array_idx, offset));
         b.Return(func);
     });
 
@@ -647,8 +645,9 @@ TEST_F(IR_ValidatorTest, CallBuiltinFn_QuadBroadcast_NonConstId) {
 
     auto res = ir::Validate(mod);
     ASSERT_NE(res, Success);
-    EXPECT_THAT(res.Failure().reason, testing::HasSubstr(
-                                          R"(:4:32 error: quadBroadcast: non-constant ID provided
+    EXPECT_THAT(res.Failure().reason,
+                testing::HasSubstr(
+                    R"(:4:32 error: quadBroadcast: the 'id' argument must be a constant
     %3:i32 = quadBroadcast 2i, %a
                                ^^
 
@@ -665,12 +664,37 @@ TEST_F(IR_ValidatorTest, CallBuiltinFn_SubgroupBroadcast_NonConstId) {
 
     auto res = ir::Validate(mod);
     ASSERT_NE(res, Success);
-    EXPECT_THAT(res.Failure().reason,
-                testing::HasSubstr(
-                    R"(:4:36 error: subgroupBroadcast: non-constant ID provided
+    EXPECT_THAT(
+        res.Failure().reason,
+        testing::HasSubstr(
+            R"(:4:36 error: subgroupBroadcast: the 'sourceLaneIndex' argument must be a constant
     %3:i32 = subgroupBroadcast 2i, %a
                                    ^^
 
+)")) << res.Failure();
+}
+
+TEST_F(IR_ValidatorTest, CallBuiltinFn_VectorClamp_Disallowed) {
+    mod.properties.Add(Property::kDisallowVectorMinMaxClamp);
+
+    auto* x = b.FunctionParam<vec4f>();
+    auto* lo = b.FunctionParam<vec4f>();
+    auto* hi = b.FunctionParam<vec4f>();
+    auto* func = b.Function("foo", ty.void_());
+    func->SetParams({x, lo, hi});
+    b.Append(func->Block(), [&] {
+        b.Call<vec4f>(core::BuiltinFn::kClamp, x, lo, hi);
+        b.Return(func);
+    });
+
+    auto res = ir::Validate(mod);
+    ASSERT_NE(res, Success);
+    EXPECT_THAT(
+        res.Failure().reason,
+        testing::HasSubstr(
+            R"(:3:20 error: clamp: vector clamp disallowed by the DisallowVectorMinMaxClamp property
+    %5:vec4<f32> = clamp %2, %3, %4
+                   ^^^^^
 )")) << res.Failure();
 }
 

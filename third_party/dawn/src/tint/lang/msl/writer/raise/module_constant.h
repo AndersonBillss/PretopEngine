@@ -40,16 +40,7 @@ namespace tint::msl::writer::raise {
 
 /// The capabilities that the transform can support.
 const core::ir::Capabilities kModuleConstantCapabilities{
-    core::ir::Capability::kAllow8BitIntegers,
     core::ir::Capability::kAllow64BitIntegers,
-    core::ir::Capability::kAllowPointSizeBuiltin,
-    core::ir::Capability::kAllowVectorElementPointer,
-    core::ir::Capability::kAllowHandleVarsWithoutBindings,
-    core::ir::Capability::kAllowClipDistancesOnF32ScalarAndVector,
-    core::ir::Capability::kAllowAnyLetType,
-    core::ir::Capability::kAllowNonCoreTypes,
-    core::ir::Capability::kMslAllowEntryPointInterface,
-    core::ir::Capability::kAllowModuleScopeLets,
 };
 
 /// The set of polyfills that should be applied.

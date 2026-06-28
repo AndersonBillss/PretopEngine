@@ -28,6 +28,7 @@
 #ifndef SRC_DAWN_SERIALIZATION_SCHEMA_H_
 #define SRC_DAWN_SERIALIZATION_SCHEMA_H_
 
+#include <array>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -45,85 +46,228 @@ using ObjectId = uint64_t;
 // device is always 1
 const ObjectId kDeviceId = 1;
 
-enum class ObjectType : uint32_t {
-    Invalid = 0,  // 0 is invalid at it's more likely to catch bugs.
-    BindGroup,
-    BindGroupLayout,
-    Buffer,
-    CommandBuffer,
-    ComputePipeline,
-    Device,
-    PipelineLayout,
-    QuerySet,
-    RenderBundle,
-    RenderPipeline,
-    Sampler,
-    ShaderModule,
-    Texture,
-    TextureView,
-};
+// Use alias of std::array since the preprocessor doesn't consider < > to be parenthesis for the
+// logic of skipping commas (so the end up splitting macro invocation arguments).
+using FloatArray7 = std::array<float, 7>;
+using Mat3x3 = std::array<float, 9>;
+using Mat4x3 = std::array<float, 12>;
 
-enum class BindGroupLayoutEntryType : uint32_t {
-    Invalid = 0,  // 0 is invalid at it's more likely to catch bugs.
-    BufferBinding,
-    SamplerBinding,
-    TextureBinding,
-    TexelBufferBinding,
-    StorageTextureBinding,
-    ExternalTextureBinding,
-    StaticSamplerBindingInfo,
-    InputAttachmentBindingInfo,
-};
+#define DAWN_REPLAY_ENUM_MEMBER(NAME) NAME,
+#define DAWN_REPLAY_ENUM(NAME, MEMBERS) \
+    enum class NAME : uint32_t { MEMBERS(DAWN_REPLAY_ENUM_MEMBER) };
 
-enum class CommandBufferCommand : uint32_t {
-    Invalid = 0,  // 0 is invalid at it's more likely to catch bugs.
-    BeginComputePass,
-    BeginOcclusionQuery,
-    BeginRenderPass,
-    ClearBuffer,
-    CopyBufferToBuffer,
-    CopyBufferToTexture,
-    CopyTextureToBuffer,
-    CopyTextureToTexture,
-    Dispatch,
-    DispatchIndirect,
-    Draw,
-    DrawIndexed,
-    DrawIndexedIndirect,
-    DrawIndirect,
-    End,
-    EndOcclusionQuery,
-    EndRenderPass,
-    ExecuteBundles,
-    InsertDebugMarker,
-    PopDebugGroup,
-    PushDebugGroup,
-    ResolveQuerySet,
-    SetBindGroup,
-    SetBlendConstant,
-    SetComputePipeline,
-    SetImmediates,
-    SetIndexBuffer,
-    SetRenderPipeline,
-    SetScissorRect,
-    SetStencilReference,
-    SetVertexBuffer,
-    SetViewport,
-    WriteBuffer,
-    WriteTimestamp,
-};
+#define DAWN_REPLAY_ENUM_WITH_INVALID(NAME, MEMBERS) \
+    enum class NAME : uint32_t { Invalid = 0, MEMBERS(DAWN_REPLAY_ENUM_MEMBER) };
 
-enum class RootCommand : uint32_t {
-    Invalid = 0,  // 0 is invalid at it's more likely to catch bugs.
-    CreateResource,
-    QueueSubmit,
-    WriteBuffer,
-    WriteTexture,
-    UnmapBuffer,
-    SetLabel,
+#define DAWN_REPLAY_OBJECT_TYPES(X) \
+    X(BindGroup)                    \
+    X(BindGroupLayout)              \
+    X(Buffer)                       \
+    X(CommandBuffer)                \
+    X(ComputePipeline)              \
+    X(Device)                       \
+    X(ExternalTexture)              \
+    X(PipelineLayout)               \
+    X(QuerySet)                     \
+    X(RenderBundle)                 \
+    X(RenderPipeline)               \
+    X(Sampler)                      \
+    X(ShaderModule)                 \
+    X(Surface)                      \
+    X(Texture)                      \
+    X(TexelBufferView)              \
+    X(TextureView)
 
-    End,
-};
+#define DAWN_REPLAY_OBJECT_TYPES_ENUM(X) X(ObjectType, DAWN_REPLAY_OBJECT_TYPES)
+
+DAWN_REPLAY_OBJECT_TYPES_ENUM(DAWN_REPLAY_ENUM_WITH_INVALID)
+
+#define DAWN_REPLAY_BINDING_GROUP_LAYOUT_ENTRY_TYPES(X) \
+    X(BufferBinding)                                    \
+    X(SamplerBinding)                                   \
+    X(TextureBinding)                                   \
+    X(TexelBufferBinding)                               \
+    X(StorageTextureBinding)                            \
+    X(ExternalTextureBinding)                           \
+    X(StaticSamplerBindingInfo)                         \
+    X(InputAttachmentBindingInfo)
+
+#define DAWN_REPLAY_BINDING_GROUP_LAYOUT_ENTRY_TYPES_ENUM(X) \
+    X(BindGroupLayoutEntryType, DAWN_REPLAY_BINDING_GROUP_LAYOUT_ENTRY_TYPES)
+
+DAWN_REPLAY_BINDING_GROUP_LAYOUT_ENTRY_TYPES_ENUM(DAWN_REPLAY_ENUM_WITH_INVALID)
+
+#define DAWN_REPLAY_COMMAND_BUFFER_COMMANDS(X) \
+    X(BeginComputePass)                        \
+    X(BeginOcclusionQuery)                     \
+    X(BeginRenderPass)                         \
+    X(ClearBuffer)                             \
+    X(CopyBufferToBuffer)                      \
+    X(CopyBufferToTexture)                     \
+    X(CopyTextureToBuffer)                     \
+    X(CopyTextureToTexture)                    \
+    X(Dispatch)                                \
+    X(DispatchIndirect)                        \
+    X(Draw)                                    \
+    X(DrawIndexed)                             \
+    X(DrawIndexedIndirect)                     \
+    X(DrawIndirect)                            \
+    X(End)                                     \
+    X(EndOcclusionQuery)                       \
+    X(EndRenderPass)                           \
+    X(ExecuteBundles)                          \
+    X(InsertDebugMarker)                       \
+    X(PopDebugGroup)                           \
+    X(PushDebugGroup)                          \
+    X(ResolveQuerySet)                         \
+    X(SetBindGroup)                            \
+    X(SetBlendConstant)                        \
+    X(SetComputePipeline)                      \
+    X(SetImmediates)                           \
+    X(SetIndexBuffer)                          \
+    X(SetRenderPipeline)                       \
+    X(SetScissorRect)                          \
+    X(SetStencilReference)                     \
+    X(SetVertexBuffer)                         \
+    X(SetViewport)                             \
+    X(WriteBuffer)                             \
+    X(WriteTimestamp)
+
+#define DAWN_REPLAY_SHARED_PASS_COMMANDS(X) \
+    X(SetBindGroup)                         \
+    X(SetImmediates)
+
+#define DAWN_REPLAY_DEBUG_COMMANDS(X) \
+    X(PushDebugGroup)                 \
+    X(InsertDebugMarker)              \
+    X(PopDebugGroup)
+
+#define DAWN_REPLAY_RENDER_COMMANDS(X)  \
+    X(SetRenderPipeline)                \
+    X(SetVertexBuffer)                  \
+    X(SetIndexBuffer)                   \
+    X(Draw)                             \
+    X(DrawIndexed)                      \
+    X(DrawIndirect)                     \
+    X(DrawIndexedIndirect)              \
+    DAWN_REPLAY_SHARED_PASS_COMMANDS(X) \
+    DAWN_REPLAY_DEBUG_COMMANDS(X)
+
+#define DAWN_REPLAY_RENDER_BUNDLE_COMMANDS(X) \
+    DAWN_REPLAY_RENDER_COMMANDS(X)            \
+    X(End)
+
+#define DAWN_REPLAY_COMPUTE_PASS_COMMANDS(X) \
+    X(SetComputePipeline)                    \
+    X(Dispatch)                              \
+    X(DispatchIndirect)                      \
+    X(WriteTimestamp)                        \
+    DAWN_REPLAY_SHARED_PASS_COMMANDS(X)      \
+    DAWN_REPLAY_DEBUG_COMMANDS(X)            \
+    X(End)
+
+#define DAWN_REPLAY_RENDER_PASS_COMMANDS(X) \
+    X(ExecuteBundles)                       \
+    X(BeginOcclusionQuery)                  \
+    X(EndOcclusionQuery)                    \
+    X(SetBlendConstant)                     \
+    X(SetScissorRect)                       \
+    X(SetStencilReference)                  \
+    X(SetViewport)                          \
+    X(WriteTimestamp)                       \
+    DAWN_REPLAY_RENDER_COMMANDS(X)          \
+    X(End)
+
+#define DAWN_REPLAY_ENCODER_CREATION_COMMANDS(X) \
+    X(BeginComputePass)                          \
+    X(BeginRenderPass)
+
+#define DAWN_REPLAY_ENCODER_NON_CREATION_COMMANDS(X) \
+    X(ClearBuffer)                                   \
+    X(CopyBufferToBuffer)                            \
+    X(CopyBufferToTexture)                           \
+    X(CopyTextureToBuffer)                           \
+    X(CopyTextureToTexture)                          \
+    X(ResolveQuerySet)                               \
+    X(WriteBuffer)                                   \
+    X(WriteTimestamp)                                \
+    DAWN_REPLAY_DEBUG_COMMANDS(X)                    \
+    X(End)
+
+#define DAWN_REPLAY_ENCODER_COMMANDS(X)      \
+    DAWN_REPLAY_ENCODER_CREATION_COMMANDS(X) \
+    DAWN_REPLAY_ENCODER_NON_CREATION_COMMANDS(X)
+
+#define DAWN_REPLAY_COMMAND_BUFFER_COMMANDS_ENUM(X) \
+    X(CommandBufferCommand, DAWN_REPLAY_COMMAND_BUFFER_COMMANDS)
+
+DAWN_REPLAY_COMMAND_BUFFER_COMMANDS_ENUM(DAWN_REPLAY_ENUM_WITH_INVALID)
+
+#define DAWN_REPLAY_EXPAND_RESOLVE_MODES(X) \
+    X(Unused)                               \
+    X(Disabled)                             \
+    X(Enabled)
+
+#define DAWN_REPLAY_EXPAND_RESOLVE_MODES_ENUM(X) \
+    X(ExpandResolveMode, DAWN_REPLAY_EXPAND_RESOLVE_MODES)
+
+DAWN_REPLAY_EXPAND_RESOLVE_MODES_ENUM(DAWN_REPLAY_ENUM)
+
+#define DAWN_REPLAY_ROOT_COMMANDS(X) \
+    X(CreateResource)                \
+    X(QueueSubmit)                   \
+    X(WriteBuffer)                   \
+    X(WriteTexture)                  \
+    X(SetLabel)                      \
+    X(InitTexture)                   \
+    X(SurfaceConfigure)              \
+    X(SurfaceUnconfigure)            \
+    X(SurfacePresent)                \
+    X(SurfaceGetCurrentTexture)      \
+    X(End)
+
+#define DAWN_REPLAY_ROOT_COMMANDS_ENUM(X) X(RootCommand, DAWN_REPLAY_ROOT_COMMANDS)
+
+DAWN_REPLAY_ROOT_COMMANDS_ENUM(DAWN_REPLAY_ENUM_WITH_INVALID)
+
+#define SURFACE_CONFIGURATION_MEMBER(X)              \
+    X(ObjectId, deviceId)                            \
+    X(wgpu::TextureFormat, format)                   \
+    X(wgpu::TextureUsage, usage)                     \
+    X(std::vector<wgpu::TextureFormat>, viewFormats) \
+    X(wgpu::CompositeAlphaMode, alphaMode)           \
+    X(uint32_t, width)                               \
+    X(uint32_t, height)                              \
+    X(wgpu::PresentMode, presentMode)
+
+DAWN_REPLAY_SERIALIZABLE(struct, SurfaceConfiguration, SURFACE_CONFIGURATION_MEMBER){};
+
+#define SURFACE_CONFIGURE_CMD_DATA_MEMBER(X) \
+    X(ObjectId, surfaceId)                   \
+    X(SurfaceConfiguration, config)
+
+DAWN_REPLAY_MAKE_ROOT_CMD_AND_CMD_DATA(SurfaceConfigure, SURFACE_CONFIGURE_CMD_DATA_MEMBER){};
+
+#define SURFACE_UNCONFIGURE_CMD_DATA_MEMBER(X) X(ObjectId, surfaceId)
+
+DAWN_REPLAY_MAKE_ROOT_CMD_AND_CMD_DATA(SurfaceUnconfigure, SURFACE_UNCONFIGURE_CMD_DATA_MEMBER){};
+
+#define SURFACE_PRESENT_CMD_DATA_MEMBER(X) X(ObjectId, surfaceId)
+
+DAWN_REPLAY_MAKE_ROOT_CMD_AND_CMD_DATA(SurfacePresent, SURFACE_PRESENT_CMD_DATA_MEMBER){};
+
+#define SURFACE_GET_CURRENT_TEXTURE_CMD_DATA_MEMBER(X) \
+    X(ObjectId, surfaceId)                             \
+    X(ObjectId, textureId)
+
+DAWN_REPLAY_MAKE_ROOT_CMD_AND_CMD_DATA(SurfaceGetCurrentTexture,
+                                       SURFACE_GET_CURRENT_TEXTURE_CMD_DATA_MEMBER){};
+
+#undef DAWN_REPLAY_ENUM
+#undef DAWN_REPLAY_GET_X_MACRO
+#undef DAWN_REPLAY_ENUM_DEfAULT_MEMBER
+#undef DAWN_REPLAY_ENUM_VALUE_MEMBER
+#undef DAWN_REPLAY_ENUM_MEMBER
 
 #define ORIGIN3D_MEMBER(X) \
     X(uint32_t, x)         \
@@ -132,12 +276,24 @@ enum class RootCommand : uint32_t {
 
 DAWN_REPLAY_SERIALIZABLE(struct, Origin3D, ORIGIN3D_MEMBER){};
 
+#define ORIGIN2D_MEMBER(X) \
+    X(uint32_t, x)         \
+    X(uint32_t, y)
+
+DAWN_REPLAY_SERIALIZABLE(struct, Origin2D, ORIGIN2D_MEMBER){};
+
 #define EXTENT3D_MEMBER(X) \
     X(uint32_t, width)     \
     X(uint32_t, height)    \
     X(uint32_t, depthOrArrayLayers)
 
 DAWN_REPLAY_SERIALIZABLE(struct, Extent3D, EXTENT3D_MEMBER){};
+
+#define EXTENT2D_MEMBER(X) \
+    X(uint32_t, width)     \
+    X(uint32_t, height)
+
+DAWN_REPLAY_SERIALIZABLE(struct, Extent2D, EXTENT2D_MEMBER){};
 
 #define COLOR_MEMBER(X) \
     X(double, r)        \
@@ -146,6 +302,14 @@ DAWN_REPLAY_SERIALIZABLE(struct, Extent3D, EXTENT3D_MEMBER){};
     X(double, a)
 
 DAWN_REPLAY_SERIALIZABLE(struct, Color, COLOR_MEMBER){};
+
+#define TEXTURE_COMPONENT_SWIZZLE_MEMBER(X) \
+    X(wgpu::ComponentSwizzle, r)            \
+    X(wgpu::ComponentSwizzle, g)            \
+    X(wgpu::ComponentSwizzle, b)            \
+    X(wgpu::ComponentSwizzle, a)
+
+DAWN_REPLAY_SERIALIZABLE(struct, TextureComponentSwizzle, TEXTURE_COMPONENT_SWIZZLE_MEMBER){};
 
 #define PIPELINE_CONSTANT_MEMBER(X) \
     X(std::string, name)            \
@@ -231,10 +395,11 @@ DAWN_REPLAY_SERIALIZABLE(struct, BlendComponent, BLEND_COMPONENT_MEMBER){};
 
 DAWN_REPLAY_SERIALIZABLE(struct, BlendState, BLEND_STATE_MEMBER){};
 
-#define COLOR_TARGET_STATE_MEMBER(X) \
-    X(wgpu::TextureFormat, format)   \
-    X(BlendState, blend)             \
-    X(wgpu::ColorWriteMask, writeMask)
+#define COLOR_TARGET_STATE_MEMBER(X)   \
+    X(wgpu::TextureFormat, format)     \
+    X(BlendState, blend)               \
+    X(wgpu::ColorWriteMask, writeMask) \
+    X(ExpandResolveMode, expandResolveMode)
 
 DAWN_REPLAY_SERIALIZABLE(struct, ColorTargetState, COLOR_TARGET_STATE_MEMBER){};
 
@@ -277,6 +442,22 @@ DAWN_REPLAY_MAKE_BINDGROUP_LAYOUT_VARIANT(StorageTextureBinding,
 
 DAWN_REPLAY_MAKE_BINDGROUP_LAYOUT_VARIANT(TextureBinding, TEXTURE_BIND_GROUP_LAYOUT_MEMBER){};
 
+#define TEXEL_BUFFER_BIND_GROUP_LAYOUT_MEMBER(X)
+DAWN_REPLAY_MAKE_BINDGROUP_LAYOUT_VARIANT(TexelBufferBinding,
+                                          TEXEL_BUFFER_BIND_GROUP_LAYOUT_MEMBER){};
+
+#define EXTERNAL_TEXTURE_BIND_GROUP_LAYOUT_MEMBER(X)
+DAWN_REPLAY_MAKE_BINDGROUP_LAYOUT_VARIANT(ExternalTextureBinding,
+                                          EXTERNAL_TEXTURE_BIND_GROUP_LAYOUT_MEMBER){};
+
+#define STATIC_SAMPLER_BIND_GROUP_LAYOUT_MEMBER(X)
+DAWN_REPLAY_MAKE_BINDGROUP_LAYOUT_VARIANT(StaticSamplerBindingInfo,
+                                          STATIC_SAMPLER_BIND_GROUP_LAYOUT_MEMBER){};
+
+#define INPUT_ATTACHMENT_BIND_GROUP_LAYOUT_MEMBER(X)
+DAWN_REPLAY_MAKE_BINDGROUP_LAYOUT_VARIANT(InputAttachmentBindingInfo,
+                                          INPUT_ATTACHMENT_BIND_GROUP_LAYOUT_MEMBER){};
+
 #define BIND_GROUP_LAYOUT_MEMBER(X) X(uint32_t, numEntries)
 
 DAWN_REPLAY_SERIALIZABLE(struct, BindGroupLayout, BIND_GROUP_LAYOUT_MEMBER){};
@@ -316,14 +497,15 @@ DAWN_REPLAY_SERIALIZABLE(struct, Sampler, SAMPLER_CREATION_MEMBER){};
 
 DAWN_REPLAY_SERIALIZABLE(struct, RenderBundle, RENDER_BUNDLE_CREATION_MEMBER){};
 
-#define TEXTURE_CREATION_MEMBER(X)       \
-    X(wgpu::TextureUsage, usage)         \
-    X(wgpu::TextureDimension, dimension) \
-    X(Extent3D, size)                    \
-    X(wgpu::TextureFormat, format)       \
-    X(uint32_t, mipLevelCount)           \
-    X(uint32_t, sampleCount)             \
-    X(std::vector<wgpu::TextureFormat>, viewFormats)
+#define TEXTURE_CREATION_MEMBER(X)                   \
+    X(wgpu::TextureUsage, usage)                     \
+    X(wgpu::TextureDimension, dimension)             \
+    X(Extent3D, size)                                \
+    X(wgpu::TextureFormat, format)                   \
+    X(uint32_t, mipLevelCount)                       \
+    X(uint32_t, sampleCount)                         \
+    X(std::vector<wgpu::TextureFormat>, viewFormats) \
+    X(bool, isSurfaceTexture)
 
 DAWN_REPLAY_SERIALIZABLE(struct, Texture, TEXTURE_CREATION_MEMBER){};
 
@@ -336,15 +518,39 @@ DAWN_REPLAY_SERIALIZABLE(struct, Texture, TEXTURE_CREATION_MEMBER){};
     X(uint32_t, baseArrayLayer)              \
     X(uint32_t, arrayLayerCount)             \
     X(wgpu::TextureAspect, aspect)           \
-    X(wgpu::TextureUsage, usage)
+    X(wgpu::TextureUsage, usage)             \
+    X(TextureComponentSwizzle, swizzle)
 
 DAWN_REPLAY_SERIALIZABLE(struct, TextureView, TEXTURE_VIEW_CREATION_MEMBER){};
+
+#define TEXEL_BUFFER_VIEW_CREATION_MEMBER(X) \
+    X(wgpu::TextureFormat, format)           \
+    X(uint64_t, offset)                      \
+    X(uint64_t, size)
+
+DAWN_REPLAY_SERIALIZABLE(struct, TexelBufferView, TEXEL_BUFFER_VIEW_CREATION_MEMBER){};
 
 #define QUERYSET_CREATION_MEMBER(X) \
     X(wgpu::QueryType, type)        \
     X(uint32_t, count)
 
 DAWN_REPLAY_SERIALIZABLE(struct, QuerySet, QUERYSET_CREATION_MEMBER){};
+
+#define EXTERNAL_TEXTURE_CREATION_MEMBER(X)       \
+    X(ObjectId, plane0Id)                         \
+    X(ObjectId, plane1Id)                         \
+    X(Origin2D, cropOrigin)                       \
+    X(Extent2D, cropSize)                         \
+    X(Extent2D, apparentSize)                     \
+    X(bool, doYuvToRgbConversionOnly)             \
+    X(Mat4x3, yuvToRgbConversionMatrix)           \
+    X(FloatArray7, srcTransferFunctionParameters) \
+    X(FloatArray7, dstTransferFunctionParameters) \
+    X(Mat3x3, gamutConversionMatrix)              \
+    X(bool, mirrored)                             \
+    X(wgpu::ExternalTextureRotation, rotation)
+
+DAWN_REPLAY_SERIALIZABLE(struct, ExternalTexture, EXTERNAL_TEXTURE_CREATION_MEMBER){};
 
 // TODO(452840621): Make this use a chain instead of hard coded to WGSL only and handle other
 // chained structs.
@@ -382,6 +588,32 @@ DAWN_REPLAY_MAKE_BINDGROUP_VARIANT(SamplerBinding, SAMPLER_BIND_GROUP_ENTRY_MEMB
 #define TEXTURE_BIND_GROUP_ENTRY_MEMBER(X) X(ObjectId, textureViewId)
 
 DAWN_REPLAY_MAKE_BINDGROUP_VARIANT(TextureBinding, TEXTURE_BIND_GROUP_ENTRY_MEMBER){};
+
+#define STORAGE_TEXTURE_BIND_GROUP_ENTRY_MEMBER(X) X(ObjectId, textureViewId)
+
+DAWN_REPLAY_MAKE_BINDGROUP_VARIANT(StorageTextureBinding,
+                                   STORAGE_TEXTURE_BIND_GROUP_ENTRY_MEMBER){};
+
+#define TEXEL_BUFFER_BIND_GROUP_ENTRY_MEMBER(X) X(ObjectId, texelBufferViewId)
+
+DAWN_REPLAY_MAKE_BINDGROUP_VARIANT(TexelBufferBinding, TEXEL_BUFFER_BIND_GROUP_ENTRY_MEMBER){};
+
+#define INPUT_ATTACHMENTS_BIND_GROUP_ENTRY_MEMBER(X) X(ObjectId, textureViewId)
+
+DAWN_REPLAY_MAKE_BINDGROUP_VARIANT(InputAttachmentBindingInfo,
+                                   INPUT_ATTACHMENTS_BIND_GROUP_ENTRY_MEMBER){};
+
+#define STATIC_SAMPLER_BIND_GROUP_ENTRY_MEMBER(X)
+
+DAWN_REPLAY_MAKE_BINDGROUP_VARIANT(StaticSamplerBindingInfo,
+                                   STATIC_SAMPLER_BIND_GROUP_ENTRY_MEMBER){};
+
+#define EXTERNAL_TEXTURE_BIND_GROUP_ENTRY_MEMBER(X) \
+    X(ObjectId, externalTextureId)                  \
+    X(ObjectId, textureViewId)
+
+DAWN_REPLAY_MAKE_BINDGROUP_VARIANT(ExternalTextureBinding,
+                                   EXTERNAL_TEXTURE_BIND_GROUP_ENTRY_MEMBER){};
 
 #define BIND_GROUP_CREATION_MEMBER(X) \
     X(ObjectId, layoutId)             \
@@ -449,6 +681,16 @@ DAWN_REPLAY_SERIALIZABLE(struct,
                          RenderPassDepthStencilAttachment,
                          RENDER_PASS_DEPTH_STENCIL_ATTACHMENT_MEMBER){};
 
+#define RESOLVE_RECT_MEMBER(X)  \
+    X(uint32_t, colorOffsetX)   \
+    X(uint32_t, colorOffsetY)   \
+    X(uint32_t, resolveOffsetX) \
+    X(uint32_t, resolveOffsetY) \
+    X(uint32_t, width)          \
+    X(uint32_t, height)
+
+DAWN_REPLAY_SERIALIZABLE(struct, ResolveRect, RESOLVE_RECT_MEMBER){};
+
 #define CREATE_RESOURCE_CMD_DATA_MEMBER(X) X(LabeledResource, resource)
 
 DAWN_REPLAY_MAKE_ROOT_CMD_AND_CMD_DATA(CreateResource, CREATE_RESOURCE_CMD_DATA_MEMBER){};
@@ -467,13 +709,6 @@ DAWN_REPLAY_MAKE_ROOT_CMD_AND_CMD_DATA(SetLabel, SET_LABEL_CMD_DATA_MEMBER){};
 
 DAWN_REPLAY_MAKE_ROOT_CMD_AND_CMD_DATA(WriteBuffer, WRITE_BUFFER_CMD_DATA_MEMBER){};
 
-#define UNMAP_BUFFER_CMD_DATA_MEMBER(X) \
-    X(ObjectId, bufferId)               \
-    X(uint64_t, bufferOffset)           \
-    X(uint64_t, size)
-
-DAWN_REPLAY_MAKE_ROOT_CMD_AND_CMD_DATA(UnmapBuffer, UNMAP_BUFFER_CMD_DATA_MEMBER){};
-
 #define WRITE_TEXTURE_CMD_DATA_MEMBER(X) \
     X(TexelCopyTextureInfo, destination) \
     X(TexelCopyBufferLayout, layout)     \
@@ -482,9 +717,21 @@ DAWN_REPLAY_MAKE_ROOT_CMD_AND_CMD_DATA(UnmapBuffer, UNMAP_BUFFER_CMD_DATA_MEMBER
 
 DAWN_REPLAY_MAKE_ROOT_CMD_AND_CMD_DATA(WriteTexture, WRITE_TEXTURE_CMD_DATA_MEMBER){};
 
+#define INIT_TEXTURE_CMD_DATA_MEMBER(X)  \
+    X(TexelCopyTextureInfo, destination) \
+    X(TexelCopyBufferLayout, layout)     \
+    X(Extent3D, size)                    \
+    X(uint64_t, dataSize)
+
+DAWN_REPLAY_MAKE_ROOT_CMD_AND_CMD_DATA(InitTexture, INIT_TEXTURE_CMD_DATA_MEMBER){};
+
 #define QUEUE_SUBMIT_CMD_DATA_MEMBER(X) X(std::vector<ObjectId>, commandBuffers)
 
 DAWN_REPLAY_MAKE_ROOT_CMD_AND_CMD_DATA(QueueSubmit, QUEUE_SUBMIT_CMD_DATA_MEMBER){};
+
+#define END_ROOT_CMD_DATA_MEMBER(X)
+
+DAWN_REPLAY_MAKE_ROOT_CMD_AND_CMD_DATA(End, END_ROOT_CMD_DATA_MEMBER){};
 
 #define COPY_BUFFER_TO_BUFFER_CMD_DATA_MEMBER(X) \
     X(ObjectId, srcBufferId)                     \
@@ -541,7 +788,8 @@ DAWN_REPLAY_MAKE_COMMAND_BUFFER_CMD_AND_CMD_DATA(BeginComputePass,
     X(RenderPassDepthStencilAttachment, depthStencilAttachment) \
     X(ObjectId, occlusionQuerySetId)                            \
     X(TimestampWrites, timestampWrites)                         \
-    X(uint64_t, maxDrawCount)
+    X(uint64_t, maxDrawCount)                                   \
+    X(ResolveRect, resolveRect)
 
 DAWN_REPLAY_MAKE_COMMAND_BUFFER_CMD_AND_CMD_DATA(BeginRenderPass,
                                                  BEGIN_RENDER_PASS_CMD_DATA_MEMBER){};
@@ -618,6 +866,16 @@ DAWN_REPLAY_MAKE_COMMAND_BUFFER_CMD_AND_CMD_DATA(BeginOcclusionQuery,
 #define EXECUTE_BUNDLES_CMD_DATA_MEMBER(X) X(std::vector<ObjectId>, bundleIds)
 
 DAWN_REPLAY_MAKE_COMMAND_BUFFER_CMD_AND_CMD_DATA(ExecuteBundles, EXECUTE_BUNDLES_CMD_DATA_MEMBER){};
+
+#define END_CMD_DATA_MEMBER(X)
+DAWN_REPLAY_MAKE_COMMAND_BUFFER_CMD_AND_CMD_DATA(End, END_CMD_DATA_MEMBER){};
+
+#define POP_DEBUG_GROUP_CMD_DATA_MEMBER(X)
+DAWN_REPLAY_MAKE_COMMAND_BUFFER_CMD_AND_CMD_DATA(PopDebugGroup, POP_DEBUG_GROUP_CMD_DATA_MEMBER){};
+
+#define END_OCCLUSION_QUERY_CMD_DATA_MEMBER(X)
+DAWN_REPLAY_MAKE_COMMAND_BUFFER_CMD_AND_CMD_DATA(EndOcclusionQuery,
+                                                 END_OCCLUSION_QUERY_CMD_DATA_MEMBER){};
 
 #define SET_VERTEX_BUFFER_CMD_DATA_MEMBER(X) \
     X(uint32_t, slot)                        \

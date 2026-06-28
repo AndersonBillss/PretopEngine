@@ -28,11 +28,13 @@
 #ifndef SRC_DAWN_SAMPLES_SAMPLEUTILS_H_
 #define SRC_DAWN_SAMPLES_SAMPLEUTILS_H_
 
-#ifndef __EMSCRIPTEN__
+#if defined(DAWN_SUPPORTS_GLFW_FOR_WINDOWING)
 #include "GLFW/glfw3.h"
-#endif  // __EMSCRIPTEN__
+#endif  // DAWN_SUPPORTS_GLFW_FOR_WINDOWING
 
 #include <webgpu/webgpu_cpp.h>
+
+#include "partition_alloc/pointers/raw_ptr.h"
 
 bool InitSample(int argc, const char** argv);
 
@@ -65,9 +67,9 @@ class SampleBase {
     uint32_t height = kHeight;
     wgpu::TextureFormat preferredSurfaceTextureFormat = wgpu::TextureFormat::BGRA8Unorm;
 
-#ifndef __EMSCRIPTEN__
-    GLFWwindow* window = nullptr;
-#endif  // __EMSCRIPTEN__
+#if defined(DAWN_SUPPORTS_GLFW_FOR_WINDOWING)
+    raw_ptr<GLFWwindow> window = nullptr;
+#endif  // DAWN_SUPPORTS_GLFW_FOR_WINDOWING
 };
 
 #endif  // SRC_DAWN_SAMPLES_SAMPLEUTILS_H_

@@ -29,8 +29,8 @@
 #include <string>
 #include <vector>
 
-#include "dawn/tests/perf_tests/DawnPerfTest.h"
-#include "dawn/utils/WGPUHelpers.h"
+#include "src/dawn/tests/perf_tests/DawnPerfTest.h"
+#include "src/dawn/utils/WGPUHelpers.h"
 
 namespace dawn {
 namespace {
@@ -570,8 +570,9 @@ void ShaderRobustnessPerf::Step() {
         pass.SetPipeline(mPipeline);
         pass.SetBindGroup(0, mBindGroup);
         for (unsigned int i = 0; i < kNumIterations; ++i) {
-            pass.DispatchWorkgroups(ceil(static_cast<float>(mDimBOuter) / float{kTileSize}),
-                                    ceil(static_cast<float>(mDimAOuter) / float{kTileSize}), 1);
+            pass.DispatchWorkgroups(
+                static_cast<uint32_t>(ceil(static_cast<float>(mDimBOuter) / float{kTileSize})),
+                static_cast<uint32_t>(ceil(static_cast<float>(mDimAOuter) / float{kTileSize})), 1);
         }
         pass.End();
         if (useTimestamps) {

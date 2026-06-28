@@ -25,8 +25,8 @@
 //* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 //* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "dawn/common/Assert.h"
-#include "dawn/wire/server/Server.h"
+#include "src/dawn/wire/server/Server.h"
+#include "src/utils/assert.h"
 
 namespace dawn::wire::server {
     //* Implementation of the command doers
@@ -63,7 +63,7 @@ namespace dawn::wire::server {
                         {{ assert(ret|length == 0) }}
                         {{ assert(not method.returns) }}
                     {% endif %}
-                    mProcs.{{as_varName(type.name, method.name)}}(
+                    mProcs->{{as_varName(type.name, method.name)}}(
                         {%- for member in command.members if not member.is_return_value -%}
                             {{as_varName(member.name)}}
                             {%- if not loop.last -%}, {% endif %}
@@ -101,9 +101,11 @@ namespace dawn::wire::server {
                     if (data.state == AllocationState::Allocated) {
                         DAWN_ASSERT(data.handle != nullptr);
                         {% if type.name.get() == "device" %}
-                            //* Deregisters uncaptured error and device lost callbacks since
-                            //* they should not be forwarded if the device no longer exists on the wire.
-                            ClearDeviceCallbacks(data.handle);
+                            //* Destroy the device to ensure that the spontaneous callbacks, i.e.
+                            //* the uncaptured error and logging callbacks, are cleared, and the
+                            //* device lost callback is fired. This is important because once we
+                            //* deallocate the ObjectData, those callbacks reference freed memory.
+                            mProcs->deviceDestroy(data.handle);
                         {% endif %}
                         Release(data.handle);
                     }

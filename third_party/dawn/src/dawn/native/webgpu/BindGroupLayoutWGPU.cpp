@@ -25,19 +25,33 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "dawn/native/webgpu/BindGroupLayoutWGPU.h"
+#include "src/dawn/native/webgpu/BindGroupLayoutWGPU.h"
 
 #include <vector>
 
-#include "dawn/common/MatchVariant.h"
-#include "dawn/common/StringViewUtils.h"
-#include "dawn/native/webgpu/CaptureContext.h"
-#include "dawn/native/webgpu/ComputePipelineWGPU.h"
-#include "dawn/native/webgpu/DeviceWGPU.h"
-#include "dawn/native/webgpu/Forward.h"
-#include "dawn/native/webgpu/RenderPipelineWGPU.h"
+#include "absl/container/inlined_vector.h"
+#include "src/dawn/common/MatchVariant.h"
+#include "src/dawn/common/StringViewUtils.h"
+#include "src/dawn/native/webgpu/CaptureContext.h"
+#include "src/dawn/native/webgpu/ComputePipelineWGPU.h"
+#include "src/dawn/native/webgpu/DeviceWGPU.h"
+#include "src/dawn/native/webgpu/Forward.h"
+#include "src/dawn/native/webgpu/RenderPipelineWGPU.h"
+#include "src/utils/compiler.h"
 
 namespace dawn::native::webgpu {
+
+namespace {
+WGPUExternalTextureBindingLayout ToWGPU(const ExternalTextureBindingLayout* entry) {
+    return {
+        .chain =
+            {
+                .next = nullptr,
+                .sType = WGPUSType_ExternalTextureBindingLayout,
+            },
+    };
+}
+}  // namespace
 
 // static
 ResultOrError<Ref<BindGroupLayout>> BindGroupLayout::Create(
@@ -50,14 +64,23 @@ BindGroupLayout::BindGroupLayout(Device* device,
                                  const UnpackedPtr<BindGroupLayoutDescriptor>& descriptor)
     : BindGroupLayoutInternalBase(device, descriptor),
       RecordableObject(schema::ObjectType::BindGroupLayout),
-      ObjectWGPU(device->wgpu.bindGroupLayoutRelease),
+      ObjectWGPU(device->wgpu->bindGroupLayoutRelease),
       mBindGroupAllocator(MakeFrontendBindGroupAllocator<BindGroup>(4096)) {
     // Rebuild the descriptor and resolve internal bindings to regular ones.
-    std::vector<WGPUBindGroupLayoutEntry> entries(descriptor->entryCount);
-    for (size_t i = 0; i < entries.size(); i++) {
-        entries[i] = *ToAPI(&descriptor->entries[i]);
+    absl::InlinedVector<WGPUBindGroupLayoutEntry, 8> entries(descriptor->entryCount);
 
-        switch (descriptor->entries[i].buffer.type) {
+    // Pre-calculate the number of external textures to prevent InlinedVector reallocation.
+    size_t externalTextureCount = GetExternalTextureCount();
+    // Use an inline size of 1 since external textures are rare, and reserve the required capacity
+    // immediately.
+    absl::InlinedVector<WGPUExternalTextureBindingLayout, 1> externalTextureEntries;
+    externalTextureEntries.reserve(externalTextureCount);
+
+    for (size_t i = 0; i < entries.size(); i++) {
+        UnpackedPtr<BindGroupLayoutEntry> entry = Unpack(&DAWN_UNSAFE_TODO(descriptor->entries[i]));
+        entries[i] = *ToAPI(*entry);
+
+        switch (entry->buffer.type) {
             case kInternalStorageBufferBinding:
                 entries[i].buffer.type = WGPUBufferBindingType_Storage;
                 break;
@@ -67,6 +90,11 @@ BindGroupLayout::BindGroupLayout(Device* device,
             default:
                 break;
         }
+
+        if (auto* externalTextureLayout = entry.Get<ExternalTextureBindingLayout>()) {
+            externalTextureEntries.push_back(ToWGPU(externalTextureLayout));
+            entries[i].nextInChain = &externalTextureEntries.back().chain;
+        }
     }
 
     WGPUBindGroupLayoutDescriptor desc = {};
@@ -75,7 +103,7 @@ BindGroupLayout::BindGroupLayout(Device* device,
     desc.entryCount = descriptor->entryCount;
     desc.entries = entries.data();
 
-    mInnerHandle = device->wgpu.deviceCreateBindGroupLayout(device->GetInnerHandle(), &desc);
+    mInnerHandle = device->wgpu->deviceCreateBindGroupLayout(device->GetInnerHandle(), &desc);
     DAWN_ASSERT(mInnerHandle);
 }
 
@@ -163,6 +191,14 @@ MaybeError BindGroupLayout::CaptureCreationParameters(CaptureContext& captureCon
                         .viewDimension = info.viewDimension,
                         .multisampled = info.multisampled,
                     }},
+                }};
+                Serialize(captureContext, entry);
+                return {};
+            },
+            [&](const ExternalTextureBindingInfo& info) -> MaybeError {
+                schema::BindGroupLayoutEntryTypeExternalTextureBinding entry{{
+                    .binding = binding,
+                    .data{{}},
                 }};
                 Serialize(captureContext, entry);
                 return {};

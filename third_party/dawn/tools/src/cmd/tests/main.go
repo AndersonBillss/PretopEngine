@@ -3,16 +3,16 @@
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 //
-// 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer.
+//  1. Redistributions of source code must retain the above copyright notice, this
+//     list of conditions and the following disclaimer.
 //
-// 2. Redistributions in binary form must reproduce the above copyright notice,
-//    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution.
+//  2. Redistributions in binary form must reproduce the above copyright notice,
+//     this list of conditions and the following disclaimer in the documentation
+//     and/or other materials provided with the distribution.
 //
-// 3. Neither the name of the copyright holder nor the names of its
-//    contributors may be used to endorse or promote products derived from
-//    this software without specific prior written permission.
+//  3. Neither the name of the copyright holder nor the names of its
+//     contributors may be used to endorse or promote products derived from
+//     this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -138,7 +138,7 @@ func run(fsReaderWriter oswrapper.FilesystemReaderWriter) error {
 		terminalWidth = 0
 	}
 
-	var formatList, ignore, dxcPath, fxcPath, tintPath, xcrunPath string
+	var formatList, ignore, dxcPath, fxcPath, spvDiffPath, tintPath, xcrunPath string
 	var maxTableWidth int
 	var server bool
 	numCPU := runtime.NumCPU()
@@ -147,14 +147,15 @@ func run(fsReaderWriter oswrapper.FilesystemReaderWriter) error {
 	flag.StringVar(&ignore, "ignore", "**.expected.*", "files to ignore in globs")
 	flag.StringVar(&dxcPath, "dxcompiler", "", "path to DXC DLL for validating HLSL output")
 	flag.StringVar(&fxcPath, "fxc", "", "path to FXC DLL for validating HLSL output")
+	flag.StringVar(&spvDiffPath, "spirv-diff", "", "path to spirv-diff for diffing spvasm output")
 	flag.StringVar(&tintPath, "tint", defaultTintPath(fsReaderWriter), "path to the tint executable")
 	flag.StringVar(&xcrunPath, "xcrun", "", "path to xcrun executable for validating MSL output")
 	flag.BoolVar(&verbose, "verbose", false, "print all run tests, including rows that all pass")
 	flag.BoolVar(&generateExpected, "generate-expected", false, "create or update all expected outputs")
 	flag.BoolVar(&generateSkip, "generate-skip", false, "create new expected outputs that fail with SKIP")
-	flag.BoolVar(&generateSkip, "generate-skips", false, "create new expected outputs that fail with SKIP")
+	flag.BoolVar(&generateSkip, "generate-skips", false, "alias for -generate-skip")
 	flag.BoolVar(&updateSkip, "update-skip", false, "update all expected outputs that fail with SKIP")
-	flag.BoolVar(&updateSkip, "update-skips", false, "update all expected outputs that fail with SKIP")
+	flag.BoolVar(&updateSkip, "update-skips", false, "alias for -update-skip")
 	flag.BoolVar(&server, "server", true, "run Tint in server mode")
 	flag.IntVar(&numCPU, "j", numCPU, "maximum number of concurrent threads to run tests")
 	flag.IntVar(&maxTableWidth, "table-width", terminalWidth, "maximum width of the results table")
@@ -329,6 +330,7 @@ func run(fsReaderWriter oswrapper.FilesystemReaderWriter) error {
 		tintPath:         tintPath,
 		dxcPath:          dxcPath,
 		fxcPath:          fxcPath,
+		spvDiffPath:      spvDiffPath,
 		xcrunPath:        xcrunPath,
 		generateExpected: generateExpected,
 		generateSkip:     generateSkip,
@@ -571,6 +573,7 @@ func run(fsReaderWriter oswrapper.FilesystemReaderWriter) error {
 	}
 	fmt.Println()
 
+	failed_files := []string{}
 	for _, f := range failures {
 		color.Set(color.FgBlue)
 		fmt.Printf("%s ", f.file)
@@ -580,8 +583,12 @@ func run(fsReaderWriter oswrapper.FilesystemReaderWriter) error {
 		fmt.Println("FAIL")
 		color.Unset()
 		fmt.Println(indent(f.err.Error(), 4))
+
+		failed_files = append(failed_files, f.file)
 	}
 	if len(failures) > 0 {
+		fmt.Println("Failed Files")
+		fmt.Println(strings.Join(failed_files, "\n"))
 		fmt.Println()
 	}
 
@@ -670,6 +677,7 @@ type runConfig struct {
 	tintPath         string
 	dxcPath          string
 	fxcPath          string
+	spvDiffPath      string
 	xcrunPath        string
 	generateExpected bool
 	generateSkip     bool
@@ -692,11 +700,13 @@ var reFXCErrorStringHash = regexp.MustCompile(`(?:.*?)(\(.*?\): (?:warning|error
 // unittest coverage for functions that can be tested.
 func (j job) run(cfg runConfig, fsReaderWriter oswrapper.FilesystemReaderWriter, tintServer *tintServerState) {
 	j.result <- func() status {
+		isErrorTest := strings.HasPrefix(filepath.ToSlash(j.file), filepath.ToSlash(fileutils.DawnRoot(fsReaderWriter))+"/test/tint/errors/")
+
 		// expectedFilePath is the path to the expected output file for the given test
 		expectedFilePath := j.file + ".expected."
 
-		// Only attempt to generate WGSL for SPVASM input files
-		if strings.HasSuffix(j.file, ".spvasm") && j.format != wgsl {
+		// Only attempt to generate WGSL for SPVASM input files or for cases that expect an error.
+		if (strings.HasSuffix(j.file, ".spvasm") || isErrorTest) && j.format != wgsl {
 			return status{code: skip, timeTaken: 0}
 		}
 
@@ -743,7 +753,7 @@ func (j job) run(cfg runConfig, fsReaderWriter oswrapper.FilesystemReaderWriter,
 
 		outputFormat := strings.Split(string(j.format), "-")[0] // 'hlsl-fxc' -> 'hlsl', etc.
 		if j.format == hlslFXC {
-			// Emit HLSL specifically for FXC
+			// Emit HLSL specifically for FXC.
 			outputFormat += "-fxc"
 		}
 
@@ -805,6 +815,12 @@ func (j job) run(cfg runConfig, fsReaderWriter oswrapper.FilesystemReaderWriter,
 		out = strings.ReplaceAll(out, "\r\n", "\n")
 		out = strings.ReplaceAll(out, filepath.ToSlash(fileutils.DawnRoot(fsReaderWriter)), "<dawn>")
 		out, hashes := extractValidationHashes(out)
+		if isErrorTest && !ok {
+			// Strip the error message from the output for expected test files, since it may differ depending on the platform.
+			if idx := strings.LastIndex(out, "\ntint executable returned error:"); idx != -1 {
+				out = out[:idx] + "\n"
+			}
+		}
 		matched := expected == "" || expected == out
 
 		canEmitPassExpectationFile := true
@@ -820,8 +836,8 @@ func (j job) run(cfg runConfig, fsReaderWriter oswrapper.FilesystemReaderWriter,
 		}
 
 		// Do not update expected if test is marked as SKIP: TIMEOUT
-		if ok && cfg.generateExpected && !isSkipTimeoutTest && (validate || !isSkipTest) {
-			// User requested to update PASS expectations, and test passed.
+		if (ok == !isErrorTest) && cfg.generateExpected && !isSkipTimeoutTest && (validate || !isSkipTest) {
+			// User requested to update expectations, and test met success/failure expectation.
 			if canEmitPassExpectationFile {
 				saveExpectedFile(expectedFilePath, out)
 			} else if expectedFileExists {
@@ -842,7 +858,7 @@ func (j job) run(cfg runConfig, fsReaderWriter oswrapper.FilesystemReaderWriter,
 			skipStr = "TIMEOUT"
 		}
 
-		passed := ok && (matched || isSkipTimeoutTest)
+		passed := (ok == !isErrorTest) && (matched || isSkipTimeoutTest)
 		if !passed {
 			if j.format == hlslFXC {
 				out = reFXCErrorStringHash.ReplaceAllString(out, `<scrubbed_path>${1}`)
@@ -880,9 +896,31 @@ func (j job) run(cfg runConfig, fsReaderWriter oswrapper.FilesystemReaderWriter,
 				saveExpectedFile(expectedFilePath, "SKIP: "+skipStr+"\n\n"+out)
 			}
 
-			// Expected output did not match
-			dmp := diffmatchpatch.New()
-			diff := dmp.DiffPrettyText(dmp.DiffMain(expected, out, true))
+			var diff = ""
+			if j.format == spvasm && cfg.spvDiffPath != "" {
+				if f, err := os.CreateTemp("", "diff.*.spvasm"); err == nil {
+					defer os.Remove(f.Name())
+					f.Write([]byte(out))
+
+					args := []string{
+						f.Name(),
+						expectedFilePath,
+					}
+
+					ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
+					defer cancel()
+					cmd := exec.CommandContext(ctx, cfg.spvDiffPath, args...)
+					if diffOut, err := cmd.CombinedOutput(); err == nil {
+						diff = string(diffOut)
+					}
+				} else {
+					fmt.Println("temp file creation failed")
+				}
+			} else {
+				// Expected output did not match
+				dmp := diffmatchpatch.New()
+				diff = dmp.DiffPrettyText(dmp.DiffMain(expected, out, true))
+			}
 			err := fmt.Errorf(`Output was not as expected
 
 --------------------------------------------------------------------------------

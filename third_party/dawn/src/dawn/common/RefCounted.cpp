@@ -25,7 +25,7 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "dawn/common/RefCounted.h"
+#include "src/dawn/common/RefCounted.h"
 
 #include <cstddef>
 #if defined(__has_feature)
@@ -34,7 +34,7 @@
 #endif
 #endif
 
-#include "dawn/common/Assert.h"
+#include "src/utils/assert.h"
 
 namespace dawn {
 
@@ -44,7 +44,7 @@ static constexpr uint64_t kRefCountIncrement = (uint64_t(1) << kPayloadBits);
 
 RefCount::RefCount(uint64_t initCount, uint64_t payload)
     : mRefCount(initCount * kRefCountIncrement + payload) {
-    DAWN_ASSERT((payload & kPayloadMask) == payload);
+    DAWN_RELEASE_ASSUME((payload & kPayloadMask) == payload);
 }
 
 RefCount::RefCount(uint64_t payload) : RefCount(1, payload) {}
@@ -82,7 +82,7 @@ bool RefCount::Increment() {
     // don't delete `this`.
     // See the explanation in the Boost documentation:
     //     https://www.boost.org/doc/libs/1_55_0/doc/html/atomic/usage_examples.html
-    uint32_t previousValue = mRefCount.fetch_add(kRefCountIncrement, std::memory_order_relaxed);
+    uint64_t previousValue = mRefCount.fetch_add(kRefCountIncrement, std::memory_order_relaxed);
 
     return (previousValue & ~kPayloadMask) == 0;
 }

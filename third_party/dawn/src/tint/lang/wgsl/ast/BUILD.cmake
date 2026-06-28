@@ -178,6 +178,7 @@ tint_add_target(tint_lang_wgsl_ast lib
   lang/wgsl/ast/type.h
   lang/wgsl/ast/type_decl.cc
   lang/wgsl/ast/type_decl.h
+  lang/wgsl/ast/type_traits.h
   lang/wgsl/ast/unary_op_expression.cc
   lang/wgsl/ast/unary_op_expression.h
   lang/wgsl/ast/var.cc
@@ -204,6 +205,7 @@ tint_target_add_dependencies(tint_lang_wgsl_ast lib
   tint_utils_macros
   tint_utils_math
   tint_utils_memory
+  tint_utils_reflection
   tint_utils_rtti
   tint_utils_symbol
   tint_utils_text
@@ -298,6 +300,7 @@ tint_target_add_dependencies(tint_lang_wgsl_ast_test test
   tint_utils_macros
   tint_utils_math
   tint_utils_memory
+  tint_utils_reflection
   tint_utils_rtti
   tint_utils_symbol
   tint_utils_text

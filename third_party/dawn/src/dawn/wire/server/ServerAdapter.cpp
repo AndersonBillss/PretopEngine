@@ -28,11 +28,11 @@
 #include <vector>
 
 #include "absl/types/span.h"  // TODO(343500108): Use std::span when we have C++20.
-#include "dawn/common/StringViewUtils.h"
-#include "dawn/wire/SupportedFeatures.h"
-#include "dawn/wire/WireResult.h"
-#include "dawn/wire/server/ObjectStorage.h"
-#include "dawn/wire/server/Server.h"
+#include "src/dawn/common/StringViewUtils.h"
+#include "src/dawn/wire/SupportedFeatures.h"
+#include "src/dawn/wire/WireResult.h"
+#include "src/dawn/wire/server/ObjectStorage.h"
+#include "src/dawn/wire/server/Server.h"
 
 namespace dawn::wire::server {
 
@@ -48,7 +48,7 @@ WireResult Server::DoAdapterRequestDevice(Known<WGPUAdapter> adapter,
     auto userdata = MakeUserdata<RequestDeviceUserdata>();
     userdata->eventManager = eventManager;
     userdata->future = future;
-    userdata->deviceObjectId = device.id;
+    userdata->device = device.AsHandle();
     userdata->deviceLostFuture = deviceLostFuture;
 
     // Update the descriptor with the device lost callback associated with this request.
@@ -72,7 +72,7 @@ WireResult Server::DoAdapterRequestDevice(Known<WGPUAdapter> adapter,
         },
         nullptr, device->info.get()};
 
-    mProcs.adapterRequestDevice(
+    mProcs->adapterRequestDevice(
         adapter->handle, &desc,
         MakeCallbackInfo<WGPURequestDeviceCallbackInfo, &Server::OnRequestDeviceCallback,
                          WGPUCallbackMode_AllowSpontaneous>(userdata.release()));
@@ -100,13 +100,13 @@ void Server::OnRequestDeviceCallback(RequestDeviceUserdata* data,
     // Note: We fail the callback here, instead of immediately upon receiving
     // the request to preserve callback ordering.
     FreeMembers<WGPUSupportedFeatures> supportedFeatures(mProcs);
-    mProcs.deviceGetFeatures(device, &supportedFeatures);
+    mProcs->deviceGetFeatures(device, &supportedFeatures);
     absl::Span<const WGPUFeatureName> features(supportedFeatures.features,
                                                supportedFeatures.featureCount);
     for (WGPUFeatureName feature : features) {
         if (!IsFeatureSupported(feature)) {
             // Release the device.
-            mProcs.deviceRelease(device);
+            mProcs->deviceRelease(device);
             device = nullptr;
 
             cmd.status = WGPURequestDeviceStatus_Error;
@@ -128,15 +128,13 @@ void Server::OnRequestDeviceCallback(RequestDeviceUserdata* data,
     WGPUDawnTexelCopyBufferRowAlignmentLimits texelCopyBufferRowAlignmentLimits =
         WGPU_DAWN_TEXEL_COPY_BUFFER_ROW_ALIGNMENT_LIMITS_INIT;
     compatLimits.chain.next = &texelCopyBufferRowAlignmentLimits.chain;
-    WGPUResourceTableLimits resourceTableLimits = WGPU_RESOURCE_TABLE_LIMITS_INIT;
-    texelCopyBufferRowAlignmentLimits.chain.next = &resourceTableLimits.chain;
 
-    mProcs.deviceGetLimits(device, &limits);
+    mProcs->deviceGetLimits(device, &limits);
     cmd.limits = &limits;
 
     // Assign the handle and allocated status if the device is created successfully.
     Known<WGPUDevice> reservation;
-    if (FillReservation(data->deviceObjectId, device, &reservation) == WireResult::FatalError) {
+    if (FillReservation(data->device, device, &reservation) == WireResult::FatalError) {
         cmd.status = WGPURequestDeviceStatus_CallbackCancelled;
         cmd.message = ToOutputStringView("Destroyed before request was fulfilled.");
         SerializeCommand(cmd);

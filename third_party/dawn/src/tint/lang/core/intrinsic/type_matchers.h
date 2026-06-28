@@ -55,6 +55,7 @@
 #include "src/tint/lang/core/type/storage_texture.h"
 #include "src/tint/lang/core/type/string.h"
 #include "src/tint/lang/core/type/texture_dimension.h"
+#include "src/tint/lang/core/type/u16.h"
 #include "src/tint/lang/core/type/u32.h"
 #include "src/tint/lang/core/type/u64.h"
 #include "src/tint/lang/core/type/u8.h"
@@ -128,6 +129,14 @@ inline bool MatchU8(intrinsic::MatchState&, const type::Type* ty) {
     return ty->IsAnyOf<intrinsic::Any, type::U8, type::AbstractInt>();
 }
 
+inline const type::U16* BuildU16(intrinsic::MatchState& state, const type::Type*) {
+    return state.types.u16();
+}
+
+inline bool MatchU16(intrinsic::MatchState&, const type::Type* ty) {
+    return ty->IsAnyOf<intrinsic::Any, type::U16, type::AbstractInt>();
+}
+
 inline bool MatchVec(intrinsic::MatchState&,
                      const type::Type* ty,
                      intrinsic::Number& N,
@@ -147,7 +156,7 @@ inline bool MatchVec(intrinsic::MatchState&,
 }
 
 template <uint32_t N>
-inline bool MatchVec(intrinsic::MatchState&, const type::Type* ty, const type::Type*& T) {
+inline constexpr bool MatchVec(intrinsic::MatchState&, const type::Type* ty, const type::Type*& T) {
     if (ty->Is<intrinsic::Any>()) {
         T = ty;
         return true;
@@ -226,7 +235,7 @@ inline bool MatchMat(intrinsic::MatchState&,
 }
 
 template <uint32_t C, uint32_t R>
-inline bool MatchMat(intrinsic::MatchState&, const type::Type* ty, const type::Type*& T) {
+inline constexpr bool MatchMat(intrinsic::MatchState&, const type::Type* ty, const type::Type*& T) {
     if (ty->Is<intrinsic::Any>()) {
         T = ty;
         return true;

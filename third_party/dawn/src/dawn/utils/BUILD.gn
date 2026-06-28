@@ -37,6 +37,10 @@ import("${dawn_root}/scripts/dawn_features.gni")
 
 dawn_json_generator("dawn_utils_gen") {
   target = "dawn_utils"
+  inputs = [
+    "${dawn_template_dir}/dawn/utils/ComboLimits.h",
+    "${dawn_template_dir}/dawn/utils/ComboLimits.cpp",
+  ]
   outputs = [
     "src/dawn/utils/ComboLimits.h",
     "src/dawn/utils/ComboLimits.cpp",
@@ -94,7 +98,7 @@ static_library("test_utils") {
     "${dawn_root}/src/dawn/common",
     "${dawn_root}/src/dawn/native:headers",
     "${dawn_root}/src/dawn/partition_alloc:raw_ptr",
-    "${dawn_root}/src/dawn/wire",
+    "${dawn_root}/src/dawn/wire:static",
   ]
 }
 

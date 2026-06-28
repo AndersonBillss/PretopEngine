@@ -25,12 +25,11 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include "gmock/gmock.h"
 #include "src/tint/lang/wgsl/resolver/resolver.h"
 #include "src/tint/lang/wgsl/resolver/resolver_helper_test.h"
 #include "src/tint/lang/wgsl/sem/builtin_fn.h"
 #include "src/tint/lang/wgsl/sem/value_constructor.h"
-
-#include "gmock/gmock.h"
 
 using namespace tint::core::fluent_types;     // NOLINT
 using namespace tint::core::number_suffixes;  // NOLINT
@@ -64,7 +63,7 @@ TEST_P(ResolverSubgroupMatrixParamTest, DeclareType) {
     StringStream kind;
     kind << "subgroup_matrix_" << ToString(params.kind);
     auto* alias =
-        Alias("m", ty(kind.str(), params.el_ast(*this), u32(params.cols), u32(params.rows)));
+        Alias("m", ty.AsType(kind.str(), params.el_ast(*this), u32(params.cols), u32(params.rows)));
 
     EXPECT_TRUE(r()->Resolve()) << r()->error();
 
@@ -93,7 +92,7 @@ INSTANTIATE_TEST_SUITE_P(ResolverTest,
 
 TEST_F(ResolverSubgroupMatrixTest, SignedColumnCount) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto* alias = Alias("left", ty("subgroup_matrix_result", ty.f32(), 4_i, 2_u));
+    auto* alias = Alias("left", ty.subgroup_matrix_result(ty.f32(), 4_i, 2_u));
 
     EXPECT_TRUE(r()->Resolve()) << r()->error();
 
@@ -105,7 +104,7 @@ TEST_F(ResolverSubgroupMatrixTest, SignedColumnCount) {
 
 TEST_F(ResolverSubgroupMatrixTest, SignedRowCount) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto* alias = Alias("left", ty("subgroup_matrix_result", ty.f32(), 4_u, 2_i));
+    auto* alias = Alias("left", ty.subgroup_matrix_result(ty.f32(), 4_u, 2_i));
 
     EXPECT_TRUE(r()->Resolve()) << r()->error();
 
@@ -116,7 +115,7 @@ TEST_F(ResolverSubgroupMatrixTest, SignedRowCount) {
 }
 
 TEST_F(ResolverSubgroupMatrixTest, DeclareTypeWithoutExtension) {
-    Alias("left", ty("subgroup_matrix_result", ty.f32(), 8_a, 8_a));
+    Alias("left", ty.subgroup_matrix_result(ty.f32(), 8_a, 8_a));
 
     EXPECT_FALSE(r()->Resolve());
     EXPECT_EQ(
@@ -126,7 +125,7 @@ TEST_F(ResolverSubgroupMatrixTest, DeclareTypeWithoutExtension) {
 
 TEST_F(ResolverSubgroupMatrixTest, MissingTemplateArgs) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    Alias("left", ty("subgroup_matrix_result"));
+    Alias("left", ty.AsType("subgroup_matrix_result"));
 
     EXPECT_FALSE(r()->Resolve());
     EXPECT_EQ(r()->error(), R"(error: expected '<' for 'subgroup_matrix_result')");
@@ -134,7 +133,7 @@ TEST_F(ResolverSubgroupMatrixTest, MissingTemplateArgs) {
 
 TEST_F(ResolverSubgroupMatrixTest, MissingColsAndRows) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    Alias("left", ty("subgroup_matrix_result", ty.f32()));
+    Alias("left", ty.AsType("subgroup_matrix_result", ty.f32()));
 
     EXPECT_FALSE(r()->Resolve());
     EXPECT_EQ(r()->error(), R"(error: 'subgroup_matrix_result' requires 3 template arguments)");
@@ -142,7 +141,7 @@ TEST_F(ResolverSubgroupMatrixTest, MissingColsAndRows) {
 
 TEST_F(ResolverSubgroupMatrixTest, MissingRows) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    Alias("left", ty("subgroup_matrix_result", ty.f32(), 8_a));
+    Alias("left", ty.AsType("subgroup_matrix_result", ty.f32(), 8_a));
 
     EXPECT_FALSE(r()->Resolve());
     EXPECT_EQ(r()->error(), R"(error: 'subgroup_matrix_result' requires 3 template arguments)");
@@ -150,7 +149,7 @@ TEST_F(ResolverSubgroupMatrixTest, MissingRows) {
 
 TEST_F(ResolverSubgroupMatrixTest, MissingType) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    Alias("left", ty("subgroup_matrix_result", 8_a, 8_a));
+    Alias("left", ty.AsType("subgroup_matrix_result", 8_a, 8_a));
 
     EXPECT_FALSE(r()->Resolve());
     EXPECT_EQ(r()->error(), R"(error: 'subgroup_matrix_result' requires 3 template arguments)");
@@ -158,7 +157,7 @@ TEST_F(ResolverSubgroupMatrixTest, MissingType) {
 
 TEST_F(ResolverSubgroupMatrixTest, BadType) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    Alias("left", ty("subgroup_matrix_result", ty.bool_(), 8_a, 8_a));
+    Alias("left", ty.subgroup_matrix_result(ty.bool_(), 8_a, 8_a));
 
     EXPECT_FALSE(r()->Resolve());
     EXPECT_EQ(r()->error(),
@@ -170,7 +169,7 @@ TEST_F(ResolverSubgroupMatrixTest, NonConstantColumnCount) {
     Func("foo", Empty, ty.void_(),
          Vector{
              Decl(Var("cols", ty.u32(), Expr(8_a))),
-             Decl(Var("left", ty("subgroup_matrix_result", ty.f32(), "cols", 8_a))),
+             Decl(Var("left", ty.AsType("subgroup_matrix_result", ty.f32(), "cols", 8_a))),
          });
 
     EXPECT_FALSE(r()->Resolve());
@@ -180,7 +179,7 @@ TEST_F(ResolverSubgroupMatrixTest, NonConstantColumnCount) {
 
 TEST_F(ResolverSubgroupMatrixTest, ZeroColumnCount) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    Alias("left", ty("subgroup_matrix_result", ty.f32(), 0_a, 8_a));
+    Alias("left", ty.subgroup_matrix_result(ty.f32(), 0_a, 8_a));
 
     EXPECT_FALSE(r()->Resolve());
     EXPECT_EQ(r()->error(),
@@ -189,7 +188,7 @@ TEST_F(ResolverSubgroupMatrixTest, ZeroColumnCount) {
 
 TEST_F(ResolverSubgroupMatrixTest, NegativeColumnCount) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    Alias("left", ty("subgroup_matrix_result", ty.f32(), -1_i, 8_a));
+    Alias("left", ty.AsType("subgroup_matrix_result", ty.f32(), -1_i, 8_a));
 
     EXPECT_FALSE(r()->Resolve());
     EXPECT_EQ(r()->error(),
@@ -201,7 +200,7 @@ TEST_F(ResolverSubgroupMatrixTest, NonConstantRowCount) {
     Func("foo", Empty, ty.void_(),
          Vector{
              Decl(Var("rows", ty.u32(), Expr(8_a))),
-             Decl(Var("left", ty("subgroup_matrix_result", ty.f32(), 8_a, "rows"))),
+             Decl(Var("left", ty.AsType("subgroup_matrix_result", ty.f32(), 8_a, "rows"))),
          });
 
     EXPECT_FALSE(r()->Resolve());
@@ -211,7 +210,7 @@ TEST_F(ResolverSubgroupMatrixTest, NonConstantRowCount) {
 
 TEST_F(ResolverSubgroupMatrixTest, ZeroRowCount) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    Alias("left", ty("subgroup_matrix_result", ty.f32(), 8_a, 0_a));
+    Alias("left", ty.subgroup_matrix_result(ty.f32(), 8_a, 0_a));
 
     EXPECT_FALSE(r()->Resolve());
     EXPECT_EQ(r()->error(),
@@ -220,7 +219,7 @@ TEST_F(ResolverSubgroupMatrixTest, ZeroRowCount) {
 
 TEST_F(ResolverSubgroupMatrixTest, NegativeRowCount) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    Alias("left", ty("subgroup_matrix_result", ty.f32(), 8_a, -1_i));
+    Alias("left", ty.AsType("subgroup_matrix_result", ty.f32(), 8_a, -1_i));
 
     EXPECT_FALSE(r()->Resolve());
     EXPECT_EQ(r()->error(),
@@ -250,7 +249,7 @@ TEST_F(ResolverSubgroupMatrixTest, ZeroValueConstructor_InArray) {
     // _ = array<subgroup_matrix_result<f32, 8, 8>, 4>();
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
     auto matrix = ty.subgroup_matrix(core::SubgroupMatrixKind::kResult, ty.f32(), 8u, 8u);
-    auto* construct = Call(ty.array(matrix, 4_a));
+    auto* construct = Call(ty.array(matrix, Expr(4_a)));
     WrapInFunction(Assign(Phony(), construct));
 
     ASSERT_TRUE(r()->Resolve()) << r()->error();
@@ -358,7 +357,7 @@ TEST_F(ResolverSubgroupMatrixTest, ConstructorWrongType) {
 
 TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixStore) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto* buffer = GlobalVar("buffer", storage, read_write, ty.array(ty.f32(), 8_a),
+    auto* buffer = GlobalVar("buffer", storage, read_write, ty.array(ty.f32(), Expr(8_a)),
                              Vector{Group(0_u), Binding(0_u)});
     auto* call = Call(wgsl::BuiltinFn::kSubgroupMatrixStore, AddressOf(buffer), 0_u,
                       Call(ty.subgroup_matrix(core::SubgroupMatrixKind::kLeft, ty.f32(), 8u, 8u)),
@@ -380,7 +379,7 @@ TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixStore) {
 
 TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixStore_MismatchedType) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto* buffer = GlobalVar("buffer", storage, read_write, ty.array(ty.u32(), 8_a),
+    auto* buffer = GlobalVar("buffer", storage, read_write, ty.array(ty.u32(), Expr(8_a)),
                              Vector{Group(0_u), Binding(0_u)});
     auto* call = Call(wgsl::BuiltinFn::kSubgroupMatrixStore, AddressOf(buffer), 0_u,
                       Call(ty.subgroup_matrix(core::SubgroupMatrixKind::kLeft, ty.i32(), 8u, 8u)),
@@ -397,7 +396,7 @@ TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixStore_MismatchedType) {
 
 TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixStore_i8) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto* buffer = GlobalVar("buffer", storage, read_write, ty.array(ty.i32(), 8_a),
+    auto* buffer = GlobalVar("buffer", storage, read_write, ty.array(ty.i32(), Expr(8_a)),
                              Vector{Group(0_u), Binding(0_u)});
     auto* call = Call(wgsl::BuiltinFn::kSubgroupMatrixStore, AddressOf(buffer), 0_u,
                       Call(ty.subgroup_matrix(core::SubgroupMatrixKind::kLeft, ty.i8(), 8u, 8u)),
@@ -419,7 +418,7 @@ TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixStore_i8) {
 
 TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixStore_u8) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto* buffer = GlobalVar("buffer", storage, read_write, ty.array(ty.u32(), 8_a),
+    auto* buffer = GlobalVar("buffer", storage, read_write, ty.array(ty.u32(), Expr(8_a)),
                              Vector{Group(0_u), Binding(0_u)});
     auto* call = Call(wgsl::BuiltinFn::kSubgroupMatrixStore, AddressOf(buffer), 0_u,
                       Call(ty.subgroup_matrix(core::SubgroupMatrixKind::kLeft, ty.u8(), 8u, 8u)),
@@ -441,8 +440,8 @@ TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixStore_u8) {
 
 TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixLoad) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto* buffer =
-        GlobalVar("buffer", storage, ty.array(ty.f32(), 8_a), Vector{Group(0_u), Binding(0_u)});
+    auto* buffer = GlobalVar("buffer", storage, ty.array(ty.f32(), Expr(8_a)),
+                             Vector{Group(0_u), Binding(0_u)});
     auto* call = Call(Ident(wgsl::BuiltinFn::kSubgroupMatrixLoad,
                             ty.subgroup_matrix(core::SubgroupMatrixKind::kLeft, ty.f32(), 8u, 8u)),
                       AddressOf(buffer), 0_u, false, 32_u);
@@ -464,8 +463,8 @@ TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixLoad) {
 
 TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixLoad_MismatchedType) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto* buffer =
-        GlobalVar("buffer", storage, ty.array(ty.u32(), 8_a), Vector{Group(0_u), Binding(0_u)});
+    auto* buffer = GlobalVar("buffer", storage, ty.array(ty.u32(), Expr(8_a)),
+                             Vector{Group(0_u), Binding(0_u)});
     auto* call = Call(Ident(wgsl::BuiltinFn::kSubgroupMatrixLoad,
                             ty.subgroup_matrix(core::SubgroupMatrixKind::kLeft, ty.i32(), 8u, 8u)),
                       AddressOf(buffer), 0_u, false, 32_u);
@@ -481,8 +480,8 @@ TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixLoad_MismatchedType) {
 
 TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixLoad_MissingTemplateArg) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto* buffer =
-        GlobalVar("buffer", storage, ty.array(ty.f32(), 8_a), Vector{Group(0_u), Binding(0_u)});
+    auto* buffer = GlobalVar("buffer", storage, ty.array(ty.f32(), Expr(8_a)),
+                             Vector{Group(0_u), Binding(0_u)});
     auto* call = Call(wgsl::BuiltinFn::kSubgroupMatrixLoad, AddressOf(buffer), 0_u, false, 32_u);
     Func("foo", Empty, ty.void_(),
          Vector{
@@ -496,8 +495,8 @@ TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixLoad_MissingTemplateArg) {
 
 TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixLoad_i8) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto* buffer =
-        GlobalVar("buffer", storage, ty.array(ty.i32(), 8_a), Vector{Group(0_u), Binding(0_u)});
+    auto* buffer = GlobalVar("buffer", storage, ty.array(ty.i32(), Expr(8_a)),
+                             Vector{Group(0_u), Binding(0_u)});
     auto* call = Call(Ident(wgsl::BuiltinFn::kSubgroupMatrixLoad,
                             ty.subgroup_matrix(core::SubgroupMatrixKind::kLeft, ty.i8(), 8u, 8u)),
                       AddressOf(buffer), 0_u, false, 32_u);
@@ -519,8 +518,8 @@ TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixLoad_i8) {
 
 TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixLoad_u8) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto* buffer =
-        GlobalVar("buffer", storage, ty.array(ty.u32(), 8_a), Vector{Group(0_u), Binding(0_u)});
+    auto* buffer = GlobalVar("buffer", storage, ty.array(ty.u32(), Expr(8_a)),
+                             Vector{Group(0_u), Binding(0_u)});
     auto* call = Call(Ident(wgsl::BuiltinFn::kSubgroupMatrixLoad,
                             ty.subgroup_matrix(core::SubgroupMatrixKind::kLeft, ty.u8(), 8u, 8u)),
                       AddressOf(buffer), 0_u, false, 32_u);
@@ -540,10 +539,95 @@ TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixLoad_u8) {
     EXPECT_TRUE(target->IsSubgroupMatrix());
 }
 
+TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixLoad_OOBOffset) {
+    Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
+    auto* buffer = GlobalVar("buffer", storage, ty.array(ty.f32(), Expr(8_a)),
+                             Vector{Group(0_u), Binding(0_u)});
+    auto* call = Call(Ident(wgsl::BuiltinFn::kSubgroupMatrixLoad,
+                            ty.subgroup_matrix(core::SubgroupMatrixKind::kLeft, ty.f32(), 8u, 8u)),
+                      AddressOf(buffer), 8_u, false, 32_u);
+    Func("foo", Empty, ty.void_(),
+         Vector{
+             Assign(Phony(), call),
+         });
+
+    EXPECT_FALSE(r()->Resolve());
+    EXPECT_THAT(r()->error(),
+                testing::HasSubstr("error: the offset argument of subgroupMatrixLoad (8) is out of "
+                                   "bounds of the array type of size 8"));
+}
+
+TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixStore_OOBOffset) {
+    Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
+    auto* buffer = GlobalVar("buffer", storage, read_write, ty.array(ty.f32(), Expr(8_a)),
+                             Vector{Group(0_u), Binding(0_u)});
+    auto* call = Call(wgsl::BuiltinFn::kSubgroupMatrixStore, AddressOf(buffer), 12_u,
+                      Call(ty.subgroup_matrix(core::SubgroupMatrixKind::kLeft, ty.f32(), 8u, 8u)),
+                      false, 32_u);
+    Func("foo", Empty, ty.void_(),
+         Vector{
+             CallStmt(call),
+         });
+
+    EXPECT_FALSE(r()->Resolve());
+    EXPECT_THAT(r()->error(),
+                testing::HasSubstr("error: the offset argument of subgroupMatrixStore (12) is out "
+                                   "of bounds of the array type of size 8"));
+}
+
+TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixStore_NegativeOffset) {
+    Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
+    auto* buffer = GlobalVar("buffer", storage, read_write, ty.array(ty.f32(), Expr(8_a)),
+                             Vector{Group(0_u), Binding(0_u)});
+    auto* call = Call(wgsl::BuiltinFn::kSubgroupMatrixStore, AddressOf(buffer), -1_i,
+                      Call(ty.subgroup_matrix(core::SubgroupMatrixKind::kLeft, ty.f32(), 8u, 8u)),
+                      false, 32_u);
+    Func("foo", Empty, ty.void_(),
+         Vector{
+             CallStmt(call),
+         });
+
+    EXPECT_FALSE(r()->Resolve());
+    EXPECT_THAT(r()->error(), testing::HasSubstr("no matching call to 'subgroupMatrixStore"));
+}
+
+TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixStore_i8_i32_InBoundsOffset) {
+    Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
+    auto* buffer = GlobalVar("buffer", storage, read_write, ty.array(ty.i32(), Expr(8_a)),
+                             Vector{Group(0_u), Binding(0_u)});
+    auto* call = Call(wgsl::BuiltinFn::kSubgroupMatrixStore, AddressOf(buffer), 12_u,
+                      Call(ty.subgroup_matrix(core::SubgroupMatrixKind::kLeft, ty.i8(), 8u, 8u)),
+                      false, 32_u);
+    Func("foo", Empty, ty.void_(),
+         Vector{
+             CallStmt(call),
+         });
+
+    EXPECT_TRUE(r()->Resolve()) << r()->error();
+}
+
+TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixStore_i8_i32_OOBOffset) {
+    Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
+    auto* buffer = GlobalVar("buffer", storage, read_write, ty.array(ty.i32(), Expr(8_a)),
+                             Vector{Group(0_u), Binding(0_u)});
+    auto* call = Call(wgsl::BuiltinFn::kSubgroupMatrixStore, AddressOf(buffer), 32_u,
+                      Call(ty.subgroup_matrix(core::SubgroupMatrixKind::kLeft, ty.i8(), 8u, 8u)),
+                      false, 32_u);
+    Func("foo", Empty, ty.void_(),
+         Vector{
+             CallStmt(call),
+         });
+
+    EXPECT_FALSE(r()->Resolve());
+    EXPECT_THAT(r()->error(),
+                testing::HasSubstr("error: the offset argument of subgroupMatrixStore (32) is out "
+                                   "of bounds of the array type of size 32"));
+}
+
 TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixMultiply) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto* left = Var("left", function, ty("subgroup_matrix_left", ty.f32(), 2_u, 4_u));
-    auto* right = Var("right", function, ty("subgroup_matrix_right", ty.f32(), 8_u, 2_u));
+    auto* left = Var("left", function, ty.subgroup_matrix_left(ty.f32(), 2_u, 4_u));
+    auto* right = Var("right", function, ty.subgroup_matrix_right(ty.f32(), 8_u, 2_u));
     auto* call = Call(Ident(wgsl::BuiltinFn::kSubgroupMatrixMultiply, ty.f32()), left, right);
     Func("foo", Empty, ty.void_(),
          Vector{
@@ -569,8 +653,8 @@ TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixMultiply) {
 
 TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixMultiply_i8) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto* left = Var("left", function, ty("subgroup_matrix_left", ty.i8(), 2_u, 4_u));
-    auto* right = Var("right", function, ty("subgroup_matrix_right", ty.i8(), 8_u, 2_u));
+    auto* left = Var("left", function, ty.subgroup_matrix_left(ty.i8(), 2_u, 4_u));
+    auto* right = Var("right", function, ty.subgroup_matrix_right(ty.i8(), 8_u, 2_u));
     auto* call = Call(Ident(wgsl::BuiltinFn::kSubgroupMatrixMultiply, ty.i32()), left, right);
     Func("foo", Empty, ty.void_(),
          Vector{
@@ -597,8 +681,8 @@ TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixMultiply_i8) {
 
 TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixMultiply_u8) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto* left = Var("left", function, ty("subgroup_matrix_left", ty.u8(), 2_u, 4_u));
-    auto* right = Var("right", function, ty("subgroup_matrix_right", ty.u8(), 8_u, 2_u));
+    auto* left = Var("left", function, ty.subgroup_matrix_left(ty.u8(), 2_u, 4_u));
+    auto* right = Var("right", function, ty.subgroup_matrix_right(ty.u8(), 8_u, 2_u));
     auto* call = Call(Ident(wgsl::BuiltinFn::kSubgroupMatrixMultiply, ty.u32()), left, right);
     Func("foo", Empty, ty.void_(),
          Vector{
@@ -625,8 +709,8 @@ TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixMultiply_u8) {
 
 TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixMultiply_MissingTemplateArg) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto* left = Var("left", function, ty("subgroup_matrix_left", ty.f32(), 2_u, 4_u));
-    auto* right = Var("right", function, ty("subgroup_matrix_right", ty.f32(), 8_u, 2_u));
+    auto* left = Var("left", function, ty.subgroup_matrix_left(ty.f32(), 2_u, 4_u));
+    auto* right = Var("right", function, ty.subgroup_matrix_right(ty.f32(), 8_u, 2_u));
     auto* call = Call(wgsl::BuiltinFn::kSubgroupMatrixMultiply, left, right);
     Func("foo", Empty, ty.void_(),
          Vector{
@@ -642,8 +726,8 @@ TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixMultiply_MissingTemplateArg) {
 
 TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixMultiply_MismatchDimensions) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto* left = Var("left", function, ty("subgroup_matrix_left", ty.f32(), 4_u, 2_u));
-    auto* right = Var("right", function, ty("subgroup_matrix_right", ty.f32(), 2_u, 8_u));
+    auto* left = Var("left", function, ty.subgroup_matrix_left(ty.f32(), 4_u, 2_u));
+    auto* right = Var("right", function, ty.subgroup_matrix_right(ty.f32(), 2_u, 8_u));
     auto* call = Call(Ident(wgsl::BuiltinFn::kSubgroupMatrixMultiply, ty.f32()), left, right);
     Func("foo", Empty, ty.void_(),
          Vector{
@@ -659,8 +743,8 @@ TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixMultiply_MismatchDimensions) {
 
 TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixMultiply_MismatchTypes) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto* left = Var("left", function, ty("subgroup_matrix_left", ty.u32(), 8_u, 8_u));
-    auto* right = Var("right", function, ty("subgroup_matrix_right", ty.i32(), 8_u, 8_u));
+    auto* left = Var("left", function, ty.subgroup_matrix_left(ty.u32(), 8_u, 8_u));
+    auto* right = Var("right", function, ty.subgroup_matrix_right(ty.i32(), 8_u, 8_u));
     auto* call = Call(Ident(wgsl::BuiltinFn::kSubgroupMatrixMultiply, ty.f32()), left, right);
     Func("foo", Empty, ty.void_(),
          Vector{
@@ -676,8 +760,8 @@ TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixMultiply_MismatchTypes) {
 
 TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixMultiply_MismatchKinds) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto* left = Var("left", function, ty("subgroup_matrix_left", ty.f32(), 8_u, 8_u));
-    auto* right = Var("right", function, ty("subgroup_matrix_right", ty.f32(), 8_u, 8_u));
+    auto* left = Var("left", function, ty.subgroup_matrix_left(ty.f32(), 8_u, 8_u));
+    auto* right = Var("right", function, ty.subgroup_matrix_right(ty.f32(), 8_u, 8_u));
     auto* call = Call(Ident(wgsl::BuiltinFn::kSubgroupMatrixMultiply, ty.f32()), right, left);
     Func("foo", Empty, ty.void_(),
          Vector{
@@ -693,9 +777,9 @@ TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixMultiply_MismatchKinds) {
 
 TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixMultiplyAccumulate) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto* left = Var("left", function, ty("subgroup_matrix_left", ty.f32(), 2_u, 4_u));
-    auto* right = Var("right", function, ty("subgroup_matrix_right", ty.f32(), 8_u, 2_u));
-    auto* acc = Var("acc", function, ty("subgroup_matrix_result", ty.f32(), 8_u, 4_u));
+    auto* left = Var("left", function, ty.subgroup_matrix_left(ty.f32(), 2_u, 4_u));
+    auto* right = Var("right", function, ty.subgroup_matrix_right(ty.f32(), 8_u, 2_u));
+    auto* acc = Var("acc", function, ty.subgroup_matrix_result(ty.f32(), 8_u, 4_u));
     auto* call = Call(wgsl::BuiltinFn::kSubgroupMatrixMultiplyAccumulate, left, right, acc);
     Func("foo", Empty, ty.void_(),
          Vector{
@@ -722,9 +806,9 @@ TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixMultiplyAccumulate) {
 
 TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixMultiplyAccumulate_i8) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto* left = Var("left", function, ty("subgroup_matrix_left", ty.i8(), 2_u, 4_u));
-    auto* right = Var("right", function, ty("subgroup_matrix_right", ty.i8(), 8_u, 2_u));
-    auto* acc = Var("acc", function, ty("subgroup_matrix_result", ty.i32(), 8_u, 4_u));
+    auto* left = Var("left", function, ty.subgroup_matrix_left(ty.i8(), 2_u, 4_u));
+    auto* right = Var("right", function, ty.subgroup_matrix_right(ty.i8(), 8_u, 2_u));
+    auto* acc = Var("acc", function, ty.subgroup_matrix_result(ty.i32(), 8_u, 4_u));
     auto* call = Call(wgsl::BuiltinFn::kSubgroupMatrixMultiplyAccumulate, left, right, acc);
     Func("foo", Empty, ty.void_(),
          Vector{
@@ -752,9 +836,9 @@ TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixMultiplyAccumulate_i8) {
 
 TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixMultiplyAccumulate_u8) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto* left = Var("left", function, ty("subgroup_matrix_left", ty.u8(), 2_u, 4_u));
-    auto* right = Var("right", function, ty("subgroup_matrix_right", ty.u8(), 8_u, 2_u));
-    auto* acc = Var("acc", function, ty("subgroup_matrix_result", ty.u32(), 8_u, 4_u));
+    auto* left = Var("left", function, ty.subgroup_matrix_left(ty.u8(), 2_u, 4_u));
+    auto* right = Var("right", function, ty.subgroup_matrix_right(ty.u8(), 8_u, 2_u));
+    auto* acc = Var("acc", function, ty.subgroup_matrix_result(ty.u32(), 8_u, 4_u));
     auto* call = Call(wgsl::BuiltinFn::kSubgroupMatrixMultiplyAccumulate, left, right, acc);
     Func("foo", Empty, ty.void_(),
          Vector{
@@ -784,7 +868,7 @@ TEST_F(ResolverSubgroupMatrixTest, Let_Valid) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
     Func("foo", Empty, ty.void_(),
          Vector{
-             Decl(Let("result", ty("subgroup_matrix_result", ty.f32(), 8_a, 8_a),
+             Decl(Let("result", ty.subgroup_matrix_result(ty.f32(), 8_a, 8_a),
                       Call(Ident("subgroup_matrix_result", ty.f32(), 8_a, 8_a)))),
          });
 
@@ -795,7 +879,7 @@ TEST_F(ResolverSubgroupMatrixTest, FunctionVar_Valid) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
     Func("foo", Empty, ty.void_(),
          Vector{
-             Decl(Var("result", function, ty("subgroup_matrix_result", ty.f32(), 8_a, 8_a))),
+             Decl(Var("result", function, ty.subgroup_matrix_result(ty.f32(), 8_a, 8_a))),
          });
 
     EXPECT_TRUE(r()->Resolve()) << r()->error();
@@ -803,7 +887,7 @@ TEST_F(ResolverSubgroupMatrixTest, FunctionVar_Valid) {
 
 TEST_F(ResolverSubgroupMatrixTest, PrivateVar_Invalid) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    GlobalVar("result", private_, ty("subgroup_matrix_result", ty.f32(), 8_a, 8_a));
+    GlobalVar("result", private_, ty.subgroup_matrix_result(ty.f32(), 8_a, 8_a));
 
     EXPECT_FALSE(r()->Resolve());
     EXPECT_THAT(
@@ -814,7 +898,7 @@ TEST_F(ResolverSubgroupMatrixTest, PrivateVar_Invalid) {
 
 TEST_F(ResolverSubgroupMatrixTest, StorageVar_Invalid) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    GlobalVar("result", storage, ty("subgroup_matrix_result", ty.f32(), 8_a, 8_a), Group(0_a),
+    GlobalVar("result", storage, ty.subgroup_matrix_result(ty.f32(), 8_a, 8_a), Group(0_a),
               Binding(0_a));
 
     EXPECT_FALSE(r()->Resolve());
@@ -826,7 +910,7 @@ TEST_F(ResolverSubgroupMatrixTest, StorageVar_Invalid) {
 
 TEST_F(ResolverSubgroupMatrixTest, UniformVar_Invalid) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    GlobalVar("result", uniform, ty("subgroup_matrix_result", ty.f32(), 8_a, 8_a), Group(0_a),
+    GlobalVar("result", uniform, ty.subgroup_matrix_result(ty.f32(), 8_a, 8_a), Group(0_a),
               Binding(0_a));
 
     EXPECT_FALSE(r()->Resolve());
@@ -838,7 +922,7 @@ TEST_F(ResolverSubgroupMatrixTest, UniformVar_Invalid) {
 
 TEST_F(ResolverSubgroupMatrixTest, WorkgroupVar_Invalid) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    GlobalVar("result", workgroup, ty("subgroup_matrix_result", ty.f32(), 8_a, 8_a));
+    GlobalVar("result", workgroup, ty.subgroup_matrix_result(ty.f32(), 8_a, 8_a));
 
     EXPECT_FALSE(r()->Resolve());
     EXPECT_THAT(
@@ -849,10 +933,10 @@ TEST_F(ResolverSubgroupMatrixTest, WorkgroupVar_Invalid) {
 
 TEST_F(ResolverSubgroupMatrixTest, FunctionVar_ArrayElement_Valid) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto matrix_type = ty("subgroup_matrix_result", ty.f32(), 8_a, 8_a);
+    auto matrix_type = ty.subgroup_matrix_result(ty.f32(), 8_a, 8_a);
     Func("foo", Empty, ty.void_(),
          Vector{
-             Decl(Var("result", function, ty.array(matrix_type, 8_a))),
+             Decl(Var("result", function, ty.array(matrix_type, Expr(8_a)))),
          });
 
     EXPECT_TRUE(r()->Resolve()) << r()->error();
@@ -860,7 +944,8 @@ TEST_F(ResolverSubgroupMatrixTest, FunctionVar_ArrayElement_Valid) {
 
 TEST_F(ResolverSubgroupMatrixTest, WorkgroupVar_ArrayElement_Invalid) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    GlobalVar("result", workgroup, ty.array(ty("subgroup_matrix_result", ty.f32(), 8_a, 8_a), 8_a));
+    GlobalVar("result", workgroup,
+              ty.array(ty.subgroup_matrix_result(ty.f32(), 8_a, 8_a), Expr(8_a)));
 
     EXPECT_FALSE(r()->Resolve());
     EXPECT_THAT(
@@ -873,7 +958,7 @@ TEST_F(ResolverSubgroupMatrixTest, FunctionVar_StructMember_Valid) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
 
     auto* s = Structure("S", Vector{
-                                 Member("m", ty("subgroup_matrix_result", ty.f32(), 8_a, 8_a)),
+                                 Member("m", ty.subgroup_matrix_result(ty.f32(), 8_a, 8_a)),
                              });
     Func("foo", Empty, ty.void_(),
          Vector{
@@ -887,7 +972,7 @@ TEST_F(ResolverSubgroupMatrixTest, WorkgroupVar_StructMember_Invalid) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
 
     auto* s = Structure("S", Vector{
-                                 Member("m", ty("subgroup_matrix_result", ty.f32(), 8_a, 8_a)),
+                                 Member("m", ty.subgroup_matrix_result(ty.f32(), 8_a, 8_a)),
                              });
     GlobalVar("result", workgroup, ty.Of(s));
 
@@ -900,7 +985,7 @@ TEST_F(ResolverSubgroupMatrixTest, WorkgroupVar_StructMember_Invalid) {
 
 TEST_F(ResolverSubgroupMatrixTest, ConstVar_Invalid) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    GlobalConst("result", ty("subgroup_matrix_result", ty.f32(), 8_a, 8_a),
+    GlobalConst("result", ty.subgroup_matrix_result(ty.f32(), 8_a, 8_a),
                 Call(Ident("subgroup_matrix_result", ty.f32(), 8_a, 8_a)));
 
     EXPECT_FALSE(r()->Resolve());
@@ -912,7 +997,7 @@ TEST_F(ResolverSubgroupMatrixTest, ConstVar_Invalid) {
 
 TEST_F(ResolverSubgroupMatrixTest, OverrideVar_Invalid) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    Override("result", ty("subgroup_matrix_result", ty.f32(), 8_a, 8_a));
+    Override("result", ty.subgroup_matrix_result(ty.f32(), 8_a, 8_a));
 
     EXPECT_FALSE(r()->Resolve());
     EXPECT_THAT(
@@ -925,7 +1010,7 @@ TEST_F(ResolverSubgroupMatrixTest, FunctionParameter_Valid) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
     Func("foo",
          Vector{
-             Param("result", ty("subgroup_matrix_result", ty.f32(), 8_a, 8_a)),
+             Param("result", ty.subgroup_matrix_result(ty.f32(), 8_a, 8_a)),
          },
          ty.void_(), Empty);
 
@@ -936,7 +1021,7 @@ TEST_F(ResolverSubgroupMatrixTest, FunctionParameter_FunctionPointer_Valid) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
     Func("foo",
          Vector{
-             Param("result", ty.ptr<function>(ty("subgroup_matrix_result", ty.f32(), 8_a, 8_a))),
+             Param("result", ty.ptr<function>(ty.subgroup_matrix_result(ty.f32(), 8_a, 8_a))),
          },
          ty.void_(), Empty);
 
@@ -947,7 +1032,7 @@ TEST_F(ResolverSubgroupMatrixTest, FunctionParameter_WorkgroupPointer_Invalid) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
     Func("foo",
          Vector{
-             Param("result", ty.ptr<workgroup>(ty("subgroup_matrix_result", ty.f32(), 8_a, 8_a))),
+             Param("result", ty.ptr<workgroup>(ty.subgroup_matrix_result(ty.f32(), 8_a, 8_a))),
          },
          ty.void_(), Empty);
 
@@ -960,7 +1045,7 @@ TEST_F(ResolverSubgroupMatrixTest, FunctionParameter_WorkgroupPointer_Invalid) {
 
 TEST_F(ResolverSubgroupMatrixTest, ReturnType_Valid) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    Func("foo", Empty, ty("subgroup_matrix_result", ty.f32(), 8_a, 8_a),
+    Func("foo", Empty, ty.subgroup_matrix_result(ty.f32(), 8_a, 8_a),
          Vector{
              Return(Call(Ident("subgroup_matrix_result", ty.f32(), 8_a, 8_a))),
          });
@@ -970,18 +1055,18 @@ TEST_F(ResolverSubgroupMatrixTest, ReturnType_Valid) {
 
 // Using the subgroup_matrix_uniformity diagnostic rule without the extension should succeed.
 TEST_F(ResolverSubgroupMatrixTest, UseSubgroupUniformityRuleWithoutExtension) {
-    DiagnosticDirective(wgsl::DiagnosticSeverity::kOff, "chromium", "subgroup_matrix_uniformity");
+    DiagnosticDirective(wgsl::DiagnosticSeverity::kOff,
+                        DiagnosticRuleName("chromium", "subgroup_matrix_uniformity"));
     EXPECT_TRUE(r()->Resolve()) << r()->error();
 }
 
 TEST_F(ResolverSubgroupMatrixTest, FragmentShader_FunctionVar) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    Func(
-        "foo", Empty, ty.void_(),
-        Vector{
-            Decl(Var("result", ty(Source({12, 34}), "subgroup_matrix_result", ty.f32(), 8_u, 8_u))),
-        },
-        Vector{Stage(ast::PipelineStage::kFragment)});
+    Func("foo", Empty, ty.void_(),
+         Vector{
+             Decl(Var("result", ty.subgroup_matrix_result(Source({12, 34}), ty.f32(), 8_u, 8_u))),
+         },
+         Vector{Stage(ast::PipelineStage::kFragment)});
 
     EXPECT_FALSE(r()->Resolve());
     EXPECT_EQ(r()->error(),
@@ -993,8 +1078,8 @@ TEST_F(ResolverSubgroupMatrixTest, FragmentShader_FunctionVarInArray) {
     Func("foo", Empty, ty.void_(),
          Vector{
              Decl(Var("result",
-                      ty.array(ty(Source({12, 34}), "subgroup_matrix_result", ty.f32(), 8_u, 8_u),
-                               4_a))),
+                      ty.array(ty.subgroup_matrix_result(Source({12, 34}), ty.f32(), 8_u, 8_u),
+                               Expr(4_a)))),
          },
          Vector{Stage(ast::PipelineStage::kFragment)});
 
@@ -1007,11 +1092,11 @@ TEST_F(ResolverSubgroupMatrixTest, FragmentShader_FunctionVarInStruct) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
 
     Structure("S", Vector{
-                       Member("m", ty("subgroup_matrix_result", ty.f32(), 8_a, 8_a)),
+                       Member("m", ty.subgroup_matrix_result(ty.f32(), 8_a, 8_a)),
                    });
     Func("foo", Empty, ty.void_(),
          Vector{
-             Decl(Var("result", ty(Expr(Ident(Source({12, 34}), "S"))))),
+             Decl(Var("result", ty.AsType(Expr(Ident(Source({12, 34}), "S"))))),
          },
          Vector{Stage(ast::PipelineStage::kFragment)});
 
@@ -1036,8 +1121,8 @@ TEST_F(ResolverSubgroupMatrixTest, FragmentShader_Constructor) {
 
 TEST_F(ResolverSubgroupMatrixTest, FragmentShader_SubgroupMatrixLoad) {
     Enable(wgsl::Extension::kChromiumExperimentalSubgroupMatrix);
-    auto* buffer =
-        GlobalVar("buffer", storage, ty.array(ty.f32(), 8_a), Vector{Group(0_u), Binding(0_u)});
+    auto* buffer = GlobalVar("buffer", storage, ty.array(ty.f32(), Expr(8_a)),
+                             Vector{Group(0_u), Binding(0_u)});
     auto* call = Call(Source({12, 34}),
                       Ident(wgsl::BuiltinFn::kSubgroupMatrixLoad,
                             ty.subgroup_matrix(core::SubgroupMatrixKind::kLeft, ty.f32(), 8u, 8u)),
@@ -1073,6 +1158,230 @@ TEST_F(ResolverSubgroupMatrixTest, VertexShader_IndirectUse) {
               R"(12:34 error: subgroup matrix type cannot be used in vertex pipeline stage
 note: called by function 'foo'
 note: called by entry point 'main')");
+}
+
+TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixLoad_TemplateMajorness) {
+    ExpectSuccess(R"(
+enable chromium_experimental_subgroup_matrix;
+enable f16;
+
+var<workgroup> v : array<f16, 128 * 128>;
+fn foo(offset : u32, stride : u32) {
+  _ = subgroupMatrixLoad<subgroup_matrix_left<f16, 8, 8>, col_major>(&v, offset, stride);
+  _ = subgroupMatrixLoad<subgroup_matrix_right<f16, 8, 8>, row_major>(&v, offset, stride);
+  _ = subgroupMatrixLoad<subgroup_matrix_result<f16, 8, 8>, col_major>(&v, offset, stride);
+})");
+}
+
+TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixStore_TemplateMajorness) {
+    ExpectSuccess(R"(
+enable chromium_experimental_subgroup_matrix;
+
+@group(0) @binding(0) var<storage, read_write> v : array<f32>;
+fn foo(offset : u32, stride : u32) {
+  subgroupMatrixStore<row_major>(&v, offset, subgroup_matrix_result<f32, 8, 8>(), stride);
+  subgroupMatrixStore<col_major>(&v, offset, subgroup_matrix_left<f32, 8, 8>(), stride);
+  subgroupMatrixStore<row_major>(&v, offset, subgroup_matrix_right<f32, 8, 8>(), stride);
+})");
+}
+
+TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixLoad_TemplateMajorness_BadType) {
+    ExpectError(
+        R"(
+enable chromium_experimental_subgroup_matrix;
+
+var<workgroup> v : array<f32, 128 * 128>;
+fn foo(offset : u32, stride : u32) {
+  _ = subgroupMatrixLoad<subgroup_matrix_left<f32, 8, 8>, f32>(&v, offset, stride);
+})",
+        R"(input.wgsl:6:7 error: no matching call to 'subgroupMatrixLoad<subgroup_matrix_left<f32, 8, 8>, f32>(ptr<workgroup, array<f32, 16384>, read_write>, u32, u32)'
+
+12 candidate functions:
+ • 'subgroupMatrixLoad<T  ✓ , Majorness  ✗ >(ptr<AS, array<S, AC>, AM>  ✓ , offset: u32  ✓ , stride: u32  ✓ ) -> T' where:
+      ✓  'T' is 'subgroup_matrix<K, S, C, R>'
+      ✓  'S' is 'f32', 'i32', 'u32' or 'f16'
+      ✓  'AS' is 'workgroup' or 'storage'
+      ✓  'AM' is 'read' or 'read_write'
+ • 'subgroupMatrixLoad<T  ✓ , Majorness  ✗ >(ptr<storage, array<S>, AM>  ✗ , offset: u32  ✓ , stride: u32  ✓ ) -> T' where:
+      ✓  'T' is 'subgroup_matrix<K, S, C, R>'
+      ✓  'S' is 'f32', 'i32', 'u32' or 'f16'
+      ✗  'AM' is 'read' or 'read_write'
+ • 'subgroupMatrixLoad<T  ✗ , Majorness  ✗ >(ptr<storage, array<i32>, AM>  ✗ , offset: u32  ✓ , stride: u32  ✓ ) -> T' where:
+      ✗  'T' is 'subgroup_matrix<K, S, C, R>'
+      ✗  'S' is 'i8'
+      ✗  'AM' is 'read' or 'read_write'
+ • 'subgroupMatrixLoad<T  ✗ , Majorness  ✗ >(ptr<storage, array<u32>, AM>  ✗ , offset: u32  ✓ , stride: u32  ✓ ) -> T' where:
+      ✗  'T' is 'subgroup_matrix<K, S, C, R>'
+      ✗  'S' is 'u8'
+      ✗  'AM' is 'read' or 'read_write'
+ • 'subgroupMatrixLoad<T  ✗ , Majorness  ✗ >(ptr<AS, array<i32, AC>, AM>  ✗ , offset: u32  ✓ , stride: u32  ✓ ) -> T' where:
+      ✗  'T' is 'subgroup_matrix<K, S, C, R>'
+      ✗  'S' is 'i8'
+      ✓  'AS' is 'workgroup' or 'storage'
+      ✗  'AM' is 'read' or 'read_write'
+ • 'subgroupMatrixLoad<T  ✗ , Majorness  ✗ >(ptr<AS, array<u32, AC>, AM>  ✗ , offset: u32  ✓ , stride: u32  ✓ ) -> T' where:
+      ✗  'T' is 'subgroup_matrix<K, S, C, R>'
+      ✗  'S' is 'u8'
+      ✓  'AS' is 'workgroup' or 'storage'
+      ✗  'AM' is 'read' or 'read_write'
+ • 'subgroupMatrixLoad<T  ✓ >(ptr<AS, array<S, AC>, AM>  ✓ , offset: u32  ✓ , col_major: bool  ✗ , stride: u32  ✗ ) -> T' where:
+      ✓  'T' is 'subgroup_matrix<K, S, C, R>'
+      ✓  'S' is 'f32', 'i32', 'u32' or 'f16'
+      ✓  'AS' is 'workgroup' or 'storage'
+      ✓  'AM' is 'read' or 'read_write'
+ • 'subgroupMatrixLoad<T  ✓ >(ptr<storage, array<S>, AM>  ✗ , offset: u32  ✓ , col_major: bool  ✗ , stride: u32  ✗ ) -> T' where:
+      ✓  'T' is 'subgroup_matrix<K, S, C, R>'
+      ✓  'S' is 'f32', 'i32', 'u32' or 'f16'
+      ✗  'AM' is 'read' or 'read_write'
+ • 'subgroupMatrixLoad<T  ✗ >(ptr<storage, array<i32>, AM>  ✗ , offset: u32  ✓ , col_major: bool  ✗ , stride: u32  ✗ ) -> T' where:
+      ✗  'T' is 'subgroup_matrix<K, S, C, R>'
+      ✗  'S' is 'i8'
+      ✗  'AM' is 'read' or 'read_write'
+ • 'subgroupMatrixLoad<T  ✗ >(ptr<storage, array<u32>, AM>  ✗ , offset: u32  ✓ , col_major: bool  ✗ , stride: u32  ✗ ) -> T' where:
+      ✗  'T' is 'subgroup_matrix<K, S, C, R>'
+      ✗  'S' is 'u8'
+      ✗  'AM' is 'read' or 'read_write'
+ • 'subgroupMatrixLoad<T  ✗ >(ptr<AS, array<i32, AC>, AM>  ✗ , offset: u32  ✓ , col_major: bool  ✗ , stride: u32  ✗ ) -> T' where:
+      ✗  'T' is 'subgroup_matrix<K, S, C, R>'
+      ✗  'S' is 'i8'
+      ✓  'AS' is 'workgroup' or 'storage'
+      ✗  'AM' is 'read' or 'read_write'
+ • 'subgroupMatrixLoad<T  ✗ >(ptr<AS, array<u32, AC>, AM>  ✗ , offset: u32  ✓ , col_major: bool  ✗ , stride: u32  ✗ ) -> T' where:
+      ✗  'T' is 'subgroup_matrix<K, S, C, R>'
+      ✗  'S' is 'u8'
+      ✓  'AS' is 'workgroup' or 'storage'
+      ✗  'AM' is 'read' or 'read_write'
+
+  _ = subgroupMatrixLoad<subgroup_matrix_left<f32, 8, 8>, f32>(&v, offset, stride);
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+)");
+}
+
+TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixStore_TemplateMajorness_BadEnum) {
+    ExpectError(R"(
+enable chromium_experimental_subgroup_matrix;
+
+@group(0) @binding(0) var<storage, read_write> v : array<f32>;
+fn foo(offset : u32, stride : u32) {
+  subgroupMatrixStore<read_write>(&v, offset, subgroup_matrix_result<f32, 8, 8>(), stride);
+})",
+                R"(input.wgsl:6:23 error: Unexpected template kind
+  subgroupMatrixStore<read_write>(&v, offset, subgroup_matrix_result<f32, 8, 8>(), stride);
+                      ^^^^^^^^^^
+
+input.wgsl:6:3 error: no matching call to 'subgroupMatrixStore<<invalid-type>>(ptr<storage, array<f32>, read_write>, u32, subgroup_matrix_result<f32, 8, 8>, u32)'
+
+12 candidate functions:
+ • 'subgroupMatrixStore<Majorness  ✗ >(ptr<storage, array<S>, AM>  ✓ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✓ , stride: u32  ✓ )' where:
+      ✓  'S' is 'f32', 'i32', 'u32' or 'f16'
+      ✓  'AM' is 'write' or 'read_write'
+ • 'subgroupMatrixStore<Majorness  ✗ >(ptr<AS, array<S, AC>, AM>  ✗ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✓ , stride: u32  ✓ )' where:
+      ✓  'S' is 'f32', 'i32', 'u32' or 'f16'
+      ✓  'AS' is 'workgroup' or 'storage'
+      ✗  'AM' is 'write' or 'read_write'
+ • 'subgroupMatrixStore<Majorness  ✗ >(ptr<storage, array<i32>, AM>  ✗ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✗ , stride: u32  ✓ )' where:
+      ✗  'S' is 'i8'
+      ✗  'AM' is 'write' or 'read_write'
+ • 'subgroupMatrixStore<Majorness  ✗ >(ptr<storage, array<u32>, AM>  ✗ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✗ , stride: u32  ✓ )' where:
+      ✗  'S' is 'u8'
+      ✗  'AM' is 'write' or 'read_write'
+ • 'subgroupMatrixStore<Majorness  ✗ >(ptr<AS, array<i32, AC>, AM>  ✗ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✗ , stride: u32  ✓ )' where:
+      ✗  'S' is 'i8'
+      ✓  'AS' is 'workgroup' or 'storage'
+      ✗  'AM' is 'write' or 'read_write'
+ • 'subgroupMatrixStore<Majorness  ✗ >(ptr<AS, array<u32, AC>, AM>  ✗ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✗ , stride: u32  ✓ )' where:
+      ✗  'S' is 'u8'
+      ✓  'AS' is 'workgroup' or 'storage'
+      ✗  'AM' is 'write' or 'read_write'
+ • 'subgroupMatrixStore(ptr<storage, array<S>, AM>  ✓ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✓ , col_major: bool  ✗ , stride: u32  ✗ )' where:
+      ✓  'S' is 'f32', 'i32', 'u32' or 'f16'
+      ✓  'AM' is 'write' or 'read_write'
+ • 'subgroupMatrixStore(ptr<AS, array<S, AC>, AM>  ✗ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✓ , col_major: bool  ✗ , stride: u32  ✗ )' where:
+      ✓  'S' is 'f32', 'i32', 'u32' or 'f16'
+      ✓  'AS' is 'workgroup' or 'storage'
+      ✗  'AM' is 'write' or 'read_write'
+ • 'subgroupMatrixStore(ptr<storage, array<i32>, AM>  ✗ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✗ , col_major: bool  ✗ , stride: u32  ✗ )' where:
+      ✗  'S' is 'i8'
+      ✗  'AM' is 'write' or 'read_write'
+ • 'subgroupMatrixStore(ptr<storage, array<u32>, AM>  ✗ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✗ , col_major: bool  ✗ , stride: u32  ✗ )' where:
+      ✗  'S' is 'u8'
+      ✗  'AM' is 'write' or 'read_write'
+ • 'subgroupMatrixStore(ptr<AS, array<i32, AC>, AM>  ✗ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✗ , col_major: bool  ✗ , stride: u32  ✗ )' where:
+      ✗  'S' is 'i8'
+      ✓  'AS' is 'workgroup' or 'storage'
+      ✗  'AM' is 'write' or 'read_write'
+ • 'subgroupMatrixStore(ptr<AS, array<u32, AC>, AM>  ✗ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✗ , col_major: bool  ✗ , stride: u32  ✗ )' where:
+      ✗  'S' is 'u8'
+      ✓  'AS' is 'workgroup' or 'storage'
+      ✗  'AM' is 'write' or 'read_write'
+
+  subgroupMatrixStore<read_write>(&v, offset, subgroup_matrix_result<f32, 8, 8>(), stride);
+  ^^^^^^^^^^^^^^^^^^^
+)");
+}
+
+TEST_F(ResolverSubgroupMatrixTest, SubgroupMatrixStore_TemplateMajorness_BadEnum_CloseParams) {
+    ExpectError(R"(
+enable chromium_experimental_subgroup_matrix;
+
+@group(0) @binding(0) var<storage, read_write> v : array<f32>;
+fn foo(offset : u32, stride : u32) {
+  subgroupMatrixStore<read_write>(&v, offset, subgroup_matrix_result<f32, 8, 8>(), true, stride);
+})",
+                R"(input.wgsl:6:23 error: Unexpected template kind
+  subgroupMatrixStore<read_write>(&v, offset, subgroup_matrix_result<f32, 8, 8>(), true, stride);
+                      ^^^^^^^^^^
+
+input.wgsl:6:3 error: no matching call to 'subgroupMatrixStore<<invalid-type>>(ptr<storage, array<f32>, read_write>, u32, subgroup_matrix_result<f32, 8, 8>, bool, u32)'
+
+12 candidate functions:
+ • 'subgroupMatrixStore<Majorness  ✗ >(ptr<storage, array<S>, AM>  ✓ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✓ , stride: u32  ✗ )' where:
+      ✓  'S' is 'f32', 'i32', 'u32' or 'f16'
+      ✓  'AM' is 'write' or 'read_write'
+ • 'subgroupMatrixStore<Majorness  ✗ >(ptr<AS, array<S, AC>, AM>  ✗ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✓ , stride: u32  ✗ )' where:
+      ✓  'S' is 'f32', 'i32', 'u32' or 'f16'
+      ✓  'AS' is 'workgroup' or 'storage'
+      ✗  'AM' is 'write' or 'read_write'
+ • 'subgroupMatrixStore(ptr<storage, array<S>, AM>  ✓ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✓ , col_major: bool  ✓ , stride: u32  ✓ )' where:
+      ✗  overload expects 0 template arguments, call passed 1 argument
+      ✓  'S' is 'f32', 'i32', 'u32' or 'f16'
+      ✓  'AM' is 'write' or 'read_write'
+ • 'subgroupMatrixStore<Majorness  ✗ >(ptr<storage, array<i32>, AM>  ✗ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✗ , stride: u32  ✗ )' where:
+      ✗  'S' is 'i8'
+      ✗  'AM' is 'write' or 'read_write'
+ • 'subgroupMatrixStore<Majorness  ✗ >(ptr<storage, array<u32>, AM>  ✗ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✗ , stride: u32  ✗ )' where:
+      ✗  'S' is 'u8'
+      ✗  'AM' is 'write' or 'read_write'
+ • 'subgroupMatrixStore<Majorness  ✗ >(ptr<AS, array<i32, AC>, AM>  ✗ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✗ , stride: u32  ✗ )' where:
+      ✗  'S' is 'i8'
+      ✓  'AS' is 'workgroup' or 'storage'
+      ✗  'AM' is 'write' or 'read_write'
+ • 'subgroupMatrixStore<Majorness  ✗ >(ptr<AS, array<u32, AC>, AM>  ✗ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✗ , stride: u32  ✗ )' where:
+      ✗  'S' is 'u8'
+      ✓  'AS' is 'workgroup' or 'storage'
+      ✗  'AM' is 'write' or 'read_write'
+ • 'subgroupMatrixStore(ptr<AS, array<S, AC>, AM>  ✗ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✓ , col_major: bool  ✓ , stride: u32  ✓ )' where:
+      ✓  'S' is 'f32', 'i32', 'u32' or 'f16'
+      ✓  'AS' is 'workgroup' or 'storage'
+      ✗  'AM' is 'write' or 'read_write'
+ • 'subgroupMatrixStore(ptr<storage, array<i32>, AM>  ✗ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✗ , col_major: bool  ✓ , stride: u32  ✓ )' where:
+      ✗  'S' is 'i8'
+      ✗  'AM' is 'write' or 'read_write'
+ • 'subgroupMatrixStore(ptr<storage, array<u32>, AM>  ✗ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✗ , col_major: bool  ✓ , stride: u32  ✓ )' where:
+      ✗  'S' is 'u8'
+      ✗  'AM' is 'write' or 'read_write'
+ • 'subgroupMatrixStore(ptr<AS, array<i32, AC>, AM>  ✗ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✗ , col_major: bool  ✓ , stride: u32  ✓ )' where:
+      ✗  'S' is 'i8'
+      ✓  'AS' is 'workgroup' or 'storage'
+      ✗  'AM' is 'write' or 'read_write'
+ • 'subgroupMatrixStore(ptr<AS, array<u32, AC>, AM>  ✗ , offset: u32  ✓ , subgroup_matrix<K, S, C, R>  ✗ , col_major: bool  ✓ , stride: u32  ✓ )' where:
+      ✗  'S' is 'u8'
+      ✓  'AS' is 'workgroup' or 'storage'
+      ✗  'AM' is 'write' or 'read_write'
+
+  subgroupMatrixStore<read_write>(&v, offset, subgroup_matrix_result<f32, 8, 8>(), true, stride);
+  ^^^^^^^^^^^^^^^^^^^
+)");
 }
 
 }  // namespace

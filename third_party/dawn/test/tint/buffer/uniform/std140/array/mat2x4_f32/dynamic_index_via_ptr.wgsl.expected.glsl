@@ -31,18 +31,18 @@ mat2x4[4] v_4(uint start_byte_offset) {
       {
         v_5 = (v_6 + 1u);
       }
-      continue;
     }
   }
   return a;
 }
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 void main() {
-  uint v_7 = (32u * min(uint(i()), 3u));
-  uint v_8 = (16u * min(uint(i()), 1u));
+  uint v_7 = (min(uint(i()), 3u) * 32u);
+  uint v_8 = (min(uint(i()), 1u) * 16u);
   mat2x4 l_a[4] = v_4(0u);
   mat2x4 l_a_i = v_3(v_7);
   vec4 l_a_i_i = uintBitsToFloat(v.inner[((v_7 + v_8) / 16u)]);
-  uvec4 v_9 = v.inner[((v_7 + v_8) / 16u)];
-  v_1.inner = (((uintBitsToFloat(v_9[(((v_7 + v_8) & 15u) >> 2u)]) + l_a[0u][0u].x) + l_a_i[0u].x) + l_a_i_i.x);
+  uint v_9 = (v_7 + v_8);
+  uvec4 v_10 = v.inner[(v_9 / 16u)];
+  v_1.inner = (((uintBitsToFloat(v_10[((v_9 & 15u) >> 2u)]) + l_a[0u][0u].x) + l_a_i[0u].x) + l_a_i_i.x);
 }

@@ -27,7 +27,7 @@
 
 #include <memory>
 
-#include "dawn/wire/server/Server.h"
+#include "src/dawn/wire/server/Server.h"
 
 namespace dawn::wire::server {
 
@@ -38,7 +38,7 @@ WireResult Server::DoShaderModuleGetCompilationInfo(Known<WGPUShaderModule> shad
     userdata->eventManager = eventManager;
     userdata->future = future;
 
-    mProcs.shaderModuleGetCompilationInfo(
+    mProcs->shaderModuleGetCompilationInfo(
         shaderModule->handle,
         MakeCallbackInfo<WGPUCompilationInfoCallbackInfo,
                          &Server::OnShaderModuleGetCompilationInfo>(userdata.release()));

@@ -25,14 +25,15 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "dawn/native/SharedBufferMemory.h"
+#include "src/dawn/native/SharedBufferMemory.h"
 
 #include <utility>
 
-#include "dawn/native/Buffer.h"
-#include "dawn/native/ChainUtils.h"
-#include "dawn/native/Device.h"
-#include "dawn/native/Queue.h"
+#include "src/dawn/native/Buffer.h"
+#include "src/dawn/native/ChainUtils.h"
+#include "src/dawn/native/Device.h"
+#include "src/dawn/native/Queue.h"
+#include "src/utils/compiler.h"
 
 namespace dawn::native {
 
@@ -107,7 +108,9 @@ BufferBase* SharedBufferMemoryBase::APICreateBuffer(const BufferDescriptor* desc
     if (descriptor == nullptr) {
         defaultDescriptor = {};
         defaultDescriptor.size = mProperties.size;
-        defaultDescriptor.usage = mProperties.usage;
+
+        // The buffers created with default descriptor won't contain buffer mapping usages.
+        defaultDescriptor.usage = mProperties.usage & ~kMappableBufferUsages;
         descriptor = &defaultDescriptor;
     }
 
@@ -127,21 +130,15 @@ ResultOrError<Ref<BufferBase>> SharedBufferMemoryBase::CreateBuffer(
     UnpackedPtr<BufferDescriptor> descriptor;
     DAWN_TRY_ASSIGN(descriptor, ValidateBufferDescriptor(GetDevice(), rawDescriptor));
 
-    // Emit a specific error message if the user attempts to create a buffer with Uniform usage.
-    DAWN_INVALID_IF(descriptor->usage & wgpu::BufferUsage::Uniform,
-                    "The buffer usage (%s) contains (%s), which is not allowed on buffers created "
-                    "from SharedBufferMemory.",
-                    descriptor->usage, wgpu::BufferUsage::Uniform);
-
     // Ensure the buffer descriptor usage is a subset of the shared buffer memory's usage.
     DAWN_INVALID_IF(!IsSubset(descriptor->usage, mProperties.usage),
                     "The buffer usage (%s) is incompatible with the SharedBufferMemory usage (%s).",
                     descriptor->usage, mProperties.usage);
 
-    // Validate that the buffer size exactly matches the shared buffer memory's size.
-    DAWN_INVALID_IF(descriptor->size != mProperties.size,
-                    "SharedBufferMemory size (%u) doesn't match descriptor size (%u).",
-                    mProperties.size, descriptor->size);
+    // Validate that the buffer size does not exceed the shared buffer memory's size.
+    DAWN_INVALID_IF(descriptor->size > mProperties.size,
+                    "The buffer size (%u) is larger than SharedBufferMemory size (%u).",
+                    descriptor->size, mProperties.size);
 
     Ref<BufferBase> buffer;
     DAWN_TRY_ASSIGN(buffer, CreateBufferImpl(descriptor));
@@ -153,7 +150,7 @@ ResultOrError<Ref<BufferBase>> SharedBufferMemoryBase::CreateBuffer(
 void APISharedBufferMemoryEndAccessStateFreeMembers(WGPUSharedBufferMemoryEndAccessState cState) {
     auto* state = reinterpret_cast<SharedBufferMemoryBase::EndAccessState*>(&cState);
     for (size_t i = 0; i < state->fenceCount; ++i) {
-        state->fences[i]->APIRelease();
+        DAWN_UNSAFE_TODO(state->fences[i])->APIRelease();
     }
     delete[] state->fences;
     delete[] state->signaledValues;

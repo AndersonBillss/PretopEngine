@@ -25,37 +25,38 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "dawn/native/d3d12/TextureD3D12.h"
+#include "src/dawn/native/d3d12/TextureD3D12.h"
 
 #include <algorithm>
 #include <bit>
 #include <iterator>
 #include <utility>
 
-#include "dawn/common/Constants.h"
-#include "dawn/common/Math.h"
-#include "dawn/native/ChainUtils.h"
-#include "dawn/native/DynamicUploader.h"
-#include "dawn/native/EnumMaskIterator.h"
-#include "dawn/native/Error.h"
-#include "dawn/native/IntegerTypes.h"
-#include "dawn/native/ResourceMemoryAllocation.h"
-#include "dawn/native/ToBackend.h"
-#include "dawn/native/d3d/D3DError.h"
-#include "dawn/native/d3d/KeyedMutex.h"
-#include "dawn/native/d3d12/BufferD3D12.h"
-#include "dawn/native/d3d12/CommandRecordingContext.h"
-#include "dawn/native/d3d12/DeviceD3D12.h"
-#include "dawn/native/d3d12/Forward.h"
-#include "dawn/native/d3d12/HeapD3D12.h"
-#include "dawn/native/d3d12/QueueD3D12.h"
-#include "dawn/native/d3d12/ResourceAllocatorManagerD3D12.h"
-#include "dawn/native/d3d12/SharedFenceD3D12.h"
-#include "dawn/native/d3d12/SharedTextureMemoryD3D12.h"
-#include "dawn/native/d3d12/StagingDescriptorAllocatorD3D12.h"
-#include "dawn/native/d3d12/TextureCopySplitter.h"
-#include "dawn/native/d3d12/UtilsD3D12.h"
-#include "dawn/native/utils/RenderDoc.h"
+#include "src/dawn/common/Constants.h"
+#include "src/dawn/common/Math.h"
+#include "src/dawn/native/ChainUtils.h"
+#include "src/dawn/native/DynamicUploader.h"
+#include "src/dawn/native/EnumMaskIterator.h"
+#include "src/dawn/native/Error.h"
+#include "src/dawn/native/IntegerTypes.h"
+#include "src/dawn/native/ResourceMemoryAllocation.h"
+#include "src/dawn/native/ToBackend.h"
+#include "src/dawn/native/d3d/D3DError.h"
+#include "src/dawn/native/d3d/KeyedMutex.h"
+#include "src/dawn/native/d3d12/BufferD3D12.h"
+#include "src/dawn/native/d3d12/CommandRecordingContext.h"
+#include "src/dawn/native/d3d12/DeviceD3D12.h"
+#include "src/dawn/native/d3d12/Forward.h"
+#include "src/dawn/native/d3d12/HeapD3D12.h"
+#include "src/dawn/native/d3d12/QueueD3D12.h"
+#include "src/dawn/native/d3d12/ResourceAllocatorManagerD3D12.h"
+#include "src/dawn/native/d3d12/SharedFenceD3D12.h"
+#include "src/dawn/native/d3d12/SharedTextureMemoryD3D12.h"
+#include "src/dawn/native/d3d12/StagingDescriptorAllocatorD3D12.h"
+#include "src/dawn/native/d3d12/TextureCopySplitter.h"
+#include "src/dawn/native/d3d12/UtilsD3D12.h"
+#include "src/dawn/native/utils/RenderDoc.h"
+#include "src/utils/compiler.h"
 
 namespace dawn::native::d3d12 {
 
@@ -352,6 +353,31 @@ void Texture::DestroyImpl(DestroyReason reason) {
     // Set mIsExternalSwapChainTexture to false to prevent ever calling
     // ID3D12SharingContract::Present again.
     mIsExternalSwapChainTexture = false;
+}
+
+MaybeError Texture::PinImpl(wgpu::TextureUsage usage) {
+    DAWN_ASSERT(!HasPinnedUsage());
+    SubresourceRange pinnedSubresources = GetAllSubresources();
+
+    CommandRecordingContext* commandContext =
+        ToBackend(GetDevice()->GetQueue())->GetPendingCommandContext(Queue::SubmitMode::Passive);
+    DAWN_TRY(EnsureSubresourceContentInitialized(commandContext, pinnedSubresources));
+
+    // TODO(crbug.com/482008255): Handle residency of pinned resources
+    TrackUsageAndTransitionNow(commandContext, usage, pinnedSubresources);
+
+    // TODO(https://issues.chromium.org/473444516): Investigate what to do for imported textures.
+    // Should we consider a pin/unpin pair similar to an access on a queue such that we need to
+    // wait on fences or export them?
+    return {};
+}
+
+void Texture::UnpinImpl() {
+    DAWN_ASSERT(HasPinnedUsage());
+
+    // TODO(https://issues.chromium.org/473444516): Investigate what to do for imported textures.
+    // Should we consider a pin/unpin pair similar to an access on a queue such that we need to
+    // wait on fences or export them?
 }
 
 DXGI_FORMAT Texture::GetD3D12Format() const {
@@ -876,16 +902,16 @@ MaybeError Texture::ClearTexture(CommandRecordingContext* commandContext,
             BlockExtent3D largestMipSize = blockInfo.ToBlock(
                 GetMipLevelSingleSubresourcePhysicalSize(range.baseMipLevel, aspect));
 
-            uint64_t bytesPerRow{
-                Align(blockInfo.ToBytes(largestMipSize.width), kTextureBytesPerRowAlignment)};
-
-            uint64_t uploadSize =
-                bytesPerRow *
-                blockInfo.ToBytes(largestMipSize.height * largestMipSize.depthOrArrayLayers);
+            uint64_t bytesPerRow =
+                Align(blockInfo.ToBytes(largestMipSize.width), kTextureBytesPerRowAlignment);
+            BlockCount blocksPerRow = blockInfo.BytesToBlocks(bytesPerRow);
+            BlockCount uploadBlocks =
+                blocksPerRow * largestMipSize.height * largestMipSize.depthOrArrayLayers;
+            uint64_t uploadSize = blockInfo.ToBytes(uploadBlocks);
 
             DAWN_TRY(device->GetDynamicUploader()->WithUploadReservation(
                 uploadSize, blockInfo.byteSize, [&](UploadReservation reservation) -> MaybeError {
-                    memset(reservation.mappedPointer, clearColor, uploadSize);
+                    DAWN_UNSAFE_TODO(memset(reservation.mappedPointer, clearColor, uploadSize));
 
                     for (uint32_t level = range.baseMipLevel;
                          level < range.baseMipLevel + range.levelCount; ++level) {
@@ -907,7 +933,8 @@ MaybeError Texture::ClearTexture(CommandRecordingContext* commandContext,
 
                             TextureCopy textureCopy;
                             textureCopy.texture = this;
-                            textureCopy.origin = {TexelCount{0}, TexelCount{0}, TexelCount{layer}};
+                            textureCopy.origin = {TexelCount{0u}, TexelCount{0u},
+                                                  TexelCount{layer}};
                             textureCopy.mipLevel = level;
                             textureCopy.aspect = aspect;
                             RecordBufferTextureCopyWithBufferHandle(

@@ -25,55 +25,22 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifdef UNSAFE_BUFFERS_BUILD
-// TODO(crbug.com/439062058): Remove this and convert code to safer constructs.
-#pragma allow_unsafe_buffers
-#endif
-
 #ifndef SRC_DAWN_COMMON_ITYP_SPAN_H_
 #define SRC_DAWN_COMMON_ITYP_SPAN_H_
 
-#include <limits>
-#include <span>
-
-#include "dawn/common/TypedInteger.h"
-#include "dawn/common/UnderlyingType.h"
+#include "src/utils/numeric.h"
+#include "src/utils/span.h"
 
 namespace dawn::ityp {
-
-// ityp::span is a helper class that wraps std::span<T, std::dynamic_extent>
-// with the restriction that indices must be a particular type |Index|.
-template <typename Index, typename Value>
-class span : private ::std::span<Value> {
-    using I = UnderlyingType<Index>;
-    using Base = ::std::span<Value>;
-
-  public:
-    constexpr span() = default;
-    constexpr span(Value* data, Index size) : Base{data, static_cast<I>(size)} {}
-
-    constexpr Value& operator[](Index i) const { return Base::operator[](static_cast<I>(i)); }
-
-    constexpr Index size() const {
-        DAWN_ASSERT(std::numeric_limits<I>::max() >= Base::size());
-        return Index(static_cast<I>(Base::size()));
-    }
-
-    using Base::data;
-
-    using Base::begin;
-    using Base::end;
-
-    using Base::back;
-    using Base::front;
-};
 
 // ityp::SpanFromUntyped<Index>(myValues, myValueCount) creates a span<Index, Value> from a C-style
 // span that's without a TypedInteger index. It is useful at the interface between code that doesn't
 // use ityp and code that does.
+// TODO(https://crbug.com/515272358): Remove as well as ITypSpanTests.cpp once the input API is
+// completely spanified.
 template <typename Index, typename Value>
 span<Index, Value> SpanFromUntyped(Value* data, size_t size) {
-    return {data, Index{static_cast<UnderlyingType<Index>>(size)}};
+    return DAWN_UNSAFE_TODO({data, checked_cast<Index>(size)});
 }
 
 }  // namespace dawn::ityp

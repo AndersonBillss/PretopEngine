@@ -27,6 +27,7 @@
 
 #include "src/tint/lang/core/type/sampled_texture.h"
 
+#include "src/tint/lang/core/enums.h"
 #include "src/tint/lang/core/type/depth_texture.h"
 #include "src/tint/lang/core/type/external_texture.h"
 #include "src/tint/lang/core/type/f32.h"

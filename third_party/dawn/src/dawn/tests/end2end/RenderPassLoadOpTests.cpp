@@ -26,16 +26,17 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <array>
+#include <bit>
 #include <cstring>
 #include <limits>
 #include <tuple>
 #include <type_traits>
 #include <vector>
 
-#include "dawn/tests/DawnTest.h"
-
-#include "dawn/utils/ComboRenderPipelineDescriptor.h"
-#include "dawn/utils/WGPUHelpers.h"
+#include "src/dawn/tests/DawnTest.h"
+#include "src/dawn/utils/ComboRenderPipelineDescriptor.h"
+#include "src/dawn/utils/WGPUHelpers.h"
+#include "src/utils/compiler.h"
 
 namespace dawn {
 namespace {
@@ -168,6 +169,9 @@ class RenderPassLoadOpTests : public DawnTest {
 
 // Tests clearing, loading, and drawing into color attachments
 TEST_P(RenderPassLoadOpTests, ColorClearThenLoadAndDraw) {
+    // TODO(crbug.com/523272949): Produces incorrect result on Pixel 10.
+    DAWN_SUPPRESS_TEST_IF(IsAndroid() && IsImgTec() && IsVulkan());
+
     // Part 1: clear once, check to make sure it's cleared
     utils::ComboRenderPassDescriptor renderPassClearZero({renderTargetView});
     auto commandsClearZeroEncoder = device.CreateCommandEncoder();
@@ -499,7 +503,7 @@ TEST_P(RenderPassLoadOpTests, LoadOpClearWithBig32BitIntegralValuesOnMultipleCol
         kMaxUInt32RepresentableInFloat - 2, kMaxUInt32RepresentableInFloat - 3};
     std::array<uint32_t, 4> expectedDataForRGBA32Float;
     for (uint32_t i = 0; i < expectedDataForRGBA32Float.size(); ++i) {
-        expectedDataForRGBA32Float[i] = *(reinterpret_cast<uint32_t*>(&testColorForRGBA32Float[i]));
+        expectedDataForRGBA32Float[i] = std::bit_cast<uint32_t>(testColorForRGBA32Float[i]);
     }
 
     struct AttachmentCase {
@@ -510,8 +514,9 @@ TEST_P(RenderPassLoadOpTests, LoadOpClearWithBig32BitIntegralValuesOnMultipleCol
             static_assert(sizeof(int32_t) * expData.size() == sizeof(attachmentCase.mExpData));
             attachmentCase.mFormat = format;
             attachmentCase.mClearValue = clearValue;
-            memcpy(attachmentCase.mExpData, reinterpret_cast<const uint8_t*>(expData.data()),
-                   sizeof(attachmentCase.mExpData));
+            DAWN_UNSAFE_TODO(memcpy(attachmentCase.mExpData,
+                                    reinterpret_cast<const uint8_t*>(expData.data()),
+                                    sizeof(attachmentCase.mExpData)));
             return attachmentCase;
         }
         static AttachmentCase Uint(wgpu::TextureFormat format,
@@ -521,8 +526,9 @@ TEST_P(RenderPassLoadOpTests, LoadOpClearWithBig32BitIntegralValuesOnMultipleCol
             static_assert(sizeof(uint32_t) * expData.size() == sizeof(attachmentCase.mExpData));
             attachmentCase.mFormat = format;
             attachmentCase.mClearValue = clearValue;
-            memcpy(attachmentCase.mExpData, reinterpret_cast<const uint8_t*>(expData.data()),
-                   sizeof(attachmentCase.mExpData));
+            DAWN_UNSAFE_TODO(memcpy(attachmentCase.mExpData,
+                                    reinterpret_cast<const uint8_t*>(expData.data()),
+                                    sizeof(attachmentCase.mExpData)));
             return attachmentCase;
         }
 
@@ -758,16 +764,18 @@ TEST_P(RenderPassLoadOpTests, MixedUseOfLoadOpLoadAndLoadOpClearWithBigIntegerVa
     EXPECT_BUFFER_U32_RANGE_EQ(kExpectedData.data(), outputBuffer, 0, kExpectedData.size());
 }
 
-DAWN_INSTANTIATE_TEST(RenderPassLoadOpTests,
-                      D3D11Backend(),
-                      D3D11Backend({"clear_color_with_draw"}),
-                      D3D12Backend(),
-                      MetalBackend(),
-                      OpenGLBackend(),
-                      OpenGLESBackend(),
-                      VulkanBackend({"vulkan_use_dynamic_rendering"}, {}),
-                      VulkanBackend({}, {"vulkan_use_dynamic_rendering"}),
-                      WebGPUBackend());
+DAWN_INSTANTIATE_TEST(
+    RenderPassLoadOpTests,
+    D3D11Backend(),
+    D3D11Backend({"clear_color_with_draw"}),
+    D3D12Backend(),
+    MetalBackend(),
+    OpenGLBackend(),
+    OpenGLESBackend(),
+    VulkanBackend({"vulkan_use_dynamic_rendering"}, {}),
+    VulkanBackend({"vulkan_use_create_render_pass_2"}, {"vulkan_use_dynamic_rendering"}),
+    VulkanBackend({}, {"vulkan_use_create_render_pass_2", "vulkan_use_dynamic_rendering"}),
+    WebGPUBackend());
 
 }  // anonymous namespace
 }  // namespace dawn

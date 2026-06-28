@@ -27,10 +27,10 @@
 
 #include <vector>
 
-#include "dawn/common/Platform.h"
-#include "dawn/tests/DawnTest.h"
-#include "dawn/utils/TestUtils.h"
-#include "dawn/utils/WGPUHelpers.h"
+#include "src/dawn/tests/DawnTest.h"
+#include "src/dawn/utils/TestUtils.h"
+#include "src/dawn/utils/WGPUHelpers.h"
+#include "src/utils/platform.h"
 
 namespace dawn {
 namespace {
@@ -95,6 +95,12 @@ DAWN_TEST_PARAM_STRUCT(RequiredBufferSizeInCopyTestsParams,
 class RequiredBufferSizeInCopyTests
     : public DawnTestWithParams<RequiredBufferSizeInCopyTestsParams> {
   protected:
+    void SetUp() override {
+        DawnTestWithParams<RequiredBufferSizeInCopyTestsParams>::SetUp();
+        // TODO(crbug.com/523272950): Produces incorrect result on Pixel 10.
+        DAWN_SUPPRESS_TEST_IF(IsAndroid() && IsImgTec() && IsOpenGLES());
+    }
+
     void DoTest(const uint64_t bufferSize,
                 const wgpu::Extent3D copySize,
                 const uint64_t rowsPerImage) {
