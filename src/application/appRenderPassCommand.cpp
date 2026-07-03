@@ -1,7 +1,7 @@
 #include "appRenderPassCommand.hpp"
 
 AppRenderPassCommand::AppRenderPassCommand(
-    AppDevice &device,
+    AppDevice *device,
     WGPUTextureView targetView,
     WGPURenderPassDepthStencilAttachment &depthStencilAttachment)
 {

@@ -1,15 +1,16 @@
 #pragma once
 #include <webgpu/webgpu.h>
+#include <functional>
+#include <memory>
 #include "appInstance.hpp"
 
 class AppAdapter
 {
 public:
-    AppAdapter(AppInstance instance);
+    using RequestAdapterCallback = std::function<void(std::unique_ptr<AppAdapter>)>;
+    AppAdapter(WGPUAdapter adapter);
+    static void request(AppInstance *instance, RequestAdapterCallback cb);
     WGPUAdapter wgpuAdapter;
 
     void inspect();
-
-private:
-    WGPUAdapter _requestAdapterSync(WGPUInstance instance, WGPURequestAdapterOptions const *options);
 };

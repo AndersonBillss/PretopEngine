@@ -10,7 +10,7 @@ class AppPipeline
 {
 public:
     AppPipeline(
-        AppDevice &device,
+        AppDevice *device,
         AppShader &shader,
         WGPUTextureFormat format,
         AppVertexLayout &vertexLayout,

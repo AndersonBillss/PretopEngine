@@ -11,7 +11,7 @@
 class AppBuffer
 {
 public:
-    AppBuffer(AppDevice &device, size_t size, WGPUBufferUsage usage)
+    AppBuffer(AppDevice *device, size_t size, WGPUBufferUsage usage)
     {
         WGPUBufferDescriptor bufferDesc = WGPU_BUFFER_DESCRIPTOR_INIT;
         const std::string bufferLabel = "Test index buffer";
@@ -19,7 +19,7 @@ public:
         bufferDesc.usage = usage;
         bufferDesc.size = size;
         bufferDesc.mappedAtCreation = false;
-        this->wgpuBuffer = wgpuDeviceCreateBuffer(device.wgpuDevice, &bufferDesc);
+        this->wgpuBuffer = wgpuDeviceCreateBuffer(device->wgpuDevice, &bufferDesc);
     }
 
     ~AppBuffer()

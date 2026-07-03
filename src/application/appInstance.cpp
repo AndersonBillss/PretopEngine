@@ -10,9 +10,8 @@ WGPUInstance AppInstance::createInstance()
 {
     WGPUInstanceDescriptor desc = {};
     desc.nextInChain = nullptr;
-    WGPUInstanceFeatureName features[] = {WGPUInstanceFeatureName_TimedWaitAny};
-    desc.requiredFeatureCount = 1;
-    desc.requiredFeatures = features;
+    desc.requiredFeatureCount = 0;
+    desc.requiredFeatures = nullptr;
     auto instance = wgpuCreateInstance(&desc);
 
     if (!instance)

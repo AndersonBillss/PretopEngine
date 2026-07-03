@@ -3,7 +3,7 @@
 #include "appBindGroup.hpp"
 
 AppBindGroup::AppBindGroup(
-    AppDevice &device,
+    AppDevice *device,
     WGPUBindGroupLayout &layout,
     std::vector<WGPUBindGroupEntry> &bindGroupEntries)
 {
@@ -12,9 +12,9 @@ AppBindGroup::AppBindGroup(
     bindGroupDesc.layout = layout;
     bindGroupDesc.entryCount = bindGroupEntries.size();
     bindGroupDesc.entries = bindGroupEntries.data();
-    WGPUBindGroup bindGroup = wgpuDeviceCreateBindGroup(device.wgpuDevice, &bindGroupDesc);
+    WGPUBindGroup bindGroup = wgpuDeviceCreateBindGroup(device->wgpuDevice, &bindGroupDesc);
 
-    this->wgpuBindGroup = wgpuDeviceCreateBindGroup(device.wgpuDevice, &bindGroupDesc);
+    this->wgpuBindGroup = wgpuDeviceCreateBindGroup(device->wgpuDevice, &bindGroupDesc);
 }
 
 AppBindGroup::~AppBindGroup()

@@ -7,7 +7,7 @@
 class AppBindGroup
 {
 public:
-    AppBindGroup(AppDevice &device,
+    AppBindGroup(AppDevice *device,
                  WGPUBindGroupLayout &layout,
                  std::vector<WGPUBindGroupEntry> &bindGroupEntries);
     ~AppBindGroup();

@@ -41,9 +41,9 @@ struct MyUniforms
 };
 
 const float scale = 0.5f;
-int loadModel()
+void start(Application &application)
 {
-    std::cout << "Hello, WebGPU!!" << std::endl;
+    std::cout << "START" << std::endl;
     std::unique_ptr<AssetLoader> assetLoader = AssetLoaderFactory::createAssetLoader();
 
     ParsedData model;
@@ -55,16 +55,15 @@ int loadModel()
     catch (ModelParseError &e)
     {
         std::cout << e.what() << std::endl;
-        return 1;
+        exit(1);
     }
 
-    Application application;
     application.logQueueCommands();
     application.setWindow(WindowFactory::createWindow("My Window"));
 
-    AppShader shader = AppShader::pipeline(application.device, application.instance, assetLoader.get(), "shaders/shader.wgsl");
+    AppShader shader = AppShader::pipeline(application.device.get(), application.instance.get(), assetLoader.get(), "shaders/shader.wgsl");
 
-    AppBuffer vertices(application.device, model.vertices.size() * sizeof(Vertex), WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex);
+    AppBuffer vertices(application.device.get(), model.vertices.size() * sizeof(Vertex), WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex);
     application.writeVec(vertices, model.vertices);
 
     uint32_t indicesSize = 0;
@@ -79,7 +78,7 @@ int loadModel()
         std::vector<uint16_t> indicesVec = std::get<std::vector<uint16_t>>(model.indices);
         indicesSize = indicesVec.size() * sizeof(uint16_t);
     }
-    AppBuffer indices(application.device, indicesSize, WGPUBufferUsage_CopyDst | WGPUBufferUsage_Index);
+    AppBuffer indices(application.device.get(), indicesSize, WGPUBufferUsage_CopyDst | WGPUBufferUsage_Index);
     if (is32bitIndexBuffer)
     {
         std::vector<uint32_t> indicesVec = std::get<std::vector<uint32_t>>(model.indices);
@@ -98,16 +97,16 @@ int loadModel()
     bindingLayoutEntry.buffer.minBindingSize = sizeof(MyUniforms);
     bindingLayoutEntry.buffer.hasDynamicOffset = true;
     bindingLayoutEntry.visibility = WGPUShaderStage_Vertex;
-    AppBindingLayout bindingLayout(application.device, {{bindingLayoutEntry}});
+    AppBindingLayout bindingLayout(application.device.get(), {{bindingLayoutEntry}});
 
-    AppPipeline pipeline(application.device, shader, application.windowFormat, vertexLayout, bindingLayout);
-    AppBuffer myUniformBuffer(application.device, sizeof(MyUniforms), WGPUBufferUsage_CopyDst | WGPUBufferUsage_Uniform);
+    AppPipeline pipeline(application.device.get(), shader, application.windowFormat, vertexLayout, bindingLayout);
+    AppBuffer myUniformBuffer(application.device.get(), sizeof(MyUniforms), WGPUBufferUsage_CopyDst | WGPUBufferUsage_Uniform);
 
     std::vector<WGPUBindGroupEntry> bindings = {WGPU_BIND_GROUP_ENTRY_INIT};
     bindings[0].binding = 0;
     bindings[0].buffer = myUniformBuffer.wgpuBuffer;
     bindings[0].size = sizeof(MyUniforms);
-    AppBindGroup bindGroup(application.device, bindingLayout.wgpuBindGroupLayouts[0], bindings);
+    AppBindGroup bindGroup(application.device.get(), bindingLayout.wgpuBindGroupLayouts[0], bindings);
     application.writeBufZero(myUniformBuffer);
 
     float seconds = 0;
@@ -133,9 +132,9 @@ int loadModel()
                         u.projectionMatrix = Mat4x4::perspective(0.01f, 100.0f, 60.0f * deg2rad, 640.0 / 480.0);
                         application.writeBuf(myUniformBuffer, u);
 
-                        AppCommandBuffer commandBuffer(application.device);
+                        AppCommandBuffer commandBuffer(application.device.get());
                         std::cout << "DELTATIME: " << dt << std::endl;
-                        AppRenderPassCommand command(application.device, targetView, pipeline.wgpuDepthStencilAttachment);
+                        AppRenderPassCommand command(application.device.get(), targetView, pipeline.wgpuDepthStencilAttachment);
                         std::vector<AppBuffer *> bufs = {&vertices};
 
                         auto cmd = commandBuffer.addCommand(command);
@@ -159,6 +158,12 @@ int loadModel()
                         application.submitCommandBuffer(commandBuffer);
 
                         return commandBuffer; });
+}
 
+int loadModel()
+{
+    std::cout << "Hello, WebGPU!!" << std::endl;
+    Application application;
+    application.initialize(start);
     return 0;
 }

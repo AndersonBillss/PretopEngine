@@ -2,7 +2,7 @@
 #include "../asset/modelParseError.hpp"
 #include <iostream>
 
-AppShader AppShader::pipeline(AppDevice &device, AppInstance &instance, AssetLoader *assetLoader, std::string_view src)
+AppShader AppShader::pipeline(AppDevice *device, AppInstance *instance, AssetLoader *assetLoader, std::string_view src)
 {
     auto compilationCallbackInfo = [](
                                        WGPUCompilationInfoRequestStatus status,
@@ -38,7 +38,7 @@ AppShader AppShader::pipeline(AppDevice &device, AppInstance &instance, AssetLoa
     WGPUShaderModuleDescriptor shaderDesc = WGPU_SHADER_MODULE_DESCRIPTOR_INIT;
     shaderDesc.nextInChain = &shaderWGSL.chain;
 
-    WGPUShaderModule shaderModule = wgpuDeviceCreateShaderModule(device.wgpuDevice, &shaderDesc);
+    WGPUShaderModule shaderModule = wgpuDeviceCreateShaderModule(device->wgpuDevice, &shaderDesc);
 
     WGPUCompilationInfoCallbackInfo callbackInfo = WGPU_COMPILATION_INFO_CALLBACK_INFO_INIT;
     callbackInfo.mode = WGPUCallbackMode_WaitAnyOnly;
@@ -47,7 +47,7 @@ AppShader AppShader::pipeline(AppDevice &device, AppInstance &instance, AssetLoa
         shaderModule, callbackInfo);
 
     WGPUFutureWaitInfo waitInfo = {compilationFuture, 0};
-    wgpuInstanceWaitAny(instance.wgpuInstance, 1, &waitInfo, UINT64_MAX);
+    wgpuInstanceWaitAny(instance->wgpuInstance, 1, &waitInfo, UINT64_MAX);
     result.wgpuShader = shaderModule;
     return result;
 }

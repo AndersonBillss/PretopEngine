@@ -7,6 +7,6 @@
 class AppShader
 {
 public:
-    static AppShader pipeline(AppDevice &device, AppInstance &instance, AssetLoader *assetLoader, std::string_view src);
+    static AppShader pipeline(AppDevice *device, AppInstance *instance, AssetLoader *assetLoader, std::string_view src);
     WGPUShaderModule wgpuShader;
 };

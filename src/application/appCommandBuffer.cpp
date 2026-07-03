@@ -4,13 +4,13 @@
 
 const std::string cmdBufferLabel = "command buffer";
 
-AppCommandBuffer::AppCommandBuffer(AppDevice &device)
+AppCommandBuffer::AppCommandBuffer(AppDevice *device)
 {
     WGPUCommandEncoderDescriptor encoderDesc = {};
     encoderDesc.nextInChain = nullptr;
     std::string encoderLabel = "My command encoder";
     encoderDesc.label = {encoderLabel.c_str(), encoderLabel.size()};
-    this->wgpuEncoder = wgpuDeviceCreateCommandEncoder(device.wgpuDevice, &encoderDesc);
+    this->wgpuEncoder = wgpuDeviceCreateCommandEncoder(device->wgpuDevice, &encoderDesc);
 }
 
 AppCommandBuffer::~AppCommandBuffer()

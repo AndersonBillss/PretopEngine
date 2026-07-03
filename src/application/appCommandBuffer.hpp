@@ -13,7 +13,7 @@
 class AppCommandBuffer
 {
 public:
-    AppCommandBuffer(AppDevice &device);
+    AppCommandBuffer(AppDevice *device);
     ~AppCommandBuffer();
     std::unique_ptr<AppRenderPassEncoder> addCommand(AppRenderPassCommand &command);
 

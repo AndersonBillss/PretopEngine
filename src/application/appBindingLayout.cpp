@@ -1,7 +1,7 @@
 #include "appBindingLayout.hpp"
 
 AppBindingLayout::AppBindingLayout(
-    AppDevice &device, std::initializer_list<std::initializer_list<WGPUBindGroupLayoutEntry>> layoutEntries)
+    AppDevice *device, std::initializer_list<std::initializer_list<WGPUBindGroupLayoutEntry>> layoutEntries)
 {
     for (const auto &bindGroupLayouts : layoutEntries)
     {
@@ -13,14 +13,14 @@ AppBindingLayout::AppBindingLayout(
         WGPUBindGroupLayoutDescriptor bindGroupLayoutDesc = WGPU_BIND_GROUP_LAYOUT_DESCRIPTOR_INIT;
         bindGroupLayoutDesc.entryCount = bindingLayouts.size();
         bindGroupLayoutDesc.entries = bindingLayouts.data();
-        WGPUBindGroupLayout bindGroupLayout = wgpuDeviceCreateBindGroupLayout(device.wgpuDevice, &bindGroupLayoutDesc);
+        WGPUBindGroupLayout bindGroupLayout = wgpuDeviceCreateBindGroupLayout(device->wgpuDevice, &bindGroupLayoutDesc);
         wgpuBindGroupLayouts.push_back(bindGroupLayout);
     }
 
     WGPUPipelineLayoutDescriptor layoutDesc = WGPU_PIPELINE_LAYOUT_DESCRIPTOR_INIT;
     layoutDesc.bindGroupLayoutCount = wgpuBindGroupLayouts.size();
     layoutDesc.bindGroupLayouts = wgpuBindGroupLayouts.data();
-    this->wgpuLayout = wgpuDeviceCreatePipelineLayout(device.wgpuDevice, &layoutDesc);
+    this->wgpuLayout = wgpuDeviceCreatePipelineLayout(device->wgpuDevice, &layoutDesc);
 }
 
 AppBindingLayout::~AppBindingLayout()

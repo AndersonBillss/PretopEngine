@@ -7,7 +7,7 @@ class AppRenderPassCommand
 {
 public:
     AppRenderPassCommand(
-        AppDevice &device,
+        AppDevice *device,
         WGPUTextureView targetView,
         WGPURenderPassDepthStencilAttachment &depthStencilAttachment);
     WGPURenderPassDescriptor wgpuRenderPassDescriptor;

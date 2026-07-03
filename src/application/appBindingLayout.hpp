@@ -10,7 +10,7 @@
 class AppBindingLayout
 {
 public:
-    AppBindingLayout(AppDevice &device, std::initializer_list<std::initializer_list<WGPUBindGroupLayoutEntry>> layoutEntries);
+    AppBindingLayout(AppDevice *device, std::initializer_list<std::initializer_list<WGPUBindGroupLayoutEntry>> layoutEntries);
     ~AppBindingLayout();
 
     WGPUPipelineLayout wgpuLayout;

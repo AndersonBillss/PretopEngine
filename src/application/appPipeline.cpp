@@ -1,7 +1,7 @@
 #include "appPipeline.hpp"
 
 AppPipeline::AppPipeline(
-    AppDevice &device,
+    AppDevice *device,
     AppShader &shader,
     WGPUTextureFormat format,
     AppVertexLayout &vertexLayout,
@@ -55,7 +55,7 @@ AppPipeline::AppPipeline(
     depthTextureDesc.usage = WGPUTextureUsage_RenderAttachment;
     depthTextureDesc.viewFormatCount = 1;
     depthTextureDesc.viewFormats = &depthTextureFormat;
-    WGPUTexture depthTexture = wgpuDeviceCreateTexture(device.wgpuDevice, &depthTextureDesc);
+    WGPUTexture depthTexture = wgpuDeviceCreateTexture(device->wgpuDevice, &depthTextureDesc);
 
     // Create the view of the depth texture manipulated by the rasterizer
     WGPUTextureViewDescriptor depthTextureViewDesc = WGPU_TEXTURE_VIEW_DESCRIPTOR_INIT;
@@ -115,7 +115,7 @@ AppPipeline::AppPipeline(
     pipelineDesc.multisample.mask = ~0u;
     pipelineDesc.multisample.alphaToCoverageEnabled = false;
 
-    this->wgpuPipeline = wgpuDeviceCreateRenderPipeline(device.wgpuDevice, &pipelineDesc);
+    this->wgpuPipeline = wgpuDeviceCreateRenderPipeline(device->wgpuDevice, &pipelineDesc);
 }
 
 AppPipeline::~AppPipeline()

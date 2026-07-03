@@ -3,12 +3,44 @@
 #include "../printStringView.hpp"
 #include "../limits/limits.hpp"
 
-AppDevice::AppDevice(const AppInstance &instance, const AppAdapter &adapter)
+AppDevice::AppDevice(WGPUDevice device)
 {
-    WGPUDeviceDescriptor desc = _createDeviceDescriptor(instance, adapter);
-    WGPULimits requiredLimits = compatibilityLimits;
-    desc.requiredLimits = &requiredLimits;
-    wgpuDevice = _requestDeviceSync(instance, adapter, &desc);
+    this->wgpuDevice = device;
+}
+
+void AppDevice::request(const AppInstance *instance, const AppAdapter *adapter, RequestDeviceCallback cb)
+{
+    auto onDescriptorRequestEnded = [](
+                                        WGPURequestDeviceStatus status,
+                                        WGPUDevice device,
+                                        WGPUStringView message,
+                                        void *pCb,
+                                        void *_)
+    {
+        RequestDeviceCallback userCb = *reinterpret_cast<RequestDeviceCallback *>(pCb);
+        if (status == WGPURequestDeviceStatus_Success)
+        {
+            std::unique_ptr<AppDevice> appDevice = std::make_unique<AppDevice>(device);
+            userCb(std::move(appDevice));
+        }
+        else
+        {
+            std::cout << "Could not get WebGPU device: " << message << std::endl;
+        }
+    };
+
+    WGPUDeviceDescriptor descriptor = _createDeviceDescriptor(instance, adapter);
+    WGPURequestDeviceCallbackInfo info = {
+        /* nextInChain */ nullptr,
+        /* mode */ WGPUCallbackMode::WGPUCallbackMode_AllowSpontaneous,
+        /* callback */ onDescriptorRequestEnded,
+        /* userdata 1 */ &cb,
+        /* userdata 2 */ nullptr,
+    };
+    wgpuAdapterRequestDevice(
+        adapter->wgpuAdapter,
+        &descriptor,
+        info);
 }
 
 void AppDevice::inspect()
@@ -25,47 +57,6 @@ void AppDevice::inspect()
     }
 }
 
-WGPUDevice AppDevice::_requestDeviceSync(const AppInstance &instance,
-                                         const AppAdapter &adapter,
-                                         WGPUDeviceDescriptor const *descriptor)
-{
-    WGPUDevice device = nullptr;
-
-    auto onDescriptorRequestEnded = [](
-                                        WGPURequestDeviceStatus status,
-                                        WGPUDevice device,
-                                        WGPUStringView message,
-                                        void *pDevice,
-                                        void *_)
-    {
-        WGPUDevice *userDevice = reinterpret_cast<WGPUDevice *>(pDevice);
-        if (status == WGPURequestDeviceStatus_Success)
-        {
-            *userDevice = device;
-        }
-        else
-        {
-            std::cout << "Could not get WebGPU device: " << message << std::endl;
-        }
-    };
-
-    WGPURequestDeviceCallbackInfo info = {
-        /* nextInChain */ nullptr,
-        /* mode */ WGPUCallbackMode::WGPUCallbackMode_WaitAnyOnly,
-        /* callback */ onDescriptorRequestEnded,
-        /* userdata 1 */ &device,
-        /* userdata 2 */ nullptr,
-    };
-    WGPUFuture f = wgpuAdapterRequestDevice(
-        adapter.wgpuAdapter,
-        descriptor,
-        info);
-    WGPUFutureWaitInfo waitInfo = {f, 0};
-
-    WGPUWaitStatus status = wgpuInstanceWaitAny(instance.wgpuInstance, 1, &waitInfo, UINT64_MAX);
-    return device;
-}
-
 void onDeviceLost(WGPUDevice const *device, WGPUDeviceLostReason reason, WGPUStringView message, void *, void *)
 {
     if (reason != WGPUDeviceLostReason::WGPUDeviceLostReason_Destroyed)
@@ -75,7 +66,7 @@ void onDeviceUncapturedError(WGPUDevice const *device, WGPUErrorType type, WGPUS
 {
     std::cout << "WGPU device error: " << message << std::endl;
 }
-WGPUDeviceDescriptor AppDevice::_createDeviceDescriptor(const AppInstance &instance, const AppAdapter &adapter)
+WGPUDeviceDescriptor AppDevice::_createDeviceDescriptor(const AppInstance *instance, const AppAdapter *adapter)
 {
     WGPUDeviceDescriptor deviceDescriptor = WGPU_DEVICE_DESCRIPTOR_INIT;
     WGPUDeviceLostCallbackInfo deviceLostCb = {

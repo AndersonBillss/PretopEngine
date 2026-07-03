@@ -14,9 +14,11 @@ class Application
 {
 public:
     using TickCallback = std::function<void(double dt, WGPUTextureView targetView)>;
+    using StartupCallback = std::function<void(Application &app)>;
 
     Application();
 
+    void initialize(StartupCallback cb);
     void run(TickCallback cb);
 
     void writeBufZero(const AppBuffer &buf)
@@ -72,13 +74,13 @@ public:
     Application *inspectAdapter();
     Application *inspectQueue();
 
-    AppInstance instance;
+    std::unique_ptr<AppInstance> instance;
 
 private:
     void _createQueue();
 
     bool _logQueueCommands;
-    AppAdapter _adapter;
+    std::unique_ptr<AppAdapter> _adapter;
     WGPUQueue _queue;
     WGPUSurface _windowSurface;
     std::unique_ptr<Window> _window;
@@ -86,5 +88,5 @@ private:
 public:
     // This must go after the private section or else the initializer
     // list order will order the constructors incorrectly
-    AppDevice device;
+    std::unique_ptr<AppDevice> device;
 };

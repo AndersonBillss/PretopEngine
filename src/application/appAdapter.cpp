@@ -91,10 +91,46 @@ static const std::unordered_map<WGPUFeatureName, std::string> featureToString = 
 #endif // not __EMSCRIPTEN__
 };
 
-AppAdapter::AppAdapter(AppInstance instance)
+AppAdapter::AppAdapter(WGPUAdapter adapter)
 {
     WGPURequestAdapterOptions adapterOpts = WGPU_REQUEST_ADAPTER_OPTIONS_INIT;
-    this->wgpuAdapter = _requestAdapterSync(instance.wgpuInstance, &adapterOpts);
+    this->wgpuAdapter = adapter;
+}
+
+void AppAdapter::request(AppInstance *instance, RequestAdapterCallback cb)
+{
+    auto onAdapterRequestEnded = [](
+                                     WGPURequestAdapterStatus status,
+                                     WGPUAdapter adapter,
+                                     WGPUStringView message,
+                                     void *pCb,
+                                     void *__)
+    {
+        RequestAdapterCallback userCb = *reinterpret_cast<RequestAdapterCallback *>(pCb);
+        if (status == WGPURequestAdapterStatus_Success)
+        {
+            std::unique_ptr<AppAdapter> result = std::make_unique<AppAdapter>(adapter);
+            userCb(std::move(result));
+        }
+        else
+        {
+            std::cout << "Could not get WebGPU adapter: " << message << std::endl;
+        }
+    };
+    WGPURequestAdapterOptions adapterOpts = WGPU_REQUEST_ADAPTER_OPTIONS_INIT;
+#ifndef WEBGPU_BACKEND_EMSCRIPTEN
+#ifdef _WIN32
+    adapterOpts.backendType = WGPUBackendType_D3D12;
+#endif // _WIN32
+#endif // !WEBGPU_BACKEND_EMSCRIPTEN
+    WGPURequestAdapterCallbackInfo info = {
+        /* nextInChain */ nullptr,
+        /* mode */ WGPUCallbackMode::WGPUCallbackMode_AllowSpontaneous,
+        /* callback */ onAdapterRequestEnded,
+        /* userdata 1 */ &cb,
+        /* userdata 2 */ nullptr,
+    };
+    wgpuInstanceRequestAdapter(instance->wgpuInstance, &adapterOpts, info);
 }
 
 void AppAdapter::inspect()
@@ -133,48 +169,4 @@ void AppAdapter::inspect()
     }
 
     delete[] supportedFeatures.features;
-}
-
-WGPUAdapter AppAdapter::_requestAdapterSync(WGPUInstance instance, WGPURequestAdapterOptions const *options)
-{
-    WGPUAdapter adapter = nullptr;
-
-    auto onAdapterRequestEnded = [](
-                                     WGPURequestAdapterStatus status,
-                                     WGPUAdapter adapter,
-                                     WGPUStringView message,
-                                     void *pAdapter,
-                                     void *_)
-    {
-        WGPUAdapter *userAdapter = reinterpret_cast<WGPUAdapter *>(pAdapter);
-        if (status == WGPURequestAdapterStatus_Success)
-        {
-            *userAdapter = adapter;
-        }
-        else
-        {
-            std::cout << "Could not get WebGPU adapter: " << message << std::endl;
-        }
-    };
-    WGPURequestAdapterOptions adapterOpts = {};
-#ifndef WEBGPU_BACKEND_EMSCRIPTEN
-#ifdef _WIN32
-    adapterOpts.backendType = WGPUBackendType_D3D12;
-#endif // _WIN32
-#endif // !WEBGPU_BACKEND_EMSCRIPTEN
-    WGPURequestAdapterCallbackInfo info = {
-        /* nextInChain */ nullptr,
-        /* mode */ WGPUCallbackMode::WGPUCallbackMode_WaitAnyOnly,
-        /* callback */ onAdapterRequestEnded,
-        /* userdata 1 */ &adapter,
-        /* userdata 2 */ nullptr,
-    };
-    WGPUFuture f = wgpuInstanceRequestAdapter(
-        instance,
-        &adapterOpts,
-        info);
-    WGPUFutureWaitInfo waitInfo = {f, 0};
-
-    wgpuInstanceWaitAny(instance, 1, &waitInfo, UINT64_MAX);
-    return adapter;
 }
