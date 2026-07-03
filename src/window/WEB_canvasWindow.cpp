@@ -12,7 +12,7 @@ CanvasWindow::~CanvasWindow()
 {
 }
 
-CanvasWindow::CanvasWindow(int width, int height, std::string title) : Window(width, height, title)
+CanvasWindow::CanvasWindow(unsigned int width, unsigned int height, std::string title) : Window(width, height, title)
 {
     this->width = width;
     this->height = height;

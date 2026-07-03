@@ -7,7 +7,7 @@ class CanvasWindow : public Window
 {
 public:
     ~CanvasWindow() override;
-    CanvasWindow(int width, int height, std::string title);
+    CanvasWindow(unsigned int width, unsigned int height, std::string title);
     CanvasWindow(std::string title);
 
     void setOnTick(Window::TickCallback cb) override;

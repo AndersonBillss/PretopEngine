@@ -15,13 +15,12 @@ void Application::run(TickCallback cb)
 {
     _window->setOnTick([this, cb](double dt)
                        {
-                           WGPUTextureView targetView = getNextSurfaceTextureView();
-                           if (!targetView)
+                           WGPUTextureView displayView = getNextSurfaceTextureView();
+                           if (!displayView)
                                return;
 
-                           cb(dt, targetView);
-
-                           wgpuTextureViewRelease(targetView);
+                           cb(dt, displayView);
+                           wgpuTextureViewRelease(displayView);
 #ifndef __EMSCRIPTEN__
                            wgpuSurfacePresent(this->_windowSurface);
 #endif

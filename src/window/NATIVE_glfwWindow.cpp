@@ -19,7 +19,7 @@ GlfwWindow::~GlfwWindow()
     glfwTerminate();
 }
 
-GlfwWindow::GlfwWindow(int width, int height, std::string title) : Window(width, height, title)
+GlfwWindow::GlfwWindow(unsigned int width, unsigned int height, std::string title) : Window(width, height, title)
 {
     this->width = width;
     this->height = height;

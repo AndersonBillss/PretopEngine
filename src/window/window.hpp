@@ -10,7 +10,7 @@ public:
     using ExitCallback = std::function<void()>;
 
     virtual ~Window() = default;
-    Window(int width, int height, std::string title)
+    Window(unsigned int width, unsigned int height, std::string title)
         : width(width), height(height), title_(std::move(title)) {}
 
     Window(std::string title)
@@ -22,8 +22,8 @@ public:
     virtual void run() = 0;
     virtual WGPUSurface getSurface(WGPUInstance instance) = 0;
 
-    int width = 0;
-    int height = 0;
+    unsigned int width = 0;
+    unsigned int height = 0;
 
 protected:
     std::string title_;

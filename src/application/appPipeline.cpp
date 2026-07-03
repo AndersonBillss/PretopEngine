@@ -1,8 +1,8 @@
 #include "appPipeline.hpp"
 
 AppPipeline::AppPipeline(
-    AppDevice device,
-    AppShader shader,
+    AppDevice &device,
+    AppShader &shader,
     WGPUTextureFormat format,
     AppVertexLayout &vertexLayout,
     AppBindingLayout &pipelineLayout)

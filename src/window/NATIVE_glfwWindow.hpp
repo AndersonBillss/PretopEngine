@@ -7,7 +7,7 @@ class GlfwWindow : public Window
 {
 public:
     ~GlfwWindow() override;
-    GlfwWindow(int width, int height, std::string title);
+    GlfwWindow(unsigned int width, unsigned int height, std::string title);
     GlfwWindow(std::string title);
 
     void setOnTick(Window::TickCallback cb) override;
