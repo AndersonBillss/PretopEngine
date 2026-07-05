@@ -8,20 +8,25 @@ AppDevice::AppDevice(WGPUDevice device)
     this->wgpuDevice = device;
 }
 
+struct DeviceRequestUserData
+{
+    AppDevice::RequestDeviceCallback cb;
+};
 void AppDevice::request(const AppInstance *instance, const AppAdapter *adapter, RequestDeviceCallback cb)
 {
     auto onDescriptorRequestEnded = [](
                                         WGPURequestDeviceStatus status,
                                         WGPUDevice device,
                                         WGPUStringView message,
-                                        void *pCb,
+                                        void *pUserData,
                                         void *_)
     {
-        RequestDeviceCallback userCb = *reinterpret_cast<RequestDeviceCallback *>(pCb);
+        DeviceRequestUserData userData = *reinterpret_cast<DeviceRequestUserData *>(pUserData);
         if (status == WGPURequestDeviceStatus_Success)
         {
             std::unique_ptr<AppDevice> appDevice = std::make_unique<AppDevice>(device);
-            userCb(std::move(appDevice));
+            userData.cb(std::move(appDevice));
+            free(pUserData);
         }
         else
         {
@@ -30,11 +35,12 @@ void AppDevice::request(const AppInstance *instance, const AppAdapter *adapter, 
     };
 
     WGPUDeviceDescriptor descriptor = _createDeviceDescriptor(instance, adapter);
+    auto *userData = new DeviceRequestUserData{cb};
     WGPURequestDeviceCallbackInfo info = {
         /* nextInChain */ nullptr,
         /* mode */ WGPUCallbackMode::WGPUCallbackMode_AllowSpontaneous,
         /* callback */ onDescriptorRequestEnded,
-        /* userdata 1 */ &cb,
+        /* userdata 1 */ userData,
         /* userdata 2 */ nullptr,
     };
     wgpuAdapterRequestDevice(

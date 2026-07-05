@@ -97,20 +97,26 @@ AppAdapter::AppAdapter(WGPUAdapter adapter)
     this->wgpuAdapter = adapter;
 }
 
+struct AdapterRequestUserData
+{
+    AppAdapter::RequestAdapterCallback cb;
+};
 void AppAdapter::request(AppInstance *instance, RequestAdapterCallback cb)
 {
+    std::cout << "HERE 1" << std::endl;
     auto onAdapterRequestEnded = [](
                                      WGPURequestAdapterStatus status,
                                      WGPUAdapter adapter,
                                      WGPUStringView message,
-                                     void *pCb,
+                                     void *pUserData,
                                      void *__)
     {
-        RequestAdapterCallback userCb = *reinterpret_cast<RequestAdapterCallback *>(pCb);
+        AdapterRequestUserData userData = *reinterpret_cast<AdapterRequestUserData *>(pUserData);
         if (status == WGPURequestAdapterStatus_Success)
         {
             std::unique_ptr<AppAdapter> result = std::make_unique<AppAdapter>(adapter);
-            userCb(std::move(result));
+            userData.cb(std::move(result));
+            free(pUserData);
         }
         else
         {
@@ -123,11 +129,12 @@ void AppAdapter::request(AppInstance *instance, RequestAdapterCallback cb)
     adapterOpts.backendType = WGPUBackendType_D3D12;
 #endif // _WIN32
 #endif // !WEBGPU_BACKEND_EMSCRIPTEN
+    auto *userData = new AdapterRequestUserData{cb};
     WGPURequestAdapterCallbackInfo info = {
         /* nextInChain */ nullptr,
         /* mode */ WGPUCallbackMode::WGPUCallbackMode_AllowSpontaneous,
         /* callback */ onAdapterRequestEnded,
-        /* userdata 1 */ &cb,
+        /* userdata 1 */ userData,
         /* userdata 2 */ nullptr,
     };
     wgpuInstanceRequestAdapter(instance->wgpuInstance, &adapterOpts, info);
