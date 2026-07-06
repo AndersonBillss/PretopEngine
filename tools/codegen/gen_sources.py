@@ -1,7 +1,8 @@
 # Generate sources for CMake
+from shared.constants import SOURCE_DIR
+
 import os
 
-SRC_DIR = "src"
 OUT_FILE = "sources.cmake"
 STARTING_COMMENT = "# Auto-generated code, do not edit"
 MAIN_RULE_PREFIX = "PRETOP_ENGINE_MAIN"
@@ -66,7 +67,7 @@ def get_tests():
 
 def gen_sources():
     tracker = SourceTracker()
-    for root, dirs, files in os.walk("src"):
+    for root, dirs, files in os.walk(SOURCE_DIR):
         for file in files:
             filepath = os.path.join(root, file).replace("\\", "/")
             if file.endswith(".cpp") and file != "main.cpp":
@@ -74,7 +75,7 @@ def gen_sources():
 
     target_files_rules = [
         generate_rule(get_tests(), TEST_RULE_PREFIX),
-        generate_rule(["src/main.cpp"], MAIN_RULE_PREFIX),
+        generate_rule([f"{SOURCE_DIR}/main.cpp"], MAIN_RULE_PREFIX),
         generate_rule(tracker.src_files, RULE_PREFIX),
     ]
     for key in tracker.src_targets:

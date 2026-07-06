@@ -1,7 +1,7 @@
 #pragma once
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <sstream>
-#include "../../src/Math/Linalg/Vec4.hpp"
+#include "../../Source/Math/Linalg/Vec4.hpp"
 
 class Vec4ApproxMatcher : public Catch::Matchers::MatcherBase<Vec4>
 {

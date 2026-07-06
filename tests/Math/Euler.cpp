@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include "../Matchers/Vec4ApproxMatcher.hpp"
-#include "../../src/Math/Euler.hpp"
-#include "../../src/Math/Constants.hpp"
+#include "../../Source/Math/Euler.hpp"
+#include "../../Source/Math/Constants.hpp"
 
 TEST_CASE("X euler rotate basis vectors as expected", "[math][euler]")
 {

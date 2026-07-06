@@ -1,42 +1,42 @@
 # Auto-generated code, do not edit
 set(PRETOP_ENGINE_MAIN
-  src/main.cpp
+  Source/main.cpp
 )
 set(PRETOP_ENGINE_SOURCES
-  src/Asset/AssetLoaderFactory.cpp
-  src/Asset/LoadGlb.cpp
-  src/Demos/LoadModel.cpp
-  src/Math/CeilToBufferOffset.cpp
-  src/Math/Euler.cpp
-  src/Math/Linalg/Mat2x2.cpp
-  src/Math/Linalg/Mat3x3.cpp
-  src/Math/Linalg/Mat4x4.cpp
-  src/Math/Linalg/Vec2.cpp
-  src/Math/Linalg/Vec3.cpp
-  src/Math/Linalg/Vec4.cpp
-  src/PrintStringView.cpp
-  src/RHI/Adapter.cpp
-  src/RHI/Application.cpp
-  src/RHI/BindGroup.cpp
-  src/RHI/BindingLayout.cpp
-  src/RHI/CommandBuffer.cpp
-  src/RHI/Device.cpp
-  src/RHI/Instance.cpp
-  src/RHI/Pipeline.cpp
-  src/RHI/RenderPassCommand.cpp
-  src/RHI/RenderPassEncoder.cpp
-  src/RHI/Shader.cpp
-  src/RHI/VertexBufferLayout.cpp
-  src/RHI/VertexLayout.cpp
-  src/Window/WindowFactory.cpp
+  Source/Asset/AssetLoaderFactory.cpp
+  Source/Asset/LoadGlb.cpp
+  Source/Demos/LoadModel.cpp
+  Source/Math/CeilToBufferOffset.cpp
+  Source/Math/Euler.cpp
+  Source/Math/Linalg/Mat2x2.cpp
+  Source/Math/Linalg/Mat3x3.cpp
+  Source/Math/Linalg/Mat4x4.cpp
+  Source/Math/Linalg/Vec2.cpp
+  Source/Math/Linalg/Vec3.cpp
+  Source/Math/Linalg/Vec4.cpp
+  Source/PrintStringView.cpp
+  Source/RHI/Adapter.cpp
+  Source/RHI/Application.cpp
+  Source/RHI/BindGroup.cpp
+  Source/RHI/BindingLayout.cpp
+  Source/RHI/CommandBuffer.cpp
+  Source/RHI/Device.cpp
+  Source/RHI/Instance.cpp
+  Source/RHI/Pipeline.cpp
+  Source/RHI/RenderPassCommand.cpp
+  Source/RHI/RenderPassEncoder.cpp
+  Source/RHI/Shader.cpp
+  Source/RHI/VertexBufferLayout.cpp
+  Source/RHI/VertexLayout.cpp
+  Source/Window/WindowFactory.cpp
 )
 set(PRETOP_ENGINE_SOURCES_NATIVE
-  src/Asset/NATIVE_AssetLoader.cpp
-  src/Window/NATIVE_GlfwWindow.cpp
+  Source/Asset/NATIVE_AssetLoader.cpp
+  Source/Window/NATIVE_GlfwWindow.cpp
 )
 set(PRETOP_ENGINE_SOURCES_WEB
-  src/Asset/WEB_AssetLoader.cpp
-  src/Window/WEB_CanvasWindow.cpp
+  Source/Asset/WEB_AssetLoader.cpp
+  Source/Window/WEB_CanvasWindow.cpp
 )
 set(PRETOP_ENGINE_TEST_SOURCES
   tests/Math/Euler.cpp
