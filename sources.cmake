@@ -5,6 +5,14 @@ set(PRETOP_ENGINE_MAIN
 set(PRETOP_ENGINE_SOURCES
   src/Asset/AssetLoaderFactory.cpp
   src/Asset/LoadGlb.cpp
+  src/Math/CeilToBufferOffset.cpp
+  src/Math/Euler.cpp
+  src/Math/Linalg/Mat2x2.cpp
+  src/Math/Linalg/Mat3x3.cpp
+  src/Math/Linalg/Mat4x4.cpp
+  src/Math/Linalg/Vec2.cpp
+  src/Math/Linalg/Vec3.cpp
+  src/Math/Linalg/Vec4.cpp
   src/RHI/Adapter.cpp
   src/RHI/Application.cpp
   src/RHI/BindGroup.cpp
@@ -19,14 +27,6 @@ set(PRETOP_ENGINE_SOURCES
   src/RHI/VertexBufferLayout.cpp
   src/RHI/VertexLayout.cpp
   src/demos/loadModel.cpp
-  src/math/ceilToBufferOffset.cpp
-  src/math/euler.cpp
-  src/math/linalg/mat2x2.cpp
-  src/math/linalg/mat3x3.cpp
-  src/math/linalg/mat4x4.cpp
-  src/math/linalg/vec2.cpp
-  src/math/linalg/vec3.cpp
-  src/math/linalg/vec4.cpp
   src/printStringView.cpp
   src/window/windowFactory.cpp
 )

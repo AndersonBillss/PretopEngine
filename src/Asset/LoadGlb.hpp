@@ -4,7 +4,7 @@
 #include <memory>
 #include <variant>
 #include "AssetLoader.hpp"
-#include "../math/linalg/vec3.hpp"
+#include "../Math/Linalg/Vec3.hpp"
 
 struct Vertex {
     Vec3 position;

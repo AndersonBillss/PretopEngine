@@ -1,5 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
-#include "../../../src/math/linalg/mat2x2.hpp"
+#include "../../../src/Math/Linalg/Mat2x2.hpp"
 
 TEST_CASE("Mat2x2 Vec2 multiplication works", "[math][linalg][mat2x2]")
 {

@@ -1,5 +1,5 @@
 #include <cmath>
-#include "vec3.hpp"
+#include "Vec3.hpp"
 
 float Vec3::dot(const Vec3 &rhs) const
 {

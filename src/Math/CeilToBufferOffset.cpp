@@ -1,4 +1,4 @@
-#include "ceilToBufferOffset.hpp"
+#include "CeilToBufferOffset.hpp"
 #include "../limits/limits.hpp"
 
 uint32_t ceilToBufferOffset(uint32_t uniformSize)

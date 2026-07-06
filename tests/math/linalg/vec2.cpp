@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
-#include "../../../src/math/linalg/vec2.hpp"
+#include "../../../src/Math/Linalg/Vec2.hpp"
 
 TEST_CASE("Vec2 addition works", "[math][linalg][vec2]")
 {

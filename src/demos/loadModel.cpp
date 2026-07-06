@@ -21,10 +21,10 @@
 #include "../RHI/Buffer.hpp"
 #include "../RHI/BindGroup.hpp"
 
-#include "../math/ceilToBufferOffset.hpp"
-#include "../math/linalg/mat4x4.hpp"
-#include "../math/constants.hpp"
-#include "../math/euler.hpp"
+#include "../Math/CeilToBufferOffset.hpp"
+#include "../Math/Linalg/Mat4x4.hpp"
+#include "../Math/Constants.hpp"
+#include "../Math/Euler.hpp"
 
 #include "../Asset/LoadGlb.hpp"
 #include "../Asset/ModelParseError.hpp"

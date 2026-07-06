@@ -1,4 +1,4 @@
-#include "mat2x2.hpp"
+#include "Mat2x2.hpp"
 
 Mat2x2 transpose(const Mat2x2 &mat)
 {

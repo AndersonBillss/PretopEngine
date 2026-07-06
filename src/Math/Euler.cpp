@@ -1,5 +1,5 @@
 #include <cmath>
-#include "euler.hpp"
+#include "Euler.hpp"
 
 Mat4x4 Euler::toMatrix()
 {

@@ -1,5 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
-#include "../../../src/math/linalg/mat3x3.hpp"
+#include "../../../src/Math/Linalg/Mat3x3.hpp"
 
 TEST_CASE("Mat3x3 Vec3 multiplication works", "[math][linalg][mat3x3]")
 {

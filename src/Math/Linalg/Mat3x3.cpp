@@ -1,4 +1,4 @@
-#include "mat3x3.hpp"
+#include "Mat3x3.hpp"
 
 Mat3x3 transpose(const Mat3x3 &mat)
 {

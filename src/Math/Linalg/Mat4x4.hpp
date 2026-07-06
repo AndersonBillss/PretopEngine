@@ -1,7 +1,7 @@
 #pragma once
 
 #include <ostream>
-#include "vec4.hpp"
+#include "Vec4.hpp"
 
 struct Mat4x4
 {

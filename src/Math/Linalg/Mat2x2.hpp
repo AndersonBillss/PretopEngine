@@ -1,7 +1,7 @@
 #pragma once
 
 #include <ostream>
-#include "vec2.hpp"
+#include "Vec2.hpp"
 
 struct Mat2x2
 {
