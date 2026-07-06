@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include <string>
-#include "window.hpp"
+#include "Window.hpp"
 
 namespace WindowFactory
 {

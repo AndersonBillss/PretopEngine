@@ -1,4 +1,4 @@
-#include "NATIVE_glfwWindow.hpp"
+#include "NATIVE_GlfwWindow.hpp"
 #include <iostream>
 #include <chrono>
 

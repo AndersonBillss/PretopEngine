@@ -3,7 +3,7 @@
 #include <webgpu/webgpu.h>
 #include <functional>
 #include <initializer_list>
-#include "../window/window.hpp"
+#include "../Window/Window.hpp"
 #include "Adapter.hpp"
 #include "Device.hpp"
 #include "Instance.hpp"

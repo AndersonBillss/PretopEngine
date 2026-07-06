@@ -1,5 +1,5 @@
 #pragma once
-#include "window.hpp"
+#include "Window.hpp"
 #include <string>
 #include <chrono>
 

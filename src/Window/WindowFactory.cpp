@@ -1,8 +1,8 @@
-#include "windowFactory.hpp"
+#include "WindowFactory.hpp"
 #ifdef __EMSCRIPTEN__
-#include "WEB_canvasWindow.hpp"
+#include "WEB_CanvasWindow.hpp"
 #else // not __EMSCRIPTEN
-#include "NATIVE_glfwWindow.hpp"
+#include "NATIVE_GlfwWindow.hpp"
 #endif // not __EMSCRIPTEN
 
 namespace WindowFactory

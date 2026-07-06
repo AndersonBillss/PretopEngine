@@ -1,5 +1,5 @@
 #include "CeilToBufferOffset.hpp"
-#include "../limits/limits.hpp"
+#include "../Limits/Limits.hpp"
 
 uint32_t ceilToBufferOffset(uint32_t uniformSize)
 {

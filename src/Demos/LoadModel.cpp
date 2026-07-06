@@ -8,7 +8,7 @@
 
 #include "../PrintStringView.hpp"
 
-#include "../window/windowFactory.hpp"
+#include "../Window/WindowFactory.hpp"
 
 #include "../RHI/Application.hpp"
 #include "../RHI/Device.hpp"
@@ -43,7 +43,6 @@ struct MyUniforms
 const float scale = 0.5f;
 void start(Application &application)
 {
-    std::cout << "START" << std::endl;
     std::unique_ptr<AssetLoader> assetLoader = AssetLoaderFactory::createAssetLoader();
 
     ParsedData model;

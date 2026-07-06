@@ -1,7 +1,7 @@
 #include "Adapter.hpp"
 #include <iostream>
 #include <unordered_map>
-#include "../printStringView.hpp"
+#include "../PrintStringView.hpp"
 
 static const std::unordered_map<WGPUFeatureName, std::string> featureToString = {
     {WGPUFeatureName_CoreFeaturesAndLimits, "WGPUFeatureName_CoreFeaturesAndLimits"},

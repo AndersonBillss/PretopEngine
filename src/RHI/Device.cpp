@@ -1,7 +1,7 @@
 #include "Device.hpp"
 #include <iostream>
-#include "../printStringView.hpp"
-#include "../limits/limits.hpp"
+#include "../PrintStringView.hpp"
+#include "../Limits/Limits.hpp"
 
 AppDevice::AppDevice(WGPUDevice device)
 {
