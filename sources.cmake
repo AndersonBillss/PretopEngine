@@ -3,19 +3,19 @@ set(AB_ENGINE_MAIN
   src/main.cpp
 )
 set(AB_ENGINE_SOURCES
-  src/application/appAdapter.cpp
-  src/application/appBindGroup.cpp
-  src/application/appBindingLayout.cpp
-  src/application/appCommandBuffer.cpp
-  src/application/appDevice.cpp
-  src/application/appInstance.cpp
-  src/application/appPipeline.cpp
-  src/application/appRenderPassCommand.cpp
-  src/application/appRenderPassEncoder.cpp
-  src/application/appShader.cpp
-  src/application/appVertexBufferLayout.cpp
-  src/application/appVertexLayout.cpp
-  src/application/application.cpp
+  src/Rendering/Adapter.cpp
+  src/Rendering/Application.cpp
+  src/Rendering/BindGroup.cpp
+  src/Rendering/BindingLayout.cpp
+  src/Rendering/CommandBuffer.cpp
+  src/Rendering/Device.cpp
+  src/Rendering/Instance.cpp
+  src/Rendering/Pipeline.cpp
+  src/Rendering/RenderPassCommand.cpp
+  src/Rendering/RenderPassEncoder.cpp
+  src/Rendering/Shader.cpp
+  src/Rendering/VertexBufferLayout.cpp
+  src/Rendering/VertexLayout.cpp
   src/asset/assetLoaderFactory.cpp
   src/asset/loadGlb.cpp
   src/demos/loadModel.cpp

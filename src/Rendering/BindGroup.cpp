@@ -1,6 +1,6 @@
 #include <vector>
 #include <iostream>
-#include "appBindGroup.hpp"
+#include "BindGroup.hpp"
 
 AppBindGroup::AppBindGroup(
     AppDevice *device,

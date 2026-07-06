@@ -1,4 +1,4 @@
-#include "appVertexLayout.hpp"
+#include "VertexLayout.hpp"
 #include <iostream>
 
 AppVertexLayout::AppVertexLayout(std::initializer_list<std::initializer_list<LayoutType>> layout)

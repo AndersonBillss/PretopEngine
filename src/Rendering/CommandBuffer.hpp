@@ -2,13 +2,13 @@
 #include <vector>
 #include <webgpu/webgpu.h>
 #include <memory>
-#include "appDevice.hpp"
-#include "appRenderPassCommand.hpp"
-#include "appPipeline.hpp"
-#include "appBindGroup.hpp"
-#include "appBuffer.hpp"
-#include "appBindGroup.hpp"
-#include "appRenderPassEncoder.hpp"
+#include "Device.hpp"
+#include "RenderPassCommand.hpp"
+#include "Pipeline.hpp"
+#include "BindGroup.hpp"
+#include "Buffer.hpp"
+#include "BindGroup.hpp"
+#include "RenderPassEncoder.hpp"
 
 class AppCommandBuffer
 {

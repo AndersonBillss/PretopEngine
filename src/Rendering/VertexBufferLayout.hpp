@@ -3,7 +3,7 @@
 #include <vector>
 #include <webgpu/webgpu.h>
 
-#include "layoutType.hpp"
+#include "LayoutType.hpp"
 
 class AppVertexBufferLayout
 {

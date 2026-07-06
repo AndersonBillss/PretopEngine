@@ -2,8 +2,8 @@
 #include <webgpu/webgpu.h>
 #include <vector>
 #include <functional>
-#include "appAdapter.hpp"
-#include "appInstance.hpp"
+#include "Adapter.hpp"
+#include "Instance.hpp"
 
 class AppDevice
 {

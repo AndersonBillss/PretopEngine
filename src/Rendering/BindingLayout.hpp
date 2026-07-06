@@ -3,9 +3,9 @@
 #include <initializer_list>
 #include <vector>
 #include <memory>
-#include "appDevice.hpp"
-#include "appBindGroup.hpp"
-#include "appBuffer.hpp"
+#include "Device.hpp"
+#include "BindGroup.hpp"
+#include "Buffer.hpp"
 
 class AppBindingLayout
 {

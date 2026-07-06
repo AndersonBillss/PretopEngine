@@ -1,7 +1,7 @@
 #pragma once
 #include <webgpu/webgpu.h>
-#include "appDevice.hpp"
-#include "appPipeline.hpp"
+#include "Device.hpp"
+#include "Pipeline.hpp"
 
 class AppRenderPassCommand
 {

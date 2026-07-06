@@ -1,4 +1,4 @@
-#include "appRenderPassEncoder.hpp"
+#include "RenderPassEncoder.hpp"
 #include <iostream>
 
 AppRenderPassEncoder::AppRenderPassEncoder(WGPUCommandEncoder &encoder, WGPURenderPassDescriptor &renderPass)

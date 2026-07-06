@@ -1,4 +1,4 @@
-#include "appBindingLayout.hpp"
+#include "BindingLayout.hpp"
 
 AppBindingLayout::AppBindingLayout(
     AppDevice *device, std::initializer_list<std::initializer_list<WGPUBindGroupLayoutEntry>> layoutEntries)

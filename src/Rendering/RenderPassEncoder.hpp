@@ -1,8 +1,8 @@
 #pragma once
 #include <webgpu/webgpu.h>
 #include <vector>
-#include "appBuffer.hpp"
-#include "appPipeline.hpp"
+#include "Buffer.hpp"
+#include "Pipeline.hpp"
 
 class AppRenderPassEncoder
 {

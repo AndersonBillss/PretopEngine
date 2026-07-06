@@ -1,4 +1,4 @@
-#include "appVertexBufferLayout.hpp"
+#include "VertexBufferLayout.hpp"
 #include <stdexcept>
 #include <unordered_map>
 

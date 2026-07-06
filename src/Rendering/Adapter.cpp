@@ -1,4 +1,4 @@
-#include "appAdapter.hpp"
+#include "Adapter.hpp"
 #include <iostream>
 #include <unordered_map>
 #include "../printStringView.hpp"
@@ -103,7 +103,6 @@ struct AdapterRequestUserData
 };
 void AppAdapter::request(AppInstance *instance, RequestAdapterCallback cb)
 {
-    std::cout << "HERE 1" << std::endl;
     auto onAdapterRequestEnded = [](
                                      WGPURequestAdapterStatus status,
                                      WGPUAdapter adapter,

@@ -1,4 +1,4 @@
-#include "appPipeline.hpp"
+#include "Pipeline.hpp"
 
 AppPipeline::AppPipeline(
     AppDevice *device,

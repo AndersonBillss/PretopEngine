@@ -1,4 +1,4 @@
-#include "appRenderPassCommand.hpp"
+#include "RenderPassCommand.hpp"
 
 AppRenderPassCommand::AppRenderPassCommand(
     AppDevice *device,

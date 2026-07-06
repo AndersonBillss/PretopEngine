@@ -1,8 +1,8 @@
 #pragma once
 #include <webgpu/webgpu.h>
 #include <initializer_list>
-#include "appDevice.hpp"
-#include "appBuffer.hpp"
+#include "Device.hpp"
+#include "Buffer.hpp"
 
 class AppBindGroup
 {

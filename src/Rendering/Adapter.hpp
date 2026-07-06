@@ -2,7 +2,7 @@
 #include <webgpu/webgpu.h>
 #include <functional>
 #include <memory>
-#include "appInstance.hpp"
+#include "Instance.hpp"
 
 class AppAdapter
 {

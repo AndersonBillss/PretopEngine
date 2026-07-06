@@ -1,7 +1,7 @@
 #include <iostream>
 #include <unordered_map>
 #include "../printStringView.hpp"
-#include "application.hpp"
+#include "Application.hpp"
 
 Application::Application()
 {

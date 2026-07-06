@@ -1,6 +1,6 @@
 #pragma once
-#include "appVertexBufferLayout.hpp"
-#include "layoutType.hpp"
+#include "VertexBufferLayout.hpp"
+#include "LayoutType.hpp"
 #include <vector>
 
 class AppVertexLayout

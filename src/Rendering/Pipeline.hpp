@@ -1,10 +1,10 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "appDevice.hpp"
-#include "appShader.hpp"
-#include "appVertexLayout.hpp"
-#include "appBindingLayout.hpp"
+#include "Device.hpp"
+#include "Shader.hpp"
+#include "VertexLayout.hpp"
+#include "BindingLayout.hpp"
 
 class AppPipeline
 {

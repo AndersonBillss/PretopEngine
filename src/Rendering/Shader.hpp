@@ -1,7 +1,7 @@
 #pragma once
 #include <string_view>
-#include "appDevice.hpp"
-#include "appInstance.hpp"
+#include "Device.hpp"
+#include "Instance.hpp"
 #include "../asset/assetLoader.hpp"
 
 class AppShader

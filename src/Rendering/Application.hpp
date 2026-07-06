@@ -4,11 +4,11 @@
 #include <functional>
 #include <initializer_list>
 #include "../window/window.hpp"
-#include "appAdapter.hpp"
-#include "appDevice.hpp"
-#include "appInstance.hpp"
-#include "appCommandBuffer.hpp"
-#include "appBuffer.hpp"
+#include "Adapter.hpp"
+#include "Device.hpp"
+#include "Instance.hpp"
+#include "CommandBuffer.hpp"
+#include "Buffer.hpp"
 
 class Application
 {
