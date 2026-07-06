@@ -39,11 +39,11 @@ set(PRETOP_ENGINE_SOURCES_WEB
   src/Window/WEB_CanvasWindow.cpp
 )
 set(PRETOP_ENGINE_TEST_SOURCES
-  tests/math/euler.cpp
-  tests/math/linalg/mat2x2.cpp
-  tests/math/linalg/mat3x3.cpp
-  tests/math/linalg/mat4x4.cpp
-  tests/math/linalg/vec2.cpp
-  tests/math/linalg/vec3.cpp
-  tests/math/linalg/vec4.cpp
+  tests/Math/Euler.cpp
+  tests/Math/Linalg/Mat2x2.cpp
+  tests/Math/Linalg/Mat3x3.cpp
+  tests/Math/Linalg/Mat4x4.cpp
+  tests/Math/Linalg/Vec2.cpp
+  tests/Math/Linalg/Vec3.cpp
+  tests/Math/Linalg/Vec4.cpp
 )

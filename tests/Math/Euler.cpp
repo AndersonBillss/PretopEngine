@@ -1,5 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
-#include "../matchers/Vec4ApproxMatcher.hpp"
+#include "../Matchers/Vec4ApproxMatcher.hpp"
 #include "../../src/Math/Euler.hpp"
 #include "../../src/Math/Constants.hpp"
 
