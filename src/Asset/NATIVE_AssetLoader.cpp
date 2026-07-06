@@ -1,4 +1,4 @@
-#include "NATIVE_assetLoader.hpp"
+#include "NATIVE_AssetLoader.hpp"
 
 #include <fstream>
 #include <stdexcept>

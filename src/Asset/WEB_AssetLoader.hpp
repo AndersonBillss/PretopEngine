@@ -1,6 +1,6 @@
 #pragma once
 
-#include "assetLoader.hpp"
+#include "AssetLoader.hpp"
 
 class WebAssetLoader final : public AssetLoader
 {

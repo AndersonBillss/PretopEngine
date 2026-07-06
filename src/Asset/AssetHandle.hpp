@@ -1,7 +1,7 @@
 #pragma once
 
-#include "assetTypes.hpp"
-#include "task.hpp"
+#include "AssetTypes.hpp"
+#include "Task.hpp"
 
 #include <stdexcept>
 #include <utility>

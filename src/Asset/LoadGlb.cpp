@@ -1,5 +1,5 @@
-#include "loadGlb.hpp"
-#include "modelParseError.hpp"
+#include "LoadGlb.hpp"
+#include "ModelParseError.hpp"
 #include <nlohmann/json.hpp>
 #include <iostream>
 

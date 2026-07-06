@@ -2,7 +2,7 @@
 #include <string_view>
 #include "Device.hpp"
 #include "Instance.hpp"
-#include "../asset/assetLoader.hpp"
+#include "../Asset/AssetLoader.hpp"
 
 class AppShader
 {

@@ -1,4 +1,4 @@
-#include "WEB_assetLoader.hpp"
+#include "WEB_AssetLoader.hpp"
 
 #include <cstring>
 #include <fstream>

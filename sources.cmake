@@ -3,6 +3,8 @@ set(PRETOP_ENGINE_MAIN
   src/main.cpp
 )
 set(PRETOP_ENGINE_SOURCES
+  src/Asset/AssetLoaderFactory.cpp
+  src/Asset/LoadGlb.cpp
   src/RHI/Adapter.cpp
   src/RHI/Application.cpp
   src/RHI/BindGroup.cpp
@@ -16,8 +18,6 @@ set(PRETOP_ENGINE_SOURCES
   src/RHI/Shader.cpp
   src/RHI/VertexBufferLayout.cpp
   src/RHI/VertexLayout.cpp
-  src/asset/assetLoaderFactory.cpp
-  src/asset/loadGlb.cpp
   src/demos/loadModel.cpp
   src/math/ceilToBufferOffset.cpp
   src/math/euler.cpp
@@ -31,11 +31,11 @@ set(PRETOP_ENGINE_SOURCES
   src/window/windowFactory.cpp
 )
 set(PRETOP_ENGINE_SOURCES_NATIVE
-  src/asset/NATIVE_assetLoader.cpp
+  src/Asset/NATIVE_AssetLoader.cpp
   src/window/NATIVE_glfwWindow.cpp
 )
 set(PRETOP_ENGINE_SOURCES_WEB
-  src/asset/WEB_assetLoader.cpp
+  src/Asset/WEB_AssetLoader.cpp
   src/window/WEB_canvasWindow.cpp
 )
 set(PRETOP_ENGINE_TEST_SOURCES

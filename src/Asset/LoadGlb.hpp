@@ -3,7 +3,7 @@
 #include <string>
 #include <memory>
 #include <variant>
-#include "assetLoader.hpp"
+#include "AssetLoader.hpp"
 #include "../math/linalg/vec3.hpp"
 
 struct Vertex {

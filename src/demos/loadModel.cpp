@@ -26,9 +26,9 @@
 #include "../math/constants.hpp"
 #include "../math/euler.hpp"
 
-#include "../asset/loadGlb.hpp"
-#include "../asset/modelParseError.hpp"
-#include "../asset/assetLoaderFactory.hpp"
+#include "../Asset/LoadGlb.hpp"
+#include "../Asset/ModelParseError.hpp"
+#include "../Asset/AssetLoaderFactory.hpp"
 
 struct MyUniforms
 {

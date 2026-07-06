@@ -1,5 +1,5 @@
 #include "Shader.hpp"
-#include "../asset/modelParseError.hpp"
+#include "../Asset/ModelParseError.hpp"
 #include <iostream>
 
 AppShader AppShader::pipeline(AppDevice *device, AppInstance *instance, AssetLoader *assetLoader, std::string_view src)

@@ -1,8 +1,8 @@
-#include "assetLoaderFactory.hpp"
+#include "AssetLoaderFactory.hpp"
 #ifdef __EMSCRIPTEN__
-#include "WEB_assetLoader.hpp"
+#include "WEB_AssetLoader.hpp"
 #else
-#include "NATIVE_assetLoader.hpp"
+#include "NATIVE_AssetLoader.hpp"
 #endif
 
 std::unique_ptr<AssetLoader> AssetLoaderFactory::createAssetLoader()
