@@ -6,7 +6,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include "../printStringView.hpp"
+#include "../PrintStringView.hpp"
 
 #include "../window/windowFactory.hpp"
 

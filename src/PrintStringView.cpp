@@ -1,4 +1,4 @@
-#include "printStringView.hpp"
+#include "PrintStringView.hpp"
 
 std::ostream &operator<<(std::ostream &os, WGPUStringView stringView)
 {

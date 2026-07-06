@@ -1,4 +1,4 @@
-#include "demos/loadModel.hpp"
+#include "Demos/LoadModel.hpp"
 
 int main(int, char **)
 {
