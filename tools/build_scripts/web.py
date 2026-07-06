@@ -1,5 +1,5 @@
 from utils.cmd import cmd
-from shared.constants import BUILD_DIR
+from shared.constants import BUILD_DIR, ENGINE_NAME
 from codegen.gen_sources import gen_sources
 from server.server import run_server
 import sys
@@ -27,5 +27,5 @@ def build_web_debug():
 
 def run_web_debug():
     build_web_debug()
-    print("Running engine at http://localhost:8000/ab_engine.html")
+    print(f"Running engine at http://localhost:8000/{ENGINE_NAME}.html")
     run_server()

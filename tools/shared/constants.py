@@ -2,6 +2,7 @@ import platform
 BUILD_DIR = "build"
 COMPILER_C = "cl"
 COMPILER_CPP = "cl"
+ENGINE_NAME = "pretop_engine"
 if platform.system() == "Linux":
     COMPILER_C = "gcc"
     COMPILER_CPP = "g++"

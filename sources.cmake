@@ -1,21 +1,21 @@
 # Auto-generated code, do not edit
-set(AB_ENGINE_MAIN
+set(PRETOP_ENGINE_MAIN
   src/main.cpp
 )
-set(AB_ENGINE_SOURCES
-  src/Rendering/Adapter.cpp
-  src/Rendering/Application.cpp
-  src/Rendering/BindGroup.cpp
-  src/Rendering/BindingLayout.cpp
-  src/Rendering/CommandBuffer.cpp
-  src/Rendering/Device.cpp
-  src/Rendering/Instance.cpp
-  src/Rendering/Pipeline.cpp
-  src/Rendering/RenderPassCommand.cpp
-  src/Rendering/RenderPassEncoder.cpp
-  src/Rendering/Shader.cpp
-  src/Rendering/VertexBufferLayout.cpp
-  src/Rendering/VertexLayout.cpp
+set(PRETOP_ENGINE_SOURCES
+  src/RHI/Adapter.cpp
+  src/RHI/Application.cpp
+  src/RHI/BindGroup.cpp
+  src/RHI/BindingLayout.cpp
+  src/RHI/CommandBuffer.cpp
+  src/RHI/Device.cpp
+  src/RHI/Instance.cpp
+  src/RHI/Pipeline.cpp
+  src/RHI/RenderPassCommand.cpp
+  src/RHI/RenderPassEncoder.cpp
+  src/RHI/Shader.cpp
+  src/RHI/VertexBufferLayout.cpp
+  src/RHI/VertexLayout.cpp
   src/asset/assetLoaderFactory.cpp
   src/asset/loadGlb.cpp
   src/demos/loadModel.cpp
@@ -30,15 +30,15 @@ set(AB_ENGINE_SOURCES
   src/printStringView.cpp
   src/window/windowFactory.cpp
 )
-set(AB_ENGINE_SOURCES_NATIVE
+set(PRETOP_ENGINE_SOURCES_NATIVE
   src/asset/NATIVE_assetLoader.cpp
   src/window/NATIVE_glfwWindow.cpp
 )
-set(AB_ENGINE_SOURCES_WEB
+set(PRETOP_ENGINE_SOURCES_WEB
   src/asset/WEB_assetLoader.cpp
   src/window/WEB_canvasWindow.cpp
 )
-set(AB_ENGINE_TEST_SOURCES
+set(PRETOP_ENGINE_TEST_SOURCES
   tests/math/euler.cpp
   tests/math/linalg/mat2x2.cpp
   tests/math/linalg/mat3x3.cpp

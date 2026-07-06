@@ -5,6 +5,8 @@ import webbrowser
 import sys
 import os
 
+from shared.constants import ENGINE_NAME
+
 PORT = 8000
 BUILD_DIRECTORY = "build/web-engine"
 ASSET_DIRECTORY = "assets"
@@ -43,7 +45,7 @@ def key_listener():
         key = sys.stdin.read(1)
 
         if key.lower() == "o":
-            webbrowser.open(f"http://localhost:{PORT}/ab_engine.html")
+            webbrowser.open(f"http://localhost:{PORT}/{ENGINE_NAME}.html")
 
         elif key.lower() == "q":
             print("Exiting.")

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(AbEngine LANGUAGES C CXX)
+project(PretopEngine LANGUAGES C CXX)
 
 include(sources.cmake)
 
@@ -16,29 +16,29 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(nlohmann_json)
 
-add_library(ab_engine_core STATIC ${AB_ENGINE_SOURCES})
-target_include_directories(ab_engine_core PUBLIC include)
-target_link_libraries(ab_engine_core PUBLIC nlohmann_json::nlohmann_json)
+add_library(pretop_engine_core STATIC ${PRETOP_ENGINE_SOURCES})
+target_include_directories(pretop_engine_core PUBLIC include)
+target_link_libraries(pretop_engine_core PUBLIC nlohmann_json::nlohmann_json)
 
-add_executable(ab_engine ${AB_ENGINE_MAIN})
-target_link_libraries(ab_engine PRIVATE ab_engine_core)
+add_executable(pretop_engine ${PRETOP_ENGINE_MAIN})
+target_link_libraries(pretop_engine PRIVATE pretop_engine_core)
 
 if(EMSCRIPTEN)
-  target_sources(ab_engine PRIVATE
-    ${AB_ENGINE_SOURCES_WEB}
+  target_sources(pretop_engine PRIVATE
+    ${PRETOP_ENGINE_SOURCES_WEB}
   )
 
-  set_target_properties(ab_engine PROPERTIES SUFFIX ".html")
+  set_target_properties(pretop_engine PROPERTIES SUFFIX ".html")
 
-  target_compile_definitions(ab_engine_core PRIVATE WEBGPU_BACKEND_EMDAWNWEBGPU=1)
-  target_compile_options(ab_engine_core PRIVATE 
+  target_compile_definitions(pretop_engine_core PRIVATE WEBGPU_BACKEND_EMDAWNWEBGPU=1)
+  target_compile_options(pretop_engine_core PRIVATE 
     "--use-port=emdawnwebgpu"
   )
-  target_compile_options(ab_engine PRIVATE 
+  target_compile_options(pretop_engine PRIVATE 
     "--use-port=emdawnwebgpu"
   )
 
-  target_link_options(ab_engine PRIVATE
+  target_link_options(pretop_engine PRIVATE
     "--shell-file" "../../web/shell.html"
     "--use-port=emdawnwebgpu"
     "--preload-file" "${CMAKE_SOURCE_DIR}/assets/shaders@/assets/shaders"
@@ -50,9 +50,9 @@ if(EMSCRIPTEN)
     "-sNO_DISABLE_EXCEPTION_CATCHING"
   )
 else()
-  target_compile_definitions(ab_engine PRIVATE AB_ENGINE_USE_GLFW=1)
-  target_sources(ab_engine PRIVATE
-    ${AB_ENGINE_SOURCES_NATIVE}
+  target_compile_definitions(pretop_engine PRIVATE pretop_ENGINE_USE_GLFW=1)
+  target_sources(pretop_engine PRIVATE
+    ${PRETOP_ENGINE_SOURCES_NATIVE}
   )
 
   add_subdirectory(third_party/dawn/third_party/glfw)
@@ -61,12 +61,12 @@ else()
   find_package(Dawn CONFIG REQUIRED)
   find_package(Threads REQUIRED)
 
-  target_link_libraries(ab_engine_core PUBLIC
+  target_link_libraries(pretop_engine_core PUBLIC
     dawn::webgpu_dawn
     glfw
   )
 
-  target_link_libraries(ab_engine PRIVATE
+  target_link_libraries(pretop_engine PRIVATE
     dawn::webgpu_dawn
     glfw
   )
@@ -84,16 +84,16 @@ if(BUILD_TESTING AND NOT EMSCRIPTEN)
 
   enable_testing()
 
-  add_executable(ab_engine_tests
-    ${AB_ENGINE_TEST_SOURCES}
+  add_executable(pretop_engine_tests
+    ${PRETOP_ENGINE_TEST_SOURCES}
   )
 
-  target_link_libraries(ab_engine_tests PRIVATE
-    ab_engine_core
+  target_link_libraries(pretop_engine_tests PRIVATE
+    pretop_engine_core
     Catch2::Catch2WithMain
   )
 
   list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
   include(Catch)
-  catch_discover_tests(ab_engine_tests)
+  catch_discover_tests(pretop_engine_tests)
 endif()
