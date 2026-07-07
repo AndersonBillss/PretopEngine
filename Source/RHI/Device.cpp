@@ -5,28 +5,28 @@
 
 AppDevice::AppDevice(WGPUDevice device)
 {
-    this->wgpuDevice = device;
+    this->WgpuDevice = device;
 }
 
 struct DeviceRequestUserData
 {
-    AppDevice::RequestDeviceCallback cb;
+    AppDevice::RequestDeviceCallback Callback;
 };
-void AppDevice::request(const AppInstance *instance, const AppAdapter *adapter, RequestDeviceCallback cb)
+void AppDevice::Request(const AppInstance *instance, const AppAdapter *adapter, RequestDeviceCallback callback)
 {
     auto onDescriptorRequestEnded = [](
                                         WGPURequestDeviceStatus status,
                                         WGPUDevice device,
                                         WGPUStringView message,
-                                        void *pUserData,
-                                        void *_)
+                                        void *userDataPointer,
+                                        void *)
     {
-        DeviceRequestUserData userData = *reinterpret_cast<DeviceRequestUserData *>(pUserData);
+        DeviceRequestUserData userData = *reinterpret_cast<DeviceRequestUserData *>(userDataPointer);
         if (status == WGPURequestDeviceStatus_Success)
         {
             std::unique_ptr<AppDevice> appDevice = std::make_unique<AppDevice>(device);
-            userData.cb(std::move(appDevice));
-            free(pUserData);
+            userData.Callback(std::move(appDevice));
+            free(userDataPointer);
         }
         else
         {
@@ -34,8 +34,8 @@ void AppDevice::request(const AppInstance *instance, const AppAdapter *adapter, 
         }
     };
 
-    WGPUDeviceDescriptor descriptor = _createDeviceDescriptor(instance, adapter);
-    auto *userData = new DeviceRequestUserData{cb};
+    WGPUDeviceDescriptor descriptor = CreateDeviceDescriptor(instance, adapter);
+    auto *userData = new DeviceRequestUserData{callback};
     WGPURequestDeviceCallbackInfo info = {
         /* nextInChain */ nullptr,
         /* mode */ WGPUCallbackMode::WGPUCallbackMode_AllowSpontaneous,
@@ -44,15 +44,15 @@ void AppDevice::request(const AppInstance *instance, const AppAdapter *adapter, 
         /* userdata 2 */ nullptr,
     };
     wgpuAdapterRequestDevice(
-        adapter->wgpuAdapter,
+        adapter->WgpuAdapter,
         &descriptor,
         info);
 }
 
-void AppDevice::inspect()
+void AppDevice::Inspect()
 {
     WGPULimits limits = WGPU_LIMITS_INIT;
-    bool success = wgpuDeviceGetLimits(this->wgpuDevice, &limits) == WGPUStatus_Success;
+    bool success = wgpuDeviceGetLimits(this->WgpuDevice, &limits) == WGPUStatus_Success;
     if (success)
     {
         std::cout << "\nDevice limits:" << std::endl;
@@ -63,22 +63,22 @@ void AppDevice::inspect()
     }
 }
 
-void onDeviceLost(WGPUDevice const *device, WGPUDeviceLostReason reason, WGPUStringView message, void *, void *)
+void OnDeviceLost(WGPUDevice const *, WGPUDeviceLostReason reason, WGPUStringView message, void *, void *)
 {
     if (reason != WGPUDeviceLostReason::WGPUDeviceLostReason_Destroyed)
         std::cout << "WGPU device lost: " << message << std::endl;
 }
-void onDeviceUncapturedError(WGPUDevice const *device, WGPUErrorType type, WGPUStringView message, void *, void *)
+void OnDeviceUncapturedError(WGPUDevice const *, WGPUErrorType, WGPUStringView message, void *, void *)
 {
     std::cout << "WGPU device error: " << message << std::endl;
 }
-WGPUDeviceDescriptor AppDevice::_createDeviceDescriptor(const AppInstance *instance, const AppAdapter *adapter)
+WGPUDeviceDescriptor AppDevice::CreateDeviceDescriptor(const AppInstance *instance, const AppAdapter *adapter)
 {
     WGPUDeviceDescriptor deviceDescriptor = WGPU_DEVICE_DESCRIPTOR_INIT;
     WGPUDeviceLostCallbackInfo deviceLostCb = {
         /* nextInChain */ nullptr,
         /* mode */ WGPUCallbackMode_AllowSpontaneous,
-        /* callback */ onDeviceLost,
+        /* callback */ OnDeviceLost,
         /* userdata1 */ nullptr,
         /* userdata2 */ nullptr,
     };
@@ -86,7 +86,7 @@ WGPUDeviceDescriptor AppDevice::_createDeviceDescriptor(const AppInstance *insta
 
     WGPUUncapturedErrorCallbackInfo uncapturedCb = {
         /* nextInChain */ nullptr,
-        /* callback */ onDeviceUncapturedError,
+        /* callback */ OnDeviceUncapturedError,
         /* userdata1 */ nullptr,
         /* userdata2 */ nullptr,
     };

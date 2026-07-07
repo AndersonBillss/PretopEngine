@@ -14,27 +14,27 @@ CanvasWindow::~CanvasWindow()
 
 CanvasWindow::CanvasWindow(unsigned int width, unsigned int height, std::string title) : Window(width, height, title)
 {
-    this->width = width;
-    this->height = height;
-    this->title_ = std::move(title);
-    // setDocumentTitle(this->title_.c_str());
+    this->Width = width;
+    this->Height = height;
+    this->_title = std::move(title);
+    // setDocumentTitle(this->_title.c_str());
 }
 
-CanvasWindow::CanvasWindow(std::string title) : CanvasWindow(default_width, default_height, title) {}
+CanvasWindow::CanvasWindow(std::string title) : CanvasWindow(DefaultWidth, DefaultHeight, title) {}
 
-void CanvasWindow::setOnTick(Window::TickCallback cb)
+void CanvasWindow::SetOnTick(Window::TickCallback callback)
 {
-    this->_onTick = cb;
+    this->_onTick = callback;
 }
 
-void CanvasWindow::setOnExit(Window::ExitCallback cb)
+void CanvasWindow::SetOnExit(Window::ExitCallback callback)
 {
-    this->_onExit = cb;
+    this->_onExit = callback;
 }
 
-void CanvasWindow::run()
+void CanvasWindow::Run()
 {
-    em_arg_callback_func cb = [](void *data)
+    em_arg_callback_func callback = [](void *data)
     {
         auto *self = static_cast<CanvasWindow *>(data);
         std::chrono::time_point now = std::chrono::steady_clock::now();
@@ -42,15 +42,15 @@ void CanvasWindow::run()
         self->_lastFrame = now;
         self->_onTick(dtSeconds);
     };
-    emscripten_set_main_loop_arg(cb, this, 0, 1);
+    emscripten_set_main_loop_arg(callback, this, 0, 1);
 }
 
-bool CanvasWindow::isInitialized()
+bool CanvasWindow::IsInitialized()
 {
     return true;
 }
 
-WGPUSurface CanvasWindow::getSurface(WGPUInstance instance)
+WGPUSurface CanvasWindow::GetSurface(WGPUInstance instance)
 {
     WGPUEmscriptenSurfaceSourceCanvasHTMLSelector canvasSelector = WGPU_EMSCRIPTEN_SURFACE_SOURCE_CANVAS_HTML_SELECTOR_INIT;
     canvasSelector.chain.sType = WGPUSType_EmscriptenSurfaceSourceCanvasHTMLSelector;

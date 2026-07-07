@@ -10,23 +10,23 @@ AppCommandBuffer::AppCommandBuffer(AppDevice *device)
     encoderDesc.nextInChain = nullptr;
     std::string encoderLabel = "My command encoder";
     encoderDesc.label = {encoderLabel.c_str(), encoderLabel.size()};
-    this->wgpuEncoder = wgpuDeviceCreateCommandEncoder(device->wgpuDevice, &encoderDesc);
+    this->WgpuEncoder = wgpuDeviceCreateCommandEncoder(device->WgpuDevice, &encoderDesc);
 }
 
 AppCommandBuffer::~AppCommandBuffer()
 {
-    wgpuCommandEncoderRelease(this->wgpuEncoder);
+    wgpuCommandEncoderRelease(this->WgpuEncoder);
 }
 
-std::unique_ptr<AppRenderPassEncoder> AppCommandBuffer::addCommand(AppRenderPassCommand &command)
+std::unique_ptr<AppRenderPassEncoder> AppCommandBuffer::AddCommand(AppRenderPassCommand &command)
 {
-    return std::make_unique<AppRenderPassEncoder>(this->wgpuEncoder, command.wgpuRenderPassDescriptor);
+    return std::make_unique<AppRenderPassEncoder>(this->WgpuEncoder, command.WgpuRenderPassDescriptor);
 }
 
-void AppCommandBuffer::finish()
+void AppCommandBuffer::Finish()
 {
     WGPUCommandBufferDescriptor cmdBufferDescriptor = {};
     cmdBufferDescriptor.nextInChain = nullptr;
     cmdBufferDescriptor.label = {cmdBufferLabel.c_str(), cmdBufferLabel.size()};
-    this->wgpuBuffer = wgpuCommandEncoderFinish(this->wgpuEncoder, &cmdBufferDescriptor);
+    this->WgpuBuffer = wgpuCommandEncoderFinish(this->WgpuEncoder, &cmdBufferDescriptor);
 }

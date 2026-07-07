@@ -1,6 +1,6 @@
 #include "Mat2x2.hpp"
 
-Mat2x2 transpose(const Mat2x2 &mat)
+Mat2x2 Transpose(const Mat2x2 &mat)
 {
     Mat2x2 result{};
 
@@ -19,7 +19,7 @@ bool operator==(const Mat2x2 &left, const Mat2x2 &right)
 {
     for (int i = 0; i < 4; ++i)
     {
-        if (left.data[i] != right.data[i])
+        if (left.Data[i] != right.Data[i])
         {
             return false;
         }
@@ -30,8 +30,8 @@ bool operator==(const Mat2x2 &left, const Mat2x2 &right)
 Vec2 operator*(const Mat2x2 &left, const Vec2 &right)
 {
     return Vec2{
-        left(0, 0) * right.x + left(0, 1) * right.y,
-        left(1, 0) * right.x + left(1, 1) * right.y,
+        left(0, 0) * right.X + left(0, 1) * right.Y,
+        left(1, 0) * right.X + left(1, 1) * right.Y,
     };
 }
 

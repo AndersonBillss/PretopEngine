@@ -1,7 +1,7 @@
 #include "Mat4x4.hpp"
 #include <cmath>
 
-Mat4x4 transpose(const Mat4x4 &mat)
+Mat4x4 Transpose(const Mat4x4 &mat)
 {
     Mat4x4 result{};
 
@@ -16,7 +16,7 @@ Mat4x4 transpose(const Mat4x4 &mat)
     return result;
 }
 
-Mat4x4 Mat4x4::perspective(float near, float far, float fovY, float aspect)
+Mat4x4 Mat4x4::Perspective(float near, float far, float fovY, float aspect)
 {
     float f = 1.0f / tan(fovY * 0.5f);
     return Mat4x4{
@@ -26,7 +26,7 @@ Mat4x4 Mat4x4::perspective(float near, float far, float fovY, float aspect)
         0.0f, 0.0f, (near * far) / (near - far), 0.0f};
 }
 
-Mat4x4 Mat4x4::transform(float x, float y, float z)
+Mat4x4 Mat4x4::Transform(float x, float y, float z)
 {
     return Mat4x4{
         1.0f, 0.0f, 0.0f, 0.0f,
@@ -35,7 +35,7 @@ Mat4x4 Mat4x4::transform(float x, float y, float z)
         x, y, z, 1.0f};
 }
 
-Mat4x4 Mat4x4::scale(float factor)
+Mat4x4 Mat4x4::Scale(float factor)
 {
     return Mat4x4{
         factor, 0.0f, 0.0f, 0.0f,
@@ -44,7 +44,7 @@ Mat4x4 Mat4x4::scale(float factor)
         0.0f, 0.0f, 0.0f, 1.0f};
 }
 
-Mat4x4 Mat4x4::scale(float x, float y, float z)
+Mat4x4 Mat4x4::Scale(float x, float y, float z)
 {
     return Mat4x4{
         x, 0.0f, 0.0f, 0.0f,
@@ -57,7 +57,7 @@ bool operator==(const Mat4x4 &left, const Mat4x4 &right)
 {
     for (int i = 0; i < 16; ++i)
     {
-        if (left.data[i] != right.data[i])
+        if (left.Data[i] != right.Data[i])
         {
             return false;
         }
@@ -68,10 +68,10 @@ bool operator==(const Mat4x4 &left, const Mat4x4 &right)
 Vec4 operator*(const Mat4x4 &left, const Vec4 &right)
 {
     return Vec4{
-        left(0, 0) * right.x + left(0, 1) * right.y + left(0, 2) * right.z + left(0, 3) * right.w,
-        left(1, 0) * right.x + left(1, 1) * right.y + left(1, 2) * right.z + left(1, 3) * right.w,
-        left(2, 0) * right.x + left(2, 1) * right.y + left(2, 2) * right.z + left(2, 3) * right.w,
-        left(3, 0) * right.x + left(3, 1) * right.y + left(3, 2) * right.z + left(3, 3) * right.w,
+        left(0, 0) * right.X + left(0, 1) * right.Y + left(0, 2) * right.Z + left(0, 3) * right.W,
+        left(1, 0) * right.X + left(1, 1) * right.Y + left(1, 2) * right.Z + left(1, 3) * right.W,
+        left(2, 0) * right.X + left(2, 1) * right.Y + left(2, 2) * right.Z + left(2, 3) * right.W,
+        left(3, 0) * right.X + left(3, 1) * right.Y + left(3, 2) * right.Z + left(3, 3) * right.W,
     };
 }
 

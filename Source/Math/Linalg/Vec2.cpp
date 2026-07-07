@@ -1,63 +1,63 @@
 #include <cmath>
 #include "Vec2.hpp"
 
-float Vec2::dot(const Vec2 &rhs) const
+float Vec2::Dot(const Vec2 &rhs) const
 {
-    return this->x * rhs.x + this->y * rhs.y;
+    return this->X * rhs.X + this->Y * rhs.Y;
 }
 
-float Vec2::length() const
+float Vec2::Length() const
 {
-    return sqrt(this->x * this->x + this->y * this->y);
+    return sqrt(this->X * this->X + this->Y * this->Y);
 }
 
-void Vec2::normalize()
+void Vec2::Normalize()
 {
-    float len = this->length();
-    this->x /= len;
-    this->y /= len;
+    float len = this->Length();
+    this->X /= len;
+    this->Y /= len;
 }
 
-Vec2 Vec2::normalized() const
+Vec2 Vec2::Normalized() const
 {
-    float len = this->length();
-    return Vec2{this->x / len, this->y / len};
+    float len = this->Length();
+    return Vec2{this->X / len, this->Y / len};
 }
 
-bool Vec2::nearlyEquals(const Vec2 &rhs, float epsilon) const
+bool Vec2::NearlyEquals(const Vec2 &rhs, float epsilon) const
 {
-    return abs(this->x - rhs.x) <= epsilon &&
-           abs(this->y - rhs.y) <= epsilon;
+    return abs(this->X - rhs.X) <= epsilon &&
+           abs(this->Y - rhs.Y) <= epsilon;
 }
 
 Vec2 operator+(const Vec2 &lhs, const Vec2 &rhs)
 {
-    return Vec2{lhs.x + rhs.x, lhs.y + rhs.y};
+    return Vec2{lhs.X + rhs.X, lhs.Y + rhs.Y};
 }
 
 void operator+=(Vec2 &lhs, const Vec2 &rhs)
 {
-    lhs.x += rhs.x;
-    lhs.y += rhs.y;
+    lhs.X += rhs.X;
+    lhs.Y += rhs.Y;
 }
 
 Vec2 operator-(const Vec2 &lhs, const Vec2 &rhs)
 {
-    return Vec2{lhs.x - rhs.x, lhs.y - rhs.y};
+    return Vec2{lhs.X - rhs.X, lhs.Y - rhs.Y};
 }
 
 void operator-=(Vec2 &lhs, const Vec2 &rhs)
 {
-    lhs.x -= rhs.x;
-    lhs.y -= rhs.y;
+    lhs.X -= rhs.X;
+    lhs.Y -= rhs.Y;
 }
 
 bool operator==(const Vec2 &lhs, const Vec2 &rhs)
 {
-    return lhs.x == rhs.x && lhs.y == rhs.y;
+    return lhs.X == rhs.X && lhs.Y == rhs.Y;
 }
 
 std::ostream &operator<<(std::ostream &os, const Vec2 &v)
 {
-    return os << "Vec2(" << v.x << ", " << v.y << ")";
+    return os << "Vec2(" << v.X << ", " << v.Y << ")";
 }

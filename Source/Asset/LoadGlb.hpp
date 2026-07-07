@@ -7,15 +7,15 @@
 #include "../Math/Linalg/Vec3.hpp"
 
 struct Vertex {
-    Vec3 position;
-    Vec3 normal;
+    Vec3 Position;
+    Vec3 Normal;
 };
 
 using IndexList = std::variant<std::vector<uint16_t>, std::vector<uint32_t>>;
 
 struct ParsedData {
-    std::vector<Vertex> vertices;
-    IndexList indices;
+    std::vector<Vertex> Vertices;
+    IndexList Indices;
 };
 
-ParsedData loadGlb(AssetLoader * assetLoader, const std::string &path);
+ParsedData LoadGlb(AssetLoader *assetLoader, const std::string &path);

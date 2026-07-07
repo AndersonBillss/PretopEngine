@@ -2,9 +2,9 @@
 #include "Linalg/Mat4x4.hpp"
 
 struct Euler {
-    float x;
-    float y;
-    float z;
+    float X;
+    float Y;
+    float Z;
 
-    Mat4x4 toMatrix();
+    Mat4x4 ToMatrix();
 };

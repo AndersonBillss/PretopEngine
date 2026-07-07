@@ -5,7 +5,7 @@
 #include "NATIVE_AssetLoader.hpp"
 #endif
 
-std::unique_ptr<AssetLoader> AssetLoaderFactory::createAssetLoader()
+std::unique_ptr<AssetLoader> AssetLoaderFactory::CreateAssetLoader()
 {
 #ifdef __EMSCRIPTEN__
     return std::make_unique<WebAssetLoader>();

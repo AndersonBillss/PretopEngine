@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include "../PrintStringView.hpp"
 
-static const std::unordered_map<WGPUFeatureName, std::string> featureToString = {
+static const std::unordered_map<WGPUFeatureName, std::string> FeatureToString = {
     {WGPUFeatureName_CoreFeaturesAndLimits, "WGPUFeatureName_CoreFeaturesAndLimits"},
     {WGPUFeatureName_DepthClipControl, "WGPUFeatureName_DepthClipControl"},
     {WGPUFeatureName_Depth32FloatStencil8, "WGPUFeatureName_Depth32FloatStencil8"},
@@ -94,28 +94,28 @@ static const std::unordered_map<WGPUFeatureName, std::string> featureToString = 
 AppAdapter::AppAdapter(WGPUAdapter adapter)
 {
     WGPURequestAdapterOptions adapterOpts = WGPU_REQUEST_ADAPTER_OPTIONS_INIT;
-    this->wgpuAdapter = adapter;
+    this->WgpuAdapter = adapter;
 }
 
 struct AdapterRequestUserData
 {
-    AppAdapter::RequestAdapterCallback cb;
+    AppAdapter::RequestAdapterCallback Callback;
 };
-void AppAdapter::request(AppInstance *instance, RequestAdapterCallback cb)
+void AppAdapter::Request(AppInstance *instance, RequestAdapterCallback callback)
 {
     auto onAdapterRequestEnded = [](
                                      WGPURequestAdapterStatus status,
                                      WGPUAdapter adapter,
                                      WGPUStringView message,
-                                     void *pUserData,
-                                     void *__)
+                                     void *userDataPointer,
+                                     void *)
     {
-        AdapterRequestUserData userData = *reinterpret_cast<AdapterRequestUserData *>(pUserData);
+        AdapterRequestUserData userData = *reinterpret_cast<AdapterRequestUserData *>(userDataPointer);
         if (status == WGPURequestAdapterStatus_Success)
         {
             std::unique_ptr<AppAdapter> result = std::make_unique<AppAdapter>(adapter);
-            userData.cb(std::move(result));
-            free(pUserData);
+            userData.Callback(std::move(result));
+            free(userDataPointer);
         }
         else
         {
@@ -128,7 +128,7 @@ void AppAdapter::request(AppInstance *instance, RequestAdapterCallback cb)
     adapterOpts.backendType = WGPUBackendType_D3D12;
 #endif // _WIN32
 #endif // !WEBGPU_BACKEND_EMSCRIPTEN
-    auto *userData = new AdapterRequestUserData{cb};
+    auto *userData = new AdapterRequestUserData{callback};
     WGPURequestAdapterCallbackInfo info = {
         /* nextInChain */ nullptr,
         /* mode */ WGPUCallbackMode::WGPUCallbackMode_AllowSpontaneous,
@@ -136,15 +136,15 @@ void AppAdapter::request(AppInstance *instance, RequestAdapterCallback cb)
         /* userdata 1 */ userData,
         /* userdata 2 */ nullptr,
     };
-    wgpuInstanceRequestAdapter(instance->wgpuInstance, &adapterOpts, info);
+    wgpuInstanceRequestAdapter(instance->WgpuInstance, &adapterOpts, info);
 }
 
-void AppAdapter::inspect()
+void AppAdapter::Inspect()
 {
     WGPULimits supportedLimits = {};
     supportedLimits.nextInChain = nullptr;
 
-    bool success = wgpuAdapterGetLimits(this->wgpuAdapter, &supportedLimits) == WGPUStatus_Success;
+    bool success = wgpuAdapterGetLimits(this->WgpuAdapter, &supportedLimits) == WGPUStatus_Success;
 
     if (success)
     {
@@ -156,14 +156,14 @@ void AppAdapter::inspect()
     }
 
     WGPUSupportedFeatures supportedFeatures;
-    wgpuAdapterGetFeatures(wgpuAdapter, &supportedFeatures);
+    wgpuAdapterGetFeatures(WgpuAdapter, &supportedFeatures);
 
     std::cout << "\nSupported features:" << std::endl;
     for (size_t i = 0; i < supportedFeatures.featureCount; i++)
     {
         std::cout << " - ";
-        auto it = featureToString.find(supportedFeatures.features[i]);
-        if (it == featureToString.end())
+        auto it = FeatureToString.find(supportedFeatures.features[i]);
+        if (it == FeatureToString.end())
         {
             std::cout << "Unknown feature: " << supportedFeatures.features[i] << std::endl;
             ;

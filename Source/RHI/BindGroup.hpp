@@ -11,5 +11,5 @@ public:
                  WGPUBindGroupLayout &layout,
                  std::vector<WGPUBindGroupEntry> &bindGroupEntries);
     ~AppBindGroup();
-    WGPUBindGroup wgpuBindGroup;
+    WGPUBindGroup WgpuBindGroup;
 };

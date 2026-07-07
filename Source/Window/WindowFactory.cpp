@@ -7,7 +7,7 @@
 
 namespace WindowFactory
 {
-    std::unique_ptr<Window> createWindow(int width, int height, std::string title)
+    std::unique_ptr<Window> CreateWindow(int width, int height, std::string title)
     {
 #ifdef __EMSCRIPTEN__
         return std::make_unique<CanvasWindow>(width, height, title);
@@ -16,7 +16,7 @@ namespace WindowFactory
 #endif // not __EMSCRIPTEN
     }
 
-    std::unique_ptr<Window> createWindow(std::string title)
+    std::unique_ptr<Window> CreateWindow(std::string title)
     {
 #ifdef __EMSCRIPTEN__
         return std::make_unique<CanvasWindow>(title);

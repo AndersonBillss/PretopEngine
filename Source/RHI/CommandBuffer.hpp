@@ -15,9 +15,9 @@ class AppCommandBuffer
 public:
     AppCommandBuffer(AppDevice *device);
     ~AppCommandBuffer();
-    std::unique_ptr<AppRenderPassEncoder> addCommand(AppRenderPassCommand &command);
+    std::unique_ptr<AppRenderPassEncoder> AddCommand(AppRenderPassCommand &command);
 
-    void finish();
-    WGPUCommandEncoder wgpuEncoder;
-    WGPUCommandBuffer wgpuBuffer;
+    void Finish();
+    WGPUCommandEncoder WgpuEncoder;
+    WGPUCommandBuffer WgpuBuffer;
 };

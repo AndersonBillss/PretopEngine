@@ -2,7 +2,7 @@
 #include <webgpu/webgpu.h>
 
 // Default WebGPU limits
-constexpr WGPULimits defaultLimits = {
+constexpr WGPULimits DefaultLimits = {
     nullptr,                 // nextInChain
     8192,                    // maxTextureDimension1D
     8192,                    // maxTextureDimension2D
@@ -39,7 +39,7 @@ constexpr WGPULimits defaultLimits = {
 };
 
 // Compatibility mode defaults
-constexpr WGPULimits compatibilityLimits = {
+constexpr WGPULimits CompatibilityLimits = {
     nullptr,                 // nextInChain
     4096,                    // maxTextureDimension1D
     4096,                    // maxTextureDimension2D

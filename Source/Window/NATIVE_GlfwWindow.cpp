@@ -21,32 +21,32 @@ GlfwWindow::~GlfwWindow()
 
 GlfwWindow::GlfwWindow(unsigned int width, unsigned int height, std::string title) : Window(width, height, title)
 {
-    this->width = width;
-    this->height = height;
-    this->title_ = std::move(title);
+    this->Width = width;
+    this->Height = height;
+    this->_title = std::move(title);
     if (!glfwInit())
     {
         std::cerr << "Failed to initialize GLFW" << std::endl;
         exit(-1);
     }
-    _win = glfwCreateWindow(width, height, this->title_.c_str(), nullptr, nullptr);
+    _window = glfwCreateWindow(width, height, this->_title.c_str(), nullptr, nullptr);
 }
 
-GlfwWindow::GlfwWindow(std::string title) : GlfwWindow(default_width, default_height, title) {}
+GlfwWindow::GlfwWindow(std::string title) : GlfwWindow(DefaultWidth, DefaultHeight, title) {}
 
-void GlfwWindow::setOnTick(Window::TickCallback cb)
+void GlfwWindow::SetOnTick(Window::TickCallback callback)
 {
-    this->_onTick = cb;
+    this->_onTick = callback;
 }
-void GlfwWindow::setOnExit(Window::ExitCallback cb)
+void GlfwWindow::SetOnExit(Window::ExitCallback callback)
 {
-    this->_onExit = cb;
+    this->_onExit = callback;
 }
 
-void GlfwWindow::run()
+void GlfwWindow::Run()
 {
     std::chrono::time_point last = std::chrono::steady_clock::now();
-    while (!glfwWindowShouldClose(_win))
+    while (!glfwWindowShouldClose(_window))
     {
         std::chrono::time_point now = std::chrono::steady_clock::now();
         double dtSeconds = std::chrono::duration_cast<std::chrono::duration<double>>(now - last).count();
@@ -57,15 +57,15 @@ void GlfwWindow::run()
     this->_onExit();
 }
 
-bool GlfwWindow::isInitialized()
+bool GlfwWindow::IsInitialized()
 {
-    return _win != nullptr;
+    return _window != nullptr;
 }
 
-WGPUSurface GlfwWindow::getSurface(WGPUInstance instance)
+WGPUSurface GlfwWindow::GetSurface(WGPUInstance instance)
 {
 #ifdef _WIN32
-    HWND hwnd = glfwGetWin32Window(this->_win);
+    HWND hwnd = glfwGetWin32Window(this->_window);
     HINSTANCE hinstance = GetModuleHandle(NULL);
 
     WGPUSurfaceSourceWindowsHWND fromWindowsHWND;
@@ -81,7 +81,7 @@ WGPUSurface GlfwWindow::getSurface(WGPUInstance instance)
     return wgpuInstanceCreateSurface(instance, &surfaceDescriptor);
 #endif // _WIN32
 #ifdef __linux__
-    wl_surface *surface = glfwGetWaylandWindow(this->_win);
+    wl_surface *surface = glfwGetWaylandWindow(this->_window);
     wl_display *display = glfwGetWaylandDisplay();
 
     struct WGPUSurfaceSourceWaylandSurface fromWayland;

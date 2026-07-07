@@ -1,11 +1,11 @@
 #include <cmath>
 #include "Euler.hpp"
 
-Mat4x4 Euler::toMatrix()
+Mat4x4 Euler::ToMatrix()
 {
-    float x = this->x;
-    float y = this->y;
-    float z = this->z;
+    float x = this->X;
+    float y = this->Y;
+    float z = this->Z;
 
     float cx = cos(x);
     float sx = sin(x);

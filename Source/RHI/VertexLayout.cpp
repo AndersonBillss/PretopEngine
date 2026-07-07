@@ -7,7 +7,7 @@ AppVertexLayout::AppVertexLayout(std::initializer_list<std::initializer_list<Lay
     for (const auto &bufLayoutRaw : layout)
     {
         AppVertexBufferLayout bufLayout(bufLayoutRaw, startLayout);
-        bufferLayouts.push_back(bufLayout);
-        startLayout = bufLayout.endLayout;
+        BufferLayouts.push_back(bufLayout);
+        startLayout = bufLayout.EndLayout;
     }
 }

@@ -10,17 +10,17 @@ AppVertexBufferLayout::AppVertexBufferLayout(std::initializer_list<LayoutType> s
     {
         WGPUVertexAttribute attr = WGPU_VERTEX_ATTRIBUTE_INIT;
         attr.shaderLocation = i;
-        attr.format = getFmt(attrShape);
+        attr.format = GetFmt(attrShape);
         attr.offset = totalOffset;
-        totalOffset += getSize(attrShape);
-        wgpuAttrs.push_back(attr);
+        totalOffset += GetSize(attrShape);
+        WgpuAttrs.push_back(attr);
         i++;
     }
-    this->endLayout = i;
-    this->arrayStride = totalOffset;
+    this->EndLayout = i;
+    this->ArrayStride = totalOffset;
 };
 
-WGPUVertexFormat AppVertexBufferLayout::getFmt(LayoutType attrType)
+WGPUVertexFormat AppVertexBufferLayout::GetFmt(LayoutType attrType)
 {
     const std::unordered_map<size_t, WGPUVertexFormat> toWGUFmt = {
         {Uint8, WGPUVertexFormat_Uint8},
@@ -71,7 +71,7 @@ WGPUVertexFormat AppVertexBufferLayout::getFmt(LayoutType attrType)
     return it->second;
 }
 
-size_t AppVertexBufferLayout::getSize(LayoutType numType)
+size_t AppVertexBufferLayout::GetSize(LayoutType numType)
 {
     const std::unordered_map<size_t, size_t> nTypeToSize = {
         {Uint8, 1 * 1},

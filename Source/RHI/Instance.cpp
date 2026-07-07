@@ -3,10 +3,10 @@
 
 AppInstance::AppInstance()
 {
-    this->wgpuInstance = createInstance();
+    this->WgpuInstance = CreateInstance();
 }
 
-WGPUInstance AppInstance::createInstance()
+WGPUInstance AppInstance::CreateInstance()
 {
     WGPUInstanceDescriptor desc = {};
     desc.nextInChain = nullptr;
@@ -16,7 +16,7 @@ WGPUInstance AppInstance::createInstance()
 
     if (!instance)
     {
-        std::cerr << "Could not initialize WebGPU!" << std::endl;
+        std::cerr << "Could not Initialize WebGPU!" << std::endl;
         exit(1);
     }
     return instance;

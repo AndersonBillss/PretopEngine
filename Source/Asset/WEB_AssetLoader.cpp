@@ -20,10 +20,10 @@ namespace
     template <typename T>
     struct FetchContext
     {
-        TaskCompletion<AssetResult<T>> completion;
+        TaskCompletion<AssetResult<T>> Completion;
     };
 
-    inline std::string makeHttpError(emscripten_fetch_t *fetch)
+    inline std::string MakeHttpError(emscripten_fetch_t *fetch)
     {
         std::string message = "Fetch failed";
         if (fetch)
@@ -38,21 +38,21 @@ namespace
     }
 
     template <typename T>
-    AssetResult<T> buildResultFromFetch(emscripten_fetch_t *fetch)
+    AssetResult<T> BuildResultFromFetch(emscripten_fetch_t *fetch)
     {
         AssetResult<T> result;
 
         if constexpr (std::is_same_v<T, AssetBytes>)
         {
-            result.data.resize(static_cast<std::size_t>(fetch->numBytes));
-            if (!result.data.empty())
+            result.Data.resize(static_cast<std::size_t>(fetch->numBytes));
+            if (!result.Data.empty())
             {
-                std::memcpy(result.data.data(), fetch->data, result.data.size());
+                std::memcpy(result.Data.data(), fetch->data, result.Data.size());
             }
         }
         else if constexpr (std::is_same_v<T, AssetText>)
         {
-            result.data.assign(
+            result.Data.assign(
                 static_cast<const char *>(fetch->data),
                 static_cast<std::size_t>(fetch->numBytes));
         }
@@ -66,7 +66,7 @@ namespace
     }
 
     template <typename T>
-    void onFetchSuccess(emscripten_fetch_t *fetch)
+    void OnFetchSuccess(emscripten_fetch_t *fetch)
     {
         auto *ctx = static_cast<FetchContext<T> *>(fetch->userData);
         if (!ctx)
@@ -77,11 +77,11 @@ namespace
 
         if (fetch->status < 200 || fetch->status >= 300)
         {
-            ctx->completion.set_result(AssetResult<T>{T{}, makeHttpError(fetch)});
+            ctx->Completion.SetResult(AssetResult<T>{T{}, MakeHttpError(fetch)});
         }
         else
         {
-            ctx->completion.set_result(buildResultFromFetch<T>(fetch));
+            ctx->Completion.SetResult(BuildResultFromFetch<T>(fetch));
         }
 
         emscripten_fetch_close(fetch);
@@ -89,7 +89,7 @@ namespace
     }
 
     template <typename T>
-    void onFetchError(emscripten_fetch_t *fetch)
+    void OnFetchError(emscripten_fetch_t *fetch)
     {
         auto *ctx = static_cast<FetchContext<T> *>(fetch->userData);
         if (!ctx)
@@ -98,25 +98,25 @@ namespace
             return;
         }
 
-        ctx->completion.set_result(AssetResult<T>{T{}, makeHttpError(fetch)});
+        ctx->Completion.SetResult(AssetResult<T>{T{}, MakeHttpError(fetch)});
 
         emscripten_fetch_close(fetch);
         delete ctx;
     }
 
     template <typename T>
-    AssetHandle<T> loadImpl(std::string_view path, AssetKind kind)
+    AssetHandle<T> LoadImpl(std::string_view path, AssetKind kind)
     {
         auto *ctx = new FetchContext<T>();
-        auto task = ctx->completion.task();
+        auto task = ctx->Completion.CreateTask();
 
         emscripten_fetch_attr_t attr;
         emscripten_fetch_attr_init(&attr);
         std::strcpy(attr.requestMethod, "GET");
         attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
         attr.userData = ctx;
-        attr.onsuccess = &onFetchSuccess<T>;
-        attr.onerror = &onFetchError<T>;
+        attr.onsuccess = &OnFetchSuccess<T>;
+        attr.onerror = &OnFetchError<T>;
 
         std::string url(path);
         emscripten_fetch(&attr, url.c_str());
@@ -124,14 +124,14 @@ namespace
         return AssetHandle<T>{std::move(url), kind, std::move(task)};
     }
 
-    AssetResult<AssetText> readTextFromVfs(std::string_view path)
+    AssetResult<AssetText> ReadTextFromVfs(std::string_view path)
     {
         AssetResult<AssetText> result;
 
         std::ifstream file(std::string(path), std::ios::binary);
         if (!file)
         {
-            result.error = "Failed to open file from Emscripten virtual file system: " + std::string(path);
+            result.Error = "Failed to open file from Emscripten virtual file system: " + std::string(path);
             return result;
         }
 
@@ -141,18 +141,18 @@ namespace
 
         if (size < 0)
         {
-            result.error = "Failed to read file size from Emscripten virtual file system: " + std::string(path);
+            result.Error = "Failed to read file size from Emscripten virtual file system: " + std::string(path);
             return result;
         }
 
-        result.data.resize(static_cast<std::size_t>(size));
-        if (!result.data.empty())
+        result.Data.resize(static_cast<std::size_t>(size));
+        if (!result.Data.empty())
         {
-            file.read(result.data.data(), static_cast<std::streamsize>(result.data.size()));
+            file.read(result.Data.data(), static_cast<std::streamsize>(result.Data.size()));
             if (!file)
             {
-                result.error = "Failed to read file from Emscripten virtual file system: " + std::string(path);
-                result.data.clear();
+                result.Error = "Failed to read file from Emscripten virtual file system: " + std::string(path);
+                result.Data.clear();
             }
         }
 
@@ -161,18 +161,18 @@ namespace
 }
 
 AssetHandle<AssetBytes>
-WebAssetLoader::loadBinaryAsync(std::string_view path)
+WebAssetLoader::LoadBinaryAsync(std::string_view path)
 {
-    return loadImpl<AssetBytes>(path, AssetKind::Binary);
+    return LoadImpl<AssetBytes>(path, AssetKind::Binary);
 }
 
 AssetHandle<AssetText>
-WebAssetLoader::loadTextAsync(std::string_view path)
+WebAssetLoader::LoadTextAsync(std::string_view path)
 {
     TaskCompletion<AssetResult<AssetText>> completion;
-    auto task = completion.task();
+    auto task = completion.CreateTask();
 
-    completion.set_result(readTextFromVfs(path));
+    completion.SetResult(ReadTextFromVfs(path));
 
     return AssetHandle<AssetText>{std::string(path), AssetKind::Text, std::move(task)};
 }

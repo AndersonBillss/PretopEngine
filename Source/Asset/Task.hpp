@@ -15,7 +15,7 @@ template <typename T>
 class TaskState
 {
 public:
-    void set_result(T value)
+    void SetResult(T value)
     {
         std::lock_guard<std::mutex> lock(_mutex);
         if (_ready)
@@ -25,22 +25,22 @@ public:
 
         _value = std::move(value);
         _ready = true;
-        _cv.notify_all();
+        _conditionVariable.notify_all();
     }
 
-    bool ready() const noexcept
+    bool Ready() const noexcept
     {
         std::lock_guard<std::mutex> lock(_mutex);
         return _ready;
     }
 
-    void wait() const
+    void Wait() const
     {
         std::unique_lock<std::mutex> lock(_mutex);
-        _cv.wait(lock, [this] { return _ready; });
+        _conditionVariable.wait(lock, [this] { return _ready; });
     }
 
-    T get() const
+    T Get() const
     {
         std::lock_guard<std::mutex> lock(_mutex);
         if (!_ready)
@@ -53,7 +53,7 @@ public:
 
 private:
     mutable std::mutex _mutex;
-    mutable std::condition_variable _cv;
+    mutable std::condition_variable _conditionVariable;
     bool _ready = false;
     std::optional<T> _value;
 };
@@ -69,46 +69,46 @@ public:
     {
     }
 
-    bool valid() const noexcept
+    bool Valid() const noexcept
     {
         return static_cast<bool>(_state);
     }
 
-    bool ready() const noexcept
+    bool Ready() const noexcept
     {
-        return _state && _state->ready();
+        return _state && _state->Ready();
     }
 
-    void wait() const
+    void Wait() const
     {
-        if (!valid())
+        if (!Valid())
         {
             throw std::logic_error("Task is not valid.");
         }
 
 #if defined(__EMSCRIPTEN__)
-        while (!ready())
+        while (!Ready())
         {
             emscripten_sleep(0);
         }
 #else
-        _state->wait();
+        _state->Wait();
 #endif
     }
 
-    T get() const
+    T Get() const
     {
-        if (!valid())
+        if (!Valid())
         {
             throw std::logic_error("Task is not valid.");
         }
 
-        if (!ready())
+        if (!Ready())
         {
             throw std::logic_error("Task is not ready.");
         }
 
-        return _state->get();
+        return _state->Get();
     }
 
 private:
@@ -127,14 +127,14 @@ public:
     {
     }
 
-    Task<T> task() const
+    Task<T> CreateTask() const
     {
         return Task<T>{_state};
     }
 
-    void set_result(T value)
+    void SetResult(T value)
     {
-        _state->set_result(std::move(value));
+        _state->SetResult(std::move(value));
     }
 
 private:

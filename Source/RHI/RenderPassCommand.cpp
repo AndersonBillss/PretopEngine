@@ -5,19 +5,19 @@ AppRenderPassCommand::AppRenderPassCommand(
     WGPUTextureView targetView,
     WGPURenderPassDepthStencilAttachment &depthStencilAttachment)
 {
-    this->wgpuRenderPassDescriptor = WGPU_RENDER_PASS_DESCRIPTOR_INIT;
-    this->wgpuRenderPassDescriptor.nextInChain = nullptr;
+    this->WgpuRenderPassDescriptor = WGPU_RENDER_PASS_DESCRIPTOR_INIT;
+    this->WgpuRenderPassDescriptor.nextInChain = nullptr;
 
-    this->wgpuRenderPassColorAttachment = WGPU_RENDER_PASS_COLOR_ATTACHMENT_INIT;
-    this->wgpuRenderPassColorAttachment.view = targetView;
-    this->wgpuRenderPassColorAttachment.resolveTarget = nullptr;
-    this->wgpuRenderPassColorAttachment.loadOp = WGPULoadOp_Clear;
-    this->wgpuRenderPassColorAttachment.storeOp = WGPUStoreOp_Store;
-    this->wgpuRenderPassColorAttachment.clearValue = WGPUColor{0.2, 0.2, 0.2, 1.0};
-    this->wgpuRenderPassColorAttachment.depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
+    this->WgpuRenderPassColorAttachment = WGPU_RENDER_PASS_COLOR_ATTACHMENT_INIT;
+    this->WgpuRenderPassColorAttachment.view = targetView;
+    this->WgpuRenderPassColorAttachment.resolveTarget = nullptr;
+    this->WgpuRenderPassColorAttachment.loadOp = WGPULoadOp_Clear;
+    this->WgpuRenderPassColorAttachment.storeOp = WGPUStoreOp_Store;
+    this->WgpuRenderPassColorAttachment.clearValue = WGPUColor{0.2, 0.2, 0.2, 1.0};
+    this->WgpuRenderPassColorAttachment.depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
 
-    this->wgpuRenderPassDescriptor.colorAttachmentCount = 1;
-    this->wgpuRenderPassDescriptor.colorAttachments = &this->wgpuRenderPassColorAttachment;
-    this->wgpuRenderPassDescriptor.depthStencilAttachment = &depthStencilAttachment;
-    this->wgpuRenderPassDescriptor.timestampWrites = nullptr;
+    this->WgpuRenderPassDescriptor.colorAttachmentCount = 1;
+    this->WgpuRenderPassDescriptor.colorAttachments = &this->WgpuRenderPassColorAttachment;
+    this->WgpuRenderPassDescriptor.depthStencilAttachment = &depthStencilAttachment;
+    this->WgpuRenderPassDescriptor.timestampWrites = nullptr;
 }

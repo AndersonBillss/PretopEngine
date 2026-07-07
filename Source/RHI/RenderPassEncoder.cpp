@@ -3,81 +3,81 @@
 
 AppRenderPassEncoder::AppRenderPassEncoder(WGPUCommandEncoder &encoder, WGPURenderPassDescriptor &renderPass)
 {
-    this->wgpuRenderPass = wgpuCommandEncoderBeginRenderPass(encoder, &renderPass);
+    this->WgpuRenderPass = wgpuCommandEncoderBeginRenderPass(encoder, &renderPass);
 }
 
-AppRenderPassEncoder &AppRenderPassEncoder::setPipeline(AppPipeline &pipeline)
+AppRenderPassEncoder &AppRenderPassEncoder::SetPipeline(AppPipeline &pipeline)
 {
-    wgpuRenderPassEncoderSetPipeline(this->wgpuRenderPass, pipeline.wgpuPipeline);
+    wgpuRenderPassEncoderSetPipeline(this->WgpuRenderPass, pipeline.WgpuPipeline);
     return *this;
 }
 
-AppRenderPassEncoder &AppRenderPassEncoder::setVertexBuffers(std::vector<AppBuffer *> &vertexBuffers)
+AppRenderPassEncoder &AppRenderPassEncoder::SetVertexBuffers(std::vector<AppBuffer *> &vertexBuffers)
 {
     for (size_t i = 0; i < vertexBuffers.size(); i++)
     {
         auto buf = vertexBuffers[i];
         wgpuRenderPassEncoderSetVertexBuffer(
-            this->wgpuRenderPass,
+            this->WgpuRenderPass,
             i,
-            buf->wgpuBuffer,
+            buf->WgpuBuffer,
             0,
-            wgpuBufferGetSize(buf->wgpuBuffer));
+            wgpuBufferGetSize(buf->WgpuBuffer));
     }
     return *this;
 }
 
-AppRenderPassEncoder &AppRenderPassEncoder::setBindGroups(std::vector<std::unique_ptr<AppBindGroup>> &bindGroups)
+AppRenderPassEncoder &AppRenderPassEncoder::SetBindGroups(std::vector<std::unique_ptr<AppBindGroup>> &bindGroups)
 {
     for (size_t i = 0; i < bindGroups.size(); i++)
     {
-        wgpuRenderPassEncoderSetBindGroup(this->wgpuRenderPass, i, bindGroups[i]->wgpuBindGroup, 0, nullptr);
+        wgpuRenderPassEncoderSetBindGroup(this->WgpuRenderPass, i, bindGroups[i]->WgpuBindGroup, 0, nullptr);
     }
     return *this;
 }
 
-AppRenderPassEncoder &AppRenderPassEncoder::setBindGroup(
+AppRenderPassEncoder &AppRenderPassEncoder::SetBindGroup(
     AppBindGroup *bindGroup, size_t groupIndex, std::vector<uint32_t> dynamicOffset)
 {
     wgpuRenderPassEncoderSetBindGroup(
-        this->wgpuRenderPass,
+        this->WgpuRenderPass,
         groupIndex,
-        bindGroup->wgpuBindGroup,
+        bindGroup->WgpuBindGroup,
         dynamicOffset.size(),
         dynamicOffset.data());
     return *this;
 }
 
-AppRenderPassEncoder &AppRenderPassEncoder::setBindGroup(AppBindGroup *bindGroup, size_t groupIndex)
+AppRenderPassEncoder &AppRenderPassEncoder::SetBindGroup(AppBindGroup *bindGroup, size_t groupIndex)
 {
     wgpuRenderPassEncoderSetBindGroup(
-        this->wgpuRenderPass,
+        this->WgpuRenderPass,
         groupIndex,
-        bindGroup->wgpuBindGroup,
+        bindGroup->WgpuBindGroup,
         0,
         nullptr);
     return *this;
 }
 
-AppRenderPassEncoder &AppRenderPassEncoder::draw(size_t vertexCount)
+AppRenderPassEncoder &AppRenderPassEncoder::Draw(size_t vertexCount)
 {
-    wgpuRenderPassEncoderDraw(this->wgpuRenderPass, vertexCount, 1, 0, 0);
+    wgpuRenderPassEncoderDraw(this->WgpuRenderPass, vertexCount, 1, 0, 0);
     return *this;
 }
 
-AppRenderPassEncoder &AppRenderPassEncoder::drawIndexed(
+AppRenderPassEncoder &AppRenderPassEncoder::DrawIndexed(
     AppBuffer &indexBuffer,
     size_t indexCount,
     WGPUIndexFormat indexFormat)
 {
     wgpuRenderPassEncoderSetIndexBuffer(
-        this->wgpuRenderPass, indexBuffer.wgpuBuffer, indexFormat, 0, wgpuBufferGetSize(indexBuffer.wgpuBuffer));
-    wgpuRenderPassEncoderDrawIndexed(this->wgpuRenderPass, indexCount, 1, 0, 0, 0);
+        this->WgpuRenderPass, indexBuffer.WgpuBuffer, indexFormat, 0, wgpuBufferGetSize(indexBuffer.WgpuBuffer));
+    wgpuRenderPassEncoderDrawIndexed(this->WgpuRenderPass, indexCount, 1, 0, 0, 0);
     return *this;
 }
 
-void AppRenderPassEncoder::finish()
+void AppRenderPassEncoder::Finish()
 {
-    wgpuRenderPassEncoderEnd(this->wgpuRenderPass);
-    wgpuRenderPassEncoderRelease(this->wgpuRenderPass);
+    wgpuRenderPassEncoderEnd(this->WgpuRenderPass);
+    wgpuRenderPassEncoderRelease(this->WgpuRenderPass);
 }

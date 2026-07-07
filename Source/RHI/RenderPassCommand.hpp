@@ -10,6 +10,6 @@ public:
         AppDevice *device,
         WGPUTextureView targetView,
         WGPURenderPassDepthStencilAttachment &depthStencilAttachment);
-    WGPURenderPassDescriptor wgpuRenderPassDescriptor;
-    WGPURenderPassColorAttachment wgpuRenderPassColorAttachment;
+    WGPURenderPassDescriptor WgpuRenderPassDescriptor;
+    WGPURenderPassColorAttachment WgpuRenderPassColorAttachment;
 };

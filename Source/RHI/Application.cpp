@@ -6,83 +6,83 @@
 Application::Application()
 {
     this->_logQueueCommands = false;
-    this->instance = nullptr;
+    this->Instance = nullptr;
     this->_adapter = nullptr;
     this->_adapter = nullptr;
 }
 
-void Application::initialize(StartupCallback cb)
+void Application::Initialize(StartupCallback callback)
 {
-    this->instance = std::make_unique<AppInstance>();
-    AppAdapter::request(this->instance.get(), [&](std::unique_ptr<AppAdapter> adapter)
+    this->Instance = std::make_unique<AppInstance>();
+    AppAdapter::Request(this->Instance.get(), [&](std::unique_ptr<AppAdapter> adapter)
                         {
         this->_adapter = std::move(adapter);
-        AppDevice::request(this->instance.get(), this->_adapter.get(), [&](std::unique_ptr<AppDevice> device) {
-            this->device = std::move(device);
-            _createQueue();
-            cb(*this);
+        AppDevice::Request(this->Instance.get(), this->_adapter.get(), [&](std::unique_ptr<AppDevice> device) {
+            this->Device = std::move(device);
+            CreateQueue();
+            callback(*this);
         }); });
 }
 
-void Application::run(TickCallback cb)
+void Application::Run(TickCallback callback)
 {
-    _window->setOnTick([this, cb](double dt)
+    _window->SetOnTick([this, callback](double dt)
                        {
-                           WGPUTextureView displayView = getNextSurfaceTextureView();
+                           WGPUTextureView displayView = GetNextSurfaceTextureView();
                            if (!displayView)
                                return;
 
-                           cb(dt, displayView);
+                           callback(dt, displayView);
                            wgpuTextureViewRelease(displayView);
 #ifndef __EMSCRIPTEN__
                            wgpuSurfacePresent(this->_windowSurface);
 #endif
                        });
-    _window->run();
+    _window->Run();
 }
 
-void Application::submitCommandBuffer(AppCommandBuffer &buf)
+void Application::SubmitCommandBuffer(AppCommandBuffer &buf)
 {
-    wgpuQueueSubmit(this->_queue, 1, &buf.wgpuBuffer);
+    wgpuQueueSubmit(this->_queue, 1, &buf.WgpuBuffer);
 }
 
-void Application::setWindow(std::unique_ptr<Window> win)
+void Application::SetWindow(std::unique_ptr<Window> win)
 {
     this->_window = std::move(win);
     WGPUSurfaceConfiguration surfaceConfig = WGPU_SURFACE_CONFIGURATION_INIT;
-    this->_windowSurface = _window->getSurface(this->instance->wgpuInstance);
+    this->_windowSurface = _window->GetSurface(this->Instance->WgpuInstance);
 
     WGPUSurfaceTexture surfaceTexture = WGPU_SURFACE_TEXTURE_INIT;
     WGPUSurfaceCapabilities surfaceCapabilities = WGPU_SURFACE_CAPABILITIES_INIT;
-    wgpuSurfaceGetCapabilities(this->_windowSurface, this->_adapter->wgpuAdapter, &surfaceCapabilities);
+    wgpuSurfaceGetCapabilities(this->_windowSurface, this->_adapter->WgpuAdapter, &surfaceCapabilities);
 
     // The first format in the list is the preffered format.
     // see https://webgpu-native.github.io/webgpu-headers/Surfaces.html#Surface-Creation
     surfaceConfig.format = surfaceCapabilities.formats[0];
-    this->windowFormat = surfaceCapabilities.formats[0];
+    this->WindowFormat = surfaceCapabilities.formats[0];
     wgpuSurfaceCapabilitiesFreeMembers(surfaceCapabilities);
     surfaceConfig.viewFormatCount = 0;
     surfaceConfig.usage = WGPUTextureUsage_RenderAttachment;
-    surfaceConfig.device = this->device->wgpuDevice;
+    surfaceConfig.device = this->Device->WgpuDevice;
     surfaceConfig.presentMode = WGPUPresentMode_Fifo;
     surfaceConfig.alphaMode = WGPUCompositeAlphaMode_Auto;
-    surfaceConfig.width = _window->width;
-    surfaceConfig.height = _window->height;
+    surfaceConfig.width = _window->Width;
+    surfaceConfig.height = _window->Height;
     wgpuSurfaceConfigure(this->_windowSurface, &surfaceConfig);
 
-    _window->setOnExit([this]()
+    _window->SetOnExit([this]()
                        {
     wgpuSurfaceUnconfigure(this->_windowSurface);
     wgpuQueueRelease(this->_queue);
     wgpuSurfaceRelease(this->_windowSurface);
-    wgpuDeviceRelease(this->device->wgpuDevice);
-    wgpuAdapterRelease(this->_adapter->wgpuAdapter);
-    wgpuInstanceRelease(this->instance->wgpuInstance); });
+    wgpuDeviceRelease(this->Device->WgpuDevice);
+    wgpuAdapterRelease(this->_adapter->WgpuAdapter);
+    wgpuInstanceRelease(this->Instance->WgpuInstance); });
 }
 
-void Application::_createQueue()
+void Application::CreateQueue()
 {
-    this->_queue = wgpuDeviceGetQueue(this->device->wgpuDevice);
+    this->_queue = wgpuDeviceGetQueue(this->Device->WgpuDevice);
 
     WGPUQueueWorkDoneCallback onQueueWorkDone = [](WGPUQueueWorkDoneStatus status, WGPUStringView message, void *data, void *)
     {
@@ -114,34 +114,34 @@ void Application::_createQueue()
     wgpuQueueOnSubmittedWorkDone(this->_queue, workQueueWorkDoneCb);
 }
 
-void Application::logQueueCommands()
+void Application::LogQueueCommands()
 {
     this->_logQueueCommands = true;
 }
 
-Application *Application::inspectInstance()
+Application *Application::InspectInstance()
 {
     return this;
 }
 
-Application *Application::inspectDevice()
+Application *Application::InspectDevice()
 {
-    this->device->inspect();
+    this->Device->Inspect();
     return this;
 }
 
-Application *Application::inspectAdapter()
+Application *Application::InspectAdapter()
 {
-    this->_adapter->inspect();
+    this->_adapter->Inspect();
     return this;
 }
 
-Application *Application::inspectQueue()
+Application *Application::InspectQueue()
 {
     return this;
 }
 
-WGPUTextureView Application::getNextSurfaceTextureView()
+WGPUTextureView Application::GetNextSurfaceTextureView()
 {
     WGPUSurfaceTexture surfaceTexture = WGPU_SURFACE_TEXTURE_INIT;
     wgpuSurfaceGetCurrentTexture(this->_windowSurface, &surfaceTexture);

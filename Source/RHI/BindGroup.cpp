@@ -12,12 +12,12 @@ AppBindGroup::AppBindGroup(
     bindGroupDesc.layout = layout;
     bindGroupDesc.entryCount = bindGroupEntries.size();
     bindGroupDesc.entries = bindGroupEntries.data();
-    WGPUBindGroup bindGroup = wgpuDeviceCreateBindGroup(device->wgpuDevice, &bindGroupDesc);
+    WGPUBindGroup bindGroup = wgpuDeviceCreateBindGroup(device->WgpuDevice, &bindGroupDesc);
 
-    this->wgpuBindGroup = wgpuDeviceCreateBindGroup(device->wgpuDevice, &bindGroupDesc);
+    this->WgpuBindGroup = wgpuDeviceCreateBindGroup(device->WgpuDevice, &bindGroupDesc);
 }
 
 AppBindGroup::~AppBindGroup()
 {
-    wgpuBindGroupRelease(wgpuBindGroup);
+    wgpuBindGroupRelease(WgpuBindGroup);
 }

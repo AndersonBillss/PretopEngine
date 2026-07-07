@@ -8,12 +8,12 @@ AppPipeline::AppPipeline(
     AppBindingLayout &pipelineLayout)
 {
     std::vector<WGPUVertexBufferLayout> layouts = {};
-    for (const auto &layout : vertexLayout.bufferLayouts)
+    for (const auto &layout : vertexLayout.BufferLayouts)
     {
         WGPUVertexBufferLayout vertexBufferLayout = WGPU_VERTEX_BUFFER_LAYOUT_INIT;
-        vertexBufferLayout.attributeCount = layout.wgpuAttrs.size();
-        vertexBufferLayout.attributes = layout.wgpuAttrs.data();
-        vertexBufferLayout.arrayStride = layout.arrayStride;
+        vertexBufferLayout.attributeCount = layout.WgpuAttrs.size();
+        vertexBufferLayout.attributes = layout.WgpuAttrs.data();
+        vertexBufferLayout.arrayStride = layout.ArrayStride;
         vertexBufferLayout.stepMode = WGPUVertexStepMode_Vertex;
         layouts.push_back(vertexBufferLayout);
     }
@@ -24,7 +24,7 @@ AppPipeline::AppPipeline(
     pipelineDesc.primitive.frontFace = WGPUFrontFace_CCW;
     pipelineDesc.primitive.cullMode = WGPUCullMode_None;
     pipelineDesc.vertex.bufferCount = layouts.size();
-    pipelineDesc.layout = pipelineLayout.wgpuLayout;
+    pipelineDesc.layout = pipelineLayout.WgpuLayout;
     pipelineDesc.vertex.buffers = layouts.data();
 
     WGPUDepthStencilState depthStencilState = WGPU_DEPTH_STENCIL_STATE_INIT;
@@ -55,7 +55,7 @@ AppPipeline::AppPipeline(
     depthTextureDesc.usage = WGPUTextureUsage_RenderAttachment;
     depthTextureDesc.viewFormatCount = 1;
     depthTextureDesc.viewFormats = &depthTextureFormat;
-    WGPUTexture depthTexture = wgpuDeviceCreateTexture(device->wgpuDevice, &depthTextureDesc);
+    WGPUTexture depthTexture = wgpuDeviceCreateTexture(device->WgpuDevice, &depthTextureDesc);
 
     // Create the view of the depth texture manipulated by the rasterizer
     WGPUTextureViewDescriptor depthTextureViewDesc = WGPU_TEXTURE_VIEW_DESCRIPTOR_INIT;
@@ -69,30 +69,30 @@ AppPipeline::AppPipeline(
     WGPUTextureView depthTextureView = wgpuTextureCreateView(depthTexture, &depthTextureViewDesc);
 
     // We now add a depth/stencil attachment:
-    this->wgpuDepthStencilAttachment = WGPU_RENDER_PASS_DEPTH_STENCIL_ATTACHMENT_INIT;
+    this->WgpuDepthStencilAttachment = WGPU_RENDER_PASS_DEPTH_STENCIL_ATTACHMENT_INIT;
     // Setup depth/stencil attachment
 
     // The view of the depth texture
-    this->wgpuDepthStencilAttachment.view = depthTextureView;
+    this->WgpuDepthStencilAttachment.view = depthTextureView;
 
     // The initial value of the depth buffer, meaning "far"
-    this->wgpuDepthStencilAttachment.depthClearValue = 1.0f;
+    this->WgpuDepthStencilAttachment.depthClearValue = 1.0f;
     // Operation settings comparable to the color attachment
-    this->wgpuDepthStencilAttachment.depthLoadOp = WGPULoadOp_Clear;
-    this->wgpuDepthStencilAttachment.depthStoreOp = WGPUStoreOp_Store;
+    this->WgpuDepthStencilAttachment.depthLoadOp = WGPULoadOp_Clear;
+    this->WgpuDepthStencilAttachment.depthStoreOp = WGPUStoreOp_Store;
     // we could turn off writing to the depth buffer globally here
-    this->wgpuDepthStencilAttachment.depthReadOnly = false;
+    this->WgpuDepthStencilAttachment.depthReadOnly = false;
 
     pipelineDesc.depthStencil = &depthStencilState;
 
     WGPUFragmentState fragmentState = WGPU_FRAGMENT_STATE_INIT;
-    fragmentState.module = shader.wgpuShader;
+    fragmentState.module = shader.WgpuShader;
     std::string fragmentEntryPoint = "fs_main";
     fragmentState.entryPoint = WGPUStringView{fragmentEntryPoint.c_str(), fragmentEntryPoint.size()};
     fragmentState.constantCount = 0;
     fragmentState.constants = nullptr;
 
-    pipelineDesc.vertex.module = shader.wgpuShader;
+    pipelineDesc.vertex.module = shader.WgpuShader;
     std::string vertexEntryPoint = "vs_main";
     pipelineDesc.vertex.entryPoint = WGPUStringView{vertexEntryPoint.c_str(), vertexEntryPoint.size()};
 
@@ -115,10 +115,10 @@ AppPipeline::AppPipeline(
     pipelineDesc.multisample.mask = ~0u;
     pipelineDesc.multisample.alphaToCoverageEnabled = false;
 
-    this->wgpuPipeline = wgpuDeviceCreateRenderPipeline(device->wgpuDevice, &pipelineDesc);
+    this->WgpuPipeline = wgpuDeviceCreateRenderPipeline(device->WgpuDevice, &pipelineDesc);
 }
 
 AppPipeline::~AppPipeline()
 {
-    wgpuRenderPipelineRelease(this->wgpuPipeline);
+    wgpuRenderPipelineRelease(this->WgpuPipeline);
 }

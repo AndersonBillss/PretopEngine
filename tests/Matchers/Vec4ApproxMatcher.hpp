@@ -5,22 +5,22 @@
 
 class Vec4ApproxMatcher : public Catch::Matchers::MatcherBase<Vec4>
 {
-    Vec4 expected;
-    float epsilon;
+    Vec4 _expected;
+    float _epsilon;
 
 public:
     Vec4ApproxMatcher(Vec4 expected, float epsilon)
-        : expected(expected), epsilon(epsilon) {}
+        : _expected(expected), _epsilon(epsilon) {}
 
-    bool match(const Vec4 &actual) const override { return actual.nearlyEquals(expected, epsilon); }
+    bool match(const Vec4 &actual) const override { return actual.NearlyEquals(_expected, _epsilon); }
 
     std::string describe() const override
     {
         std::ostringstream ss;
         ss << "~= "
-           << expected
+           << _expected
            << "; epsilon "
-           << epsilon;
+           << _epsilon;
         return ss.str();
     }
 };

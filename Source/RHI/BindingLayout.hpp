@@ -13,6 +13,6 @@ public:
     AppBindingLayout(AppDevice *device, std::initializer_list<std::initializer_list<WGPUBindGroupLayoutEntry>> layoutEntries);
     ~AppBindingLayout();
 
-    WGPUPipelineLayout wgpuLayout;
-    std::vector<WGPUBindGroupLayout> wgpuBindGroupLayouts;
+    WGPUPipelineLayout WgpuLayout;
+    std::vector<WGPUBindGroupLayout> WgpuBindGroupLayouts;
 };

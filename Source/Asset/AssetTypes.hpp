@@ -19,11 +19,11 @@ using AssetText = std::string;
 template<typename T>
 struct AssetResult
 {
-    T data;
-    std::string error;
+    T Data;
+    std::string Error;
 
     explicit operator bool() const noexcept
     {
-        return error.empty();
+        return Error.empty();
     }
 };

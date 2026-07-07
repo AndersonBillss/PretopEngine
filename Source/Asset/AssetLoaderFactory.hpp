@@ -5,5 +5,5 @@
 
 namespace AssetLoaderFactory
 {
-    std::unique_ptr<AssetLoader> createAssetLoader();
+    std::unique_ptr<AssetLoader> CreateAssetLoader();
 }

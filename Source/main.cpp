@@ -2,5 +2,5 @@
 
 int main(int, char **)
 {
-    return loadModel();
+    return LoadModel();
 }

@@ -3,14 +3,14 @@
 
 struct Vec2
 {
-    float x;
-    float y;
+    float X;
+    float Y;
 
-    float dot(const Vec2 &rhs) const;
-    float length() const;
-    void normalize();
-    Vec2 normalized() const;
-    bool nearlyEquals(const Vec2 &rhs, float epsilon = 1e-5f) const;
+    float Dot(const Vec2 &rhs) const;
+    float Length() const;
+    void Normalize();
+    Vec2 Normalized() const;
+    bool NearlyEquals(const Vec2 &rhs, float epsilon = 1e-5f) const;
 };
 
 Vec2 operator+(const Vec2 &lhs, const Vec2 &rhs);

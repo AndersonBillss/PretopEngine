@@ -18,66 +18,66 @@ public:
 
     Application();
 
-    void initialize(StartupCallback cb);
-    void run(TickCallback cb);
+    void Initialize(StartupCallback callback);
+    void Run(TickCallback callback);
 
-    void writeBufZero(const AppBuffer &buf)
+    void WriteBufZero(const AppBuffer &buf)
     {
-        std::vector<uint8_t> data = buf.zeroBuffer();
+        std::vector<uint8_t> data = buf.ZeroBuffer();
         wgpuQueueWriteBuffer(
             this->_queue,
-            buf.wgpuBuffer,
+            buf.WgpuBuffer,
             0,
             data.data(),
             data.size());
     }
-    void writeBuf(const AppBuffer &buf, void *data, size_t numBytes)
+    void WriteBuf(const AppBuffer &buf, void *data, size_t numBytes)
     {
         wgpuQueueWriteBuffer(
             this->_queue,
-            buf.wgpuBuffer,
+            buf.WgpuBuffer,
             0,
             data,
             numBytes);
     }
 
     template <class T>
-    void writeBuf(const AppBuffer &buf, T &data)
+    void WriteBuf(const AppBuffer &buf, T &data)
     {
         wgpuQueueWriteBuffer(
             this->_queue,
-            buf.wgpuBuffer,
+            buf.WgpuBuffer,
             0,
             &data,
             sizeof(T));
     }
 
     template <class T>
-    void writeVec(const AppBuffer &buf, std::vector<T> &vec)
+    void WriteVec(const AppBuffer &buf, std::vector<T> &vec)
     {
         wgpuQueueWriteBuffer(
             this->_queue,
-            buf.wgpuBuffer,
+            buf.WgpuBuffer,
             0,
             vec.data(),
             vec.size() * sizeof(T));
     }
 
-    void submitCommandBuffer(AppCommandBuffer &buf);
-    void setWindow(std::unique_ptr<Window> win);
-    void logQueueCommands();
-    WGPUTextureView getNextSurfaceTextureView();
-    WGPUTextureFormat windowFormat;
+    void SubmitCommandBuffer(AppCommandBuffer &buf);
+    void SetWindow(std::unique_ptr<Window> win);
+    void LogQueueCommands();
+    WGPUTextureView GetNextSurfaceTextureView();
+    WGPUTextureFormat WindowFormat;
 
-    Application *inspectInstance();
-    Application *inspectDevice();
-    Application *inspectAdapter();
-    Application *inspectQueue();
+    Application *InspectInstance();
+    Application *InspectDevice();
+    Application *InspectAdapter();
+    Application *InspectQueue();
 
-    std::unique_ptr<AppInstance> instance;
+    std::unique_ptr<AppInstance> Instance;
 
 private:
-    void _createQueue();
+    void CreateQueue();
 
     bool _logQueueCommands;
     std::unique_ptr<AppAdapter> _adapter;
@@ -88,5 +88,5 @@ private:
 public:
     // This must go after the private section or else the initializer
     // list order will order the constructors incorrectly
-    std::unique_ptr<AppDevice> device;
+    std::unique_ptr<AppDevice> Device;
 };

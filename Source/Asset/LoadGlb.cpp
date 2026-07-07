@@ -5,33 +5,33 @@
 
 enum ChunkType
 {
-    JSON = 0x4E4F534A,
-    BIN = 0x004E4942,
+    Json = 0x4E4F534A,
+    Bin = 0x004E4942,
 };
 
 enum ComponentType
 {
-    BYTE = 5120,
-    UNSIGNED_BYTE = 5121,
-    SHORT = 5122,
-    UNSIGNED_SHORT = 5123,
-    UNSIGNED_INT = 5125,
-    FLOAT = 5126,
+    Byte = 5120,
+    UnsignedByte = 5121,
+    Short = 5122,
+    UnsignedShort = 5123,
+    UnsignedInt = 5125,
+    Float = 5126,
 };
 
-uint16_t toUint16LE(uint16_t n)
+uint16_t ToUint16LE(uint16_t n)
 {
     uint8_t *bytes = reinterpret_cast<uint8_t *>(&n);
     return uint16_t(bytes[0]) |
            (uint16_t(bytes[1]) << 8);
 }
-uint16_t readU16LE(const std::byte *p)
+uint16_t ReadU16LE(const std::byte *p)
 {
     uint16_t value;
     std::memcpy(&value, p, sizeof(value));
-    return toUint16LE(value);
+    return ToUint16LE(value);
 }
-uint32_t toUint32LE(uint32_t n)
+uint32_t ToUint32LE(uint32_t n)
 {
     uint8_t *bytes = (uint8_t *)&n;
     return (uint32_t(bytes[0])) |
@@ -39,62 +39,63 @@ uint32_t toUint32LE(uint32_t n)
            (uint32_t(bytes[2]) << 16) |
            (uint32_t(bytes[3]) << 24);
 }
-uint32_t readU32LE(const std::byte *p)
+uint32_t ReadU32LE(const std::byte *p)
 {
     uint32_t value;
     std::memcpy(&value, p, sizeof(value));
-    return toUint32LE(value);
+    return ToUint32LE(value);
 }
-float readFloatLE(const std::byte *p)
+float ReadFloatLE(const std::byte *p)
 {
-    uint32_t bits = readU32LE(p);
+    uint32_t bits = ReadU32LE(p);
 
     float value;
     std::memcpy(&value, &bits, sizeof(value));
     return value;
 }
 
-std::vector<uint32_t> readIndicesU32(uint32_t indicesCount, std::byte *indicesChunkStart)
+std::vector<uint32_t> ReadIndicesU32(uint32_t indicesCount, std::byte *indicesChunkStart)
 {
     std::vector<uint32_t> indices;
     for (uint32_t i = 0; i < indicesCount; i++)
     {
         uint32_t base = i * sizeof(uint32_t);
-        indices.push_back(readU32LE(indicesChunkStart + base));
+        indices.push_back(ReadU32LE(indicesChunkStart + base));
     }
     return indices;
 }
-std::vector<uint16_t> readIndicesU16(uint32_t indicesCount, std::byte *indicesChunkStart)
+std::vector<uint16_t> ReadIndicesU16(uint32_t indicesCount, std::byte *indicesChunkStart)
 {
     std::vector<uint16_t> indices;
     for (uint32_t i = 0; i < indicesCount; i++)
     {
         uint32_t base = i * sizeof(uint16_t);
-        indices.push_back(readU16LE(indicesChunkStart + base));
+        indices.push_back(ReadU16LE(indicesChunkStart + base));
     }
     return indices;
 }
 
-ParsedData loadGlb(AssetLoader * assetLoader, const std::string &path)
+ParsedData LoadGlb(AssetLoader *assetLoader, const std::string &path)
 {
-    auto handle = assetLoader->loadBinaryAsync(path);
-    handle.wait();
-    auto handleResult = handle.get();
-    if(!handleResult) {
-        throw ModelParseError("Asset could not be loaded: " + handleResult.error);
+    auto handle = assetLoader->LoadBinaryAsync(path);
+    handle.Wait();
+    auto handleResult = handle.Get();
+    if (!handleResult)
+    {
+        throw ModelParseError("Asset could not be loaded: " + handleResult.Error);
     }
-    std::byte *data = handleResult.data.data();
-    uint32_t magic = readU32LE(data);
+    std::byte *data = handleResult.Data.data();
+    uint32_t magic = ReadU32LE(data);
     if (magic != 0x46546C67)
     {
         throw ModelParseError("GLB file corrupted");
     }
-    uint32_t version = readU32LE(data + 4);
+    uint32_t version = ReadU32LE(data + 4);
     // std::cout << "Version: " << version << std::endl;
-    uint32_t length = readU32LE(data + 8);
-    uint32_t jsonChunkLength = readU32LE(data + 12);
-    uint32_t jsonChunkType = readU32LE(data + 16);
-    if (jsonChunkType != ChunkType::JSON)
+    uint32_t length = ReadU32LE(data + 8);
+    uint32_t jsonChunkLength = ReadU32LE(data + 12);
+    uint32_t jsonChunkType = ReadU32LE(data + 16);
+    if (jsonChunkType != ChunkType::Json)
     {
         throw ModelParseError("First chunk is not JSON");
     }
@@ -119,7 +120,7 @@ ParsedData loadGlb(AssetLoader * assetLoader, const std::string &path)
     std::string posAccessorType = posAccessor["type"];
     uint32_t posCount = posAccessor["count"];
     uint32_t posAccessorComponentType = posAccessor["componentType"];
-    if (posAccessorType != "VEC3" || posAccessorComponentType != ComponentType::FLOAT)
+    if (posAccessorType != "VEC3" || posAccessorComponentType != ComponentType::Float)
     {
         throw ModelParseError("Position accessor is not a 3D vector of floats");
     }
@@ -129,7 +130,7 @@ ParsedData loadGlb(AssetLoader * assetLoader, const std::string &path)
     std::string normAccessorType = normAccessor["type"];
     uint32_t normAccessorComponentType = normAccessor["componentType"];
     uint32_t normCount = normAccessor["count"];
-    if (normAccessorType != "VEC3" || normAccessorComponentType != ComponentType::FLOAT)
+    if (normAccessorType != "VEC3" || normAccessorComponentType != ComponentType::Float)
     {
         throw ModelParseError("Normal accessor is not a 3D vector of floats");
     }
@@ -150,13 +151,13 @@ ParsedData loadGlb(AssetLoader * assetLoader, const std::string &path)
         throw ModelParseError("Indices accessor is not a scalar");
     }
     if (
-        indicesAccessorComponentType != ComponentType::UNSIGNED_INT &&
-        indicesAccessorComponentType != ComponentType::UNSIGNED_SHORT)
+        indicesAccessorComponentType != ComponentType::UnsignedInt &&
+        indicesAccessorComponentType != ComponentType::UnsignedShort)
     {
         throw ModelParseError("Indices accessor is not an unsigned integer or an unsigned short");
     }
     uint8_t indicesComponentSize = indicesAccessorComponentType ==
-                                           ComponentType::UNSIGNED_INT
+                                           ComponentType::UnsignedInt
                                        ? sizeof(uint32_t)
                                        : sizeof(uint16_t);
 
@@ -188,10 +189,10 @@ ParsedData loadGlb(AssetLoader * assetLoader, const std::string &path)
         indicesBufferOffset = indicesBufferView["byteOffset"];
     }
 
-    uint32_t binaryChunkLength = readU32LE((std::byte *)jsonChunkEnd);
+    uint32_t binaryChunkLength = ReadU32LE((std::byte *)jsonChunkEnd);
     // std::cout << "binaryChunkLength: " << binaryChunkLength << std::endl;
-    uint32_t binaryChunkType = readU32LE((std::byte *)jsonChunkEnd + 4);
-    if (binaryChunkType != ChunkType::BIN)
+    uint32_t binaryChunkType = ReadU32LE((std::byte *)jsonChunkEnd + 4);
+    if (binaryChunkType != ChunkType::Bin)
     {
         throw ModelParseError("Second chunk is not binary");
     }
@@ -206,31 +207,31 @@ ParsedData loadGlb(AssetLoader * assetLoader, const std::string &path)
     {
         uint32_t base = i * 3 * sizeof(float);
         Vertex v;
-        v.position = {
-            readFloatLE(posChunkStart + base + 0),
-            readFloatLE(posChunkStart + base + 4),
-            readFloatLE(posChunkStart + base + 8),
+        v.Position = {
+            ReadFloatLE(posChunkStart + base + 0),
+            ReadFloatLE(posChunkStart + base + 4),
+            ReadFloatLE(posChunkStart + base + 8),
         };
-        v.normal = {
-            readFloatLE(normChunkStart + base + 0),
-            readFloatLE(normChunkStart + base + 4),
-            readFloatLE(normChunkStart + base + 8),
+        v.Normal = {
+            ReadFloatLE(normChunkStart + base + 0),
+            ReadFloatLE(normChunkStart + base + 4),
+            ReadFloatLE(normChunkStart + base + 8),
         };
         vertices.push_back(v);
     }
-    result.vertices = vertices;
+    result.Vertices = vertices;
 
-    if (indicesAccessorComponentType == ComponentType::UNSIGNED_INT)
+    if (indicesAccessorComponentType == ComponentType::UnsignedInt)
     {
-        std::vector<uint32_t> indicesU32 = readIndicesU32(indicesCount, indicesChunkStart);
+        std::vector<uint32_t> indicesU32 = ReadIndicesU32(indicesCount, indicesChunkStart);
         IndexList indices{std::in_place_type<std::vector<uint32_t>>, indicesU32};
-        result.indices = indices;
+        result.Indices = indices;
     }
     else
     {
-        std::vector<uint16_t> indicesU16 = readIndicesU16(indicesCount, indicesChunkStart);
+        std::vector<uint16_t> indicesU16 = ReadIndicesU16(indicesCount, indicesChunkStart);
         IndexList indices{std::in_place_type<std::vector<uint16_t>>, indicesU16};
-        result.indices = indices;
+        result.Indices = indices;
     }
 
     return result;

@@ -13,20 +13,20 @@ AppBindingLayout::AppBindingLayout(
         WGPUBindGroupLayoutDescriptor bindGroupLayoutDesc = WGPU_BIND_GROUP_LAYOUT_DESCRIPTOR_INIT;
         bindGroupLayoutDesc.entryCount = bindingLayouts.size();
         bindGroupLayoutDesc.entries = bindingLayouts.data();
-        WGPUBindGroupLayout bindGroupLayout = wgpuDeviceCreateBindGroupLayout(device->wgpuDevice, &bindGroupLayoutDesc);
-        wgpuBindGroupLayouts.push_back(bindGroupLayout);
+        WGPUBindGroupLayout bindGroupLayout = wgpuDeviceCreateBindGroupLayout(device->WgpuDevice, &bindGroupLayoutDesc);
+        WgpuBindGroupLayouts.push_back(bindGroupLayout);
     }
 
     WGPUPipelineLayoutDescriptor layoutDesc = WGPU_PIPELINE_LAYOUT_DESCRIPTOR_INIT;
-    layoutDesc.bindGroupLayoutCount = wgpuBindGroupLayouts.size();
-    layoutDesc.bindGroupLayouts = wgpuBindGroupLayouts.data();
-    this->wgpuLayout = wgpuDeviceCreatePipelineLayout(device->wgpuDevice, &layoutDesc);
+    layoutDesc.bindGroupLayoutCount = WgpuBindGroupLayouts.size();
+    layoutDesc.bindGroupLayouts = WgpuBindGroupLayouts.data();
+    this->WgpuLayout = wgpuDeviceCreatePipelineLayout(device->WgpuDevice, &layoutDesc);
 }
 
 AppBindingLayout::~AppBindingLayout()
 {
-    wgpuPipelineLayoutRelease(this->wgpuLayout);
-    for (const auto &bindGroupLayout : this->wgpuBindGroupLayouts)
+    wgpuPipelineLayoutRelease(this->WgpuLayout);
+    for (const auto &bindGroupLayout : this->WgpuBindGroupLayouts)
     {
         wgpuBindGroupLayoutRelease(bindGroupLayout);
     }

@@ -1,6 +1,6 @@
 #include "Mat3x3.hpp"
 
-Mat3x3 transpose(const Mat3x3 &mat)
+Mat3x3 Transpose(const Mat3x3 &mat)
 {
     Mat3x3 result{};
 
@@ -19,7 +19,7 @@ bool operator==(const Mat3x3 &left, const Mat3x3 &right)
 {
     for (int i = 0; i < 9; ++i)
     {
-        if (left.data[i] != right.data[i])
+        if (left.Data[i] != right.Data[i])
         {
             return false;
         }
@@ -30,9 +30,9 @@ bool operator==(const Mat3x3 &left, const Mat3x3 &right)
 Vec3 operator*(const Mat3x3 &left, const Vec3 &right)
 {
     return Vec3{
-        left(0, 0) * right.x + left(0, 1) * right.y + left(0, 2) * right.z,
-        left(1, 0) * right.x + left(1, 1) * right.y + left(1, 2) * right.z,
-        left(2, 0) * right.x + left(2, 1) * right.y + left(2, 2) * right.z,
+        left(0, 0) * right.X + left(0, 1) * right.Y + left(0, 2) * right.Z,
+        left(1, 0) * right.X + left(1, 1) * right.Y + left(1, 2) * right.Z,
+        left(2, 0) * right.X + left(2, 1) * right.Y + left(2, 2) * right.Z,
     };
 }
 

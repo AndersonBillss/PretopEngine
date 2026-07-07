@@ -8,16 +8,16 @@ class AppRenderPassEncoder
 {
 public:
     AppRenderPassEncoder(WGPUCommandEncoder &encoder, WGPURenderPassDescriptor &renderPass);
-    AppRenderPassEncoder &setPipeline(AppPipeline &pipeline);
-    AppRenderPassEncoder &setVertexBuffers(std::vector<AppBuffer *> &vertexBuffers);
-    AppRenderPassEncoder &setBindGroups(std::vector<std::unique_ptr<AppBindGroup>> &bindGroups);
-    AppRenderPassEncoder &setBindGroup(AppBindGroup *bindGroup, size_t groupIndex, std::vector<uint32_t> dynamicOffset);
-    AppRenderPassEncoder &setBindGroup(AppBindGroup *bindGroup, size_t groupIndex);
-    AppRenderPassEncoder &draw(size_t vertexCount);
-    AppRenderPassEncoder &drawIndexed(AppBuffer &indexBuffer,
+    AppRenderPassEncoder &SetPipeline(AppPipeline &pipeline);
+    AppRenderPassEncoder &SetVertexBuffers(std::vector<AppBuffer *> &vertexBuffers);
+    AppRenderPassEncoder &SetBindGroups(std::vector<std::unique_ptr<AppBindGroup>> &bindGroups);
+    AppRenderPassEncoder &SetBindGroup(AppBindGroup *bindGroup, size_t groupIndex, std::vector<uint32_t> dynamicOffset);
+    AppRenderPassEncoder &SetBindGroup(AppBindGroup *bindGroup, size_t groupIndex);
+    AppRenderPassEncoder &Draw(size_t vertexCount);
+    AppRenderPassEncoder &DrawIndexed(AppBuffer &indexBuffer,
                                       size_t indexCount,
                                       WGPUIndexFormat indexFormat);
-    void finish();
+    void Finish();
 
-    WGPURenderPassEncoder wgpuRenderPass;
+    WGPURenderPassEncoder WgpuRenderPass;
 };

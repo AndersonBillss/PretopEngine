@@ -11,22 +11,22 @@ public:
 
     virtual ~Window() = default;
     Window(unsigned int width, unsigned int height, std::string title)
-        : width(width), height(height), title_(std::move(title)) {}
+        : Width(width), Height(height), _title(std::move(title)) {}
 
     Window(std::string title)
-        : Window(default_width, default_height, std::move(title)) {}
+        : Window(DefaultWidth, DefaultHeight, std::move(title)) {}
 
-    virtual bool isInitialized() = 0;
-    virtual void setOnTick(TickCallback cb) = 0;
-    virtual void setOnExit(ExitCallback cb) = 0;
-    virtual void run() = 0;
-    virtual WGPUSurface getSurface(WGPUInstance instance) = 0;
+    virtual bool IsInitialized() = 0;
+    virtual void SetOnTick(TickCallback callback) = 0;
+    virtual void SetOnExit(ExitCallback callback) = 0;
+    virtual void Run() = 0;
+    virtual WGPUSurface GetSurface(WGPUInstance instance) = 0;
 
-    unsigned int width = 0;
-    unsigned int height = 0;
+    unsigned int Width = 0;
+    unsigned int Height = 0;
 
 protected:
-    std::string title_;
-    static constexpr int default_width = 800;
-    static constexpr int default_height = 600;
+    std::string _title;
+    static constexpr int DefaultWidth = 800;
+    static constexpr int DefaultHeight = 600;
 };

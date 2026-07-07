@@ -5,6 +5,6 @@
 
 namespace WindowFactory
 {
-    std::unique_ptr<Window> createWindow(int width, int height, std::string title);
-    std::unique_ptr<Window> createWindow(std::string title);
+    std::unique_ptr<Window> CreateWindow(int width, int height, std::string title);
+    std::unique_ptr<Window> CreateWindow(std::string title);
 }

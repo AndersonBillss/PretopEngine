@@ -17,6 +17,6 @@ public:
         AppBindingLayout &pipelineLayout);
     ~AppPipeline();
 
-    WGPURenderPassDepthStencilAttachment wgpuDepthStencilAttachment;
-    WGPURenderPipeline wgpuPipeline;
+    WGPURenderPassDepthStencilAttachment WgpuDepthStencilAttachment;
+    WGPURenderPipeline WgpuPipeline;
 };

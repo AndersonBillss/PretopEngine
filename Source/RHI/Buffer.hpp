@@ -19,18 +19,18 @@ public:
         bufferDesc.usage = usage;
         bufferDesc.size = size;
         bufferDesc.mappedAtCreation = false;
-        this->wgpuBuffer = wgpuDeviceCreateBuffer(device->wgpuDevice, &bufferDesc);
+        this->WgpuBuffer = wgpuDeviceCreateBuffer(device->WgpuDevice, &bufferDesc);
     }
 
     ~AppBuffer()
     {
-        wgpuBufferRelease(this->wgpuBuffer);
+        wgpuBufferRelease(this->WgpuBuffer);
     }
 
-    std::vector<uint8_t> zeroBuffer() const
+    std::vector<uint8_t> ZeroBuffer() const
     {
         std::vector<uint8_t> result;
-        size_t numBytes = wgpuBufferGetSize(this->wgpuBuffer);
+        size_t numBytes = wgpuBufferGetSize(this->WgpuBuffer);
         for (size_t i = 0; i < numBytes; i++)
         {
             result.push_back(0);
@@ -38,5 +38,5 @@ public:
         return result;
     }
 
-    WGPUBuffer wgpuBuffer;
+    WGPUBuffer WgpuBuffer;
 };

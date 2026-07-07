@@ -9,11 +9,11 @@ class AppVertexBufferLayout
 {
 public:
     AppVertexBufferLayout(std::initializer_list<LayoutType> shape, size_t startLayout);
-    std::vector<WGPUVertexAttribute> wgpuAttrs;
-    size_t arrayStride;
-    size_t endLayout;
+    std::vector<WGPUVertexAttribute> WgpuAttrs;
+    size_t ArrayStride;
+    size_t EndLayout;
 
 private:
-    WGPUVertexFormat getFmt(LayoutType attrType);
-    size_t getSize(LayoutType numType);
+    WGPUVertexFormat GetFmt(LayoutType attrType);
+    size_t GetSize(LayoutType numType);
 };

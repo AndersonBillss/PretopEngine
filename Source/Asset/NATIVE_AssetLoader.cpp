@@ -8,7 +8,7 @@
 
 namespace
 {
-    AssetBytes readBinaryFile(const std::string& path)
+    AssetBytes ReadBinaryFile(const std::string& path)
     {
         std::ifstream file(path, std::ios::binary | std::ios::ate);
         if (!file)
@@ -39,7 +39,7 @@ namespace
         return bytes;
     }
 
-    AssetText readTextFile(const std::string& path)
+    AssetText ReadTextFile(const std::string& path)
     {
         std::ifstream file(path, std::ios::binary);
         if (!file)
@@ -54,10 +54,10 @@ namespace
 }
 
 AssetHandle<AssetBytes>
-NativeAssetLoader::loadBinaryAsync(std::string_view path)
+NativeAssetLoader::LoadBinaryAsync(std::string_view path)
 {
     TaskCompletion<AssetResult<AssetBytes>> completion;
-    auto task = completion.task();
+    auto task = completion.CreateTask();
     std::string pathCopy(path);
 
     std::thread(
@@ -65,16 +65,16 @@ NativeAssetLoader::loadBinaryAsync(std::string_view path)
         {
             try
             {
-                AssetBytes bytes = readBinaryFile(pathCopy);
-                completion.set_result(AssetResult<AssetBytes>{std::move(bytes), {}});
+                AssetBytes bytes = ReadBinaryFile(pathCopy);
+                completion.SetResult(AssetResult<AssetBytes>{std::move(bytes), {}});
             }
             catch (const std::exception& e)
             {
-                completion.set_result(AssetResult<AssetBytes>{AssetBytes{}, e.what()});
+                completion.SetResult(AssetResult<AssetBytes>{AssetBytes{}, e.what()});
             }
             catch (...)
             {
-                completion.set_result(
+                completion.SetResult(
                     AssetResult<AssetBytes>{AssetBytes{}, "Unknown error while loading binary asset."});
             }
         })
@@ -84,10 +84,10 @@ NativeAssetLoader::loadBinaryAsync(std::string_view path)
 }
 
 AssetHandle<AssetText>
-NativeAssetLoader::loadTextAsync(std::string_view path)
+NativeAssetLoader::LoadTextAsync(std::string_view path)
 {
     TaskCompletion<AssetResult<AssetText>> completion;
-    auto task = completion.task();
+    auto task = completion.CreateTask();
     std::string pathCopy(path);
 
     std::thread(
@@ -95,16 +95,16 @@ NativeAssetLoader::loadTextAsync(std::string_view path)
         {
             try
             {
-                AssetText text = readTextFile(pathCopy);
-                completion.set_result(AssetResult<AssetText>{std::move(text), {}});
+                AssetText text = ReadTextFile(pathCopy);
+                completion.SetResult(AssetResult<AssetText>{std::move(text), {}});
             }
             catch (const std::exception& e)
             {
-                completion.set_result(AssetResult<AssetText>{AssetText{}, e.what()});
+                completion.SetResult(AssetResult<AssetText>{AssetText{}, e.what()});
             }
             catch (...)
             {
-                completion.set_result(
+                completion.SetResult(
                     AssetResult<AssetText>{AssetText{}, "Unknown error while loading text asset."});
             }
         })

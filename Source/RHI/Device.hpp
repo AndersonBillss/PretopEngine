@@ -10,10 +10,10 @@ class AppDevice
 public:
     using RequestDeviceCallback = std::function<void(std::unique_ptr<AppDevice>)>;
     AppDevice(WGPUDevice device);
-    static void request(const AppInstance *instance, const AppAdapter *adapter, RequestDeviceCallback cb);
-    void inspect();
-    WGPUDevice wgpuDevice;
+    static void Request(const AppInstance *instance, const AppAdapter *adapter, RequestDeviceCallback callback);
+    void Inspect();
+    WGPUDevice WgpuDevice;
 
 private:
-    static WGPUDeviceDescriptor _createDeviceDescriptor(const AppInstance *instance, const AppAdapter *adapter);
+    static WGPUDeviceDescriptor CreateDeviceDescriptor(const AppInstance *instance, const AppAdapter *adapter);
 };

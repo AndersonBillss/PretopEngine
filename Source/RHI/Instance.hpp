@@ -5,8 +5,8 @@ class AppInstance
 {
 public:
     AppInstance();
-    WGPUInstance wgpuInstance;
+    WGPUInstance WgpuInstance;
 
 private:
-    WGPUInstance createInstance();
+    WGPUInstance CreateInstance();
 };
