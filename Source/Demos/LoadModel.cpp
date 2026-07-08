@@ -5,7 +5,6 @@
 #include <chrono>
 #define _USE_MATH_DEFINES
 #include <cmath>
-
 #include "../PrintStringView.hpp"
 
 #include "../Window/WindowFactory.hpp"
@@ -30,89 +29,96 @@
 #include "../Asset/ModelParseError.hpp"
 #include "../Asset/AssetLoaderFactory.hpp"
 
-struct MyUniforms
+namespace Pretop::Demos
 {
-    Mat4x4 ProjectionMatrix;
-    Mat4x4 ViewMatrix;
-    Mat4x4 ModelMatrix;
-    float Color;
-    float Time;
-    float Pad[2];
-};
+    using namespace Pretop::Asset;
+    using namespace Pretop::Math;
+    using namespace Pretop::RHI;
+    using namespace Pretop::Window;
 
-const float ModelScale = 0.5f;
-void Start(Application &application)
-{
-    std::unique_ptr<AssetLoader> assetLoader = AssetLoaderFactory::CreateAssetLoader();
-
-    ParsedData model;
-    try
+    struct MyUniforms
     {
-        model = LoadGlb(assetLoader.get(), "assets/models/woolly-mammoth-100k-4096_std.glb");
-        std::cout << "Success!" << std::endl;
-    }
-    catch (ModelParseError &e)
+        Mat4x4 ProjectionMatrix;
+        Mat4x4 ViewMatrix;
+        Mat4x4 ModelMatrix;
+        float Color;
+        float Time;
+        float Pad[2];
+    };
+
+    const float ModelScale = 0.5f;
+    void Start(Application &application)
     {
-        std::cout << e.what() << std::endl;
-        exit(1);
-    }
+        std::unique_ptr<AssetLoader> assetLoader = AssetLoaderFactory::CreateAssetLoader();
 
-    application.LogQueueCommands();
-    application.SetWindow(WindowFactory::CreateWindow("My Window"));
+        ParsedData model;
+        try
+        {
+            model = LoadGlb(assetLoader.get(), "assets/models/woolly-mammoth-100k-4096_std.glb");
+            std::cout << "Success!" << std::endl;
+        }
+        catch (ModelParseError &e)
+        {
+            std::cout << e.what() << std::endl;
+            exit(1);
+        }
 
-    AppShader shader = AppShader::Pipeline(application.Device.get(), application.Instance.get(), assetLoader.get(), "shaders/shader.wgsl");
+        application.LogQueueCommands();
+        application.SetWindow(WindowFactory::CreateWindow("My Window"));
 
-    AppBuffer vertices(application.Device.get(), model.Vertices.size() * sizeof(Vertex), WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex);
-    application.WriteVec(vertices, model.Vertices);
+        AppShader shader = AppShader::Pipeline(application.Device.get(), application.Instance.get(), assetLoader.get(), "shaders/shader.wgsl");
 
-    uint32_t indicesSize = 0;
-    bool is32bitIndexBuffer = std::holds_alternative<std::vector<uint32_t>>(model.Indices);
-    if (is32bitIndexBuffer)
-    {
-        std::vector<uint32_t> indicesVec = std::get<std::vector<uint32_t>>(model.Indices);
-        indicesSize = indicesVec.size() * sizeof(uint32_t);
-    }
-    else
-    {
-        std::vector<uint16_t> indicesVec = std::get<std::vector<uint16_t>>(model.Indices);
-        indicesSize = indicesVec.size() * sizeof(uint16_t);
-    }
-    AppBuffer indices(application.Device.get(), indicesSize, WGPUBufferUsage_CopyDst | WGPUBufferUsage_Index);
-    if (is32bitIndexBuffer)
-    {
-        std::vector<uint32_t> indicesVec = std::get<std::vector<uint32_t>>(model.Indices);
-        application.WriteVec(indices, indicesVec);
-    }
-    else
-    {
-        std::vector<uint16_t> indicesVec = std::get<std::vector<uint16_t>>(model.Indices);
-        application.WriteVec(indices, indicesVec);
-    }
-    AppVertexLayout vertexLayout = {{LayoutType::Float32x3, LayoutType::Float32x3}};
+        AppBuffer vertices(application.Device.get(), model.Vertices.size() * sizeof(Vertex), WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex);
+        application.WriteVec(vertices, model.Vertices);
 
-    WGPUBindGroupLayoutEntry bindingLayoutEntry = WGPU_BIND_GROUP_LAYOUT_ENTRY_INIT;
-    bindingLayoutEntry.binding = 0;
-    bindingLayoutEntry.buffer.type = WGPUBufferBindingType_Uniform;
-    bindingLayoutEntry.buffer.minBindingSize = sizeof(MyUniforms);
-    bindingLayoutEntry.buffer.hasDynamicOffset = true;
-    bindingLayoutEntry.visibility = WGPUShaderStage_Vertex;
-    AppBindingLayout bindingLayout(application.Device.get(), {{bindingLayoutEntry}});
+        uint32_t indicesSize = 0;
+        bool is32bitIndexBuffer = std::holds_alternative<std::vector<uint32_t>>(model.Indices);
+        if (is32bitIndexBuffer)
+        {
+            std::vector<uint32_t> indicesVec = std::get<std::vector<uint32_t>>(model.Indices);
+            indicesSize = indicesVec.size() * sizeof(uint32_t);
+        }
+        else
+        {
+            std::vector<uint16_t> indicesVec = std::get<std::vector<uint16_t>>(model.Indices);
+            indicesSize = indicesVec.size() * sizeof(uint16_t);
+        }
+        AppBuffer indices(application.Device.get(), indicesSize, WGPUBufferUsage_CopyDst | WGPUBufferUsage_Index);
+        if (is32bitIndexBuffer)
+        {
+            std::vector<uint32_t> indicesVec = std::get<std::vector<uint32_t>>(model.Indices);
+            application.WriteVec(indices, indicesVec);
+        }
+        else
+        {
+            std::vector<uint16_t> indicesVec = std::get<std::vector<uint16_t>>(model.Indices);
+            application.WriteVec(indices, indicesVec);
+        }
+        AppVertexLayout vertexLayout = {{LayoutType::Float32x3, LayoutType::Float32x3}};
 
-    AppPipeline pipeline(application.Device.get(), shader, application.WindowFormat, vertexLayout, bindingLayout);
-    AppBuffer myUniformBuffer(application.Device.get(), sizeof(MyUniforms), WGPUBufferUsage_CopyDst | WGPUBufferUsage_Uniform);
+        WGPUBindGroupLayoutEntry bindingLayoutEntry = WGPU_BIND_GROUP_LAYOUT_ENTRY_INIT;
+        bindingLayoutEntry.binding = 0;
+        bindingLayoutEntry.buffer.type = WGPUBufferBindingType_Uniform;
+        bindingLayoutEntry.buffer.minBindingSize = sizeof(MyUniforms);
+        bindingLayoutEntry.buffer.hasDynamicOffset = true;
+        bindingLayoutEntry.visibility = WGPUShaderStage_Vertex;
+        AppBindingLayout bindingLayout(application.Device.get(), {{bindingLayoutEntry}});
 
-    std::vector<WGPUBindGroupEntry> bindings = {WGPU_BIND_GROUP_ENTRY_INIT};
-    bindings[0].binding = 0;
-    bindings[0].buffer = myUniformBuffer.WgpuBuffer;
-    bindings[0].size = sizeof(MyUniforms);
-    AppBindGroup bindGroup(application.Device.get(), bindingLayout.WgpuBindGroupLayouts[0], bindings);
-    application.WriteBufZero(myUniformBuffer);
+        AppPipeline pipeline(application.Device.get(), shader, application.WindowFormat, vertexLayout, bindingLayout);
+        AppBuffer myUniformBuffer(application.Device.get(), sizeof(MyUniforms), WGPUBufferUsage_CopyDst | WGPUBufferUsage_Uniform);
 
-    float seconds = 0;
-    application.Run([&](
-                        double dt,
-                        WGPUTextureView targetView)
-                    {
+        std::vector<WGPUBindGroupEntry> bindings = {WGPU_BIND_GROUP_ENTRY_INIT};
+        bindings[0].binding = 0;
+        bindings[0].buffer = myUniformBuffer.WgpuBuffer;
+        bindings[0].size = sizeof(MyUniforms);
+        AppBindGroup bindGroup(application.Device.get(), bindingLayout.WgpuBindGroupLayouts[0], bindings);
+        application.WriteBufZero(myUniformBuffer);
+
+        float seconds = 0;
+        application.Run([&](
+                            double dt,
+                            WGPUTextureView targetView)
+                        {
                         seconds += dt;
                         MyUniforms u;
                         u.Color = (sin(seconds * 2.32325) + 1) / 2;
@@ -157,12 +163,13 @@ void Start(Application &application)
                         application.SubmitCommandBuffer(commandBuffer);
 
                         return commandBuffer; });
-}
+    }
 
-int LoadModel()
-{
-    std::cout << "Hello, WebGPU!!" << std::endl;
-    Application application;
-    application.Initialize(Start);
-    return 0;
-}
+    int LoadModel()
+    {
+        std::cout << "Hello, WebGPU!!" << std::endl;
+        Application application;
+        application.Initialize(Start);
+        return 0;
+    }
+} // namespace Pretop::Demos

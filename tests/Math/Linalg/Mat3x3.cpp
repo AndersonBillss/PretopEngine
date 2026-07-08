@@ -1,6 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include "../../../Source/Math/Linalg/Mat3x3.hpp"
 
+using namespace Pretop::Math;
+
 TEST_CASE("Mat3x3 Vec3 multiplication works", "[math][linalg][mat3x3]")
 {
     Mat3x3 m{1.0f, 2.0f, 3.0f,
@@ -39,7 +41,7 @@ TEST_CASE("Mat3x3 transpose works", "[math][linalg][mat3x3]")
              4.0f, 1.0f, 5.0f,
              2.0f, 1.0f, 4.0f};
     Mat3x3 mT{1.0f, 4.0f, 2.0f,
-               2.0f, 1.0f, 1.0f,
-               3.0f, 5.0f, 4.0f};
+              2.0f, 1.0f, 1.0f,
+              3.0f, 5.0f, 4.0f};
     REQUIRE(Transpose(m) == mT);
 }

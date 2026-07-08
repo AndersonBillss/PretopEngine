@@ -2,51 +2,54 @@
 #include "../Asset/ModelParseError.hpp"
 #include <iostream>
 
-AppShader AppShader::Pipeline(AppDevice *device, AppInstance *instance, AssetLoader *assetLoader, std::string_view src)
+namespace Pretop::RHI
 {
-    auto compilationCallbackInfo = [](
-                                       WGPUCompilationInfoRequestStatus,
-                                       struct WGPUCompilationInfo const *compilationInfo,
-                                       void *,
-                                       void *)
+    AppShader AppShader::Pipeline(AppDevice *device, AppInstance *instance, Asset::AssetLoader *assetLoader, std::string_view src)
     {
-        for (size_t i = 0; i < compilationInfo->messageCount; i++)
+        auto compilationCallbackInfo = [](
+                                           WGPUCompilationInfoRequestStatus,
+                                           struct WGPUCompilationInfo const *compilationInfo,
+                                           void *,
+                                           void *)
         {
-            if (compilationInfo->messages[i].type == WGPUCompilationMessageType_Error)
+            for (size_t i = 0; i < compilationInfo->messageCount; i++)
             {
-                std::cerr << "Engine stopped due to Shader compilation error" << std::endl;
-                exit(1);
+                if (compilationInfo->messages[i].type == WGPUCompilationMessageType_Error)
+                {
+                    std::cerr << "Engine stopped due to Shader compilation error" << std::endl;
+                    exit(1);
+                }
             }
+        };
+
+        AppShader result;
+        WGPUShaderSourceWGSL shaderWGSL = WGPU_SHADER_SOURCE_WGSL_INIT;
+        shaderWGSL.chain.sType = WGPUSType_ShaderSourceWGSL;
+
+        auto handle = assetLoader->LoadTextAsync("assets/" + std::string(src));
+        handle.Wait();
+        auto handleResult = handle.Get();
+        if (!handleResult)
+        {
+            throw Asset::ModelParseError("Asset could not be loaded: " + handleResult.Error);
         }
-    };
+        std::string sourceCode = handleResult.Data.data();
+        shaderWGSL.code = WGPUStringView{sourceCode.c_str(), sourceCode.length()};
 
-    AppShader result;
-    WGPUShaderSourceWGSL shaderWGSL = WGPU_SHADER_SOURCE_WGSL_INIT;
-    shaderWGSL.chain.sType = WGPUSType_ShaderSourceWGSL;
+        WGPUShaderModuleDescriptor shaderDesc = WGPU_SHADER_MODULE_DESCRIPTOR_INIT;
+        shaderDesc.nextInChain = &shaderWGSL.chain;
 
-    auto handle = assetLoader->LoadTextAsync("assets/" + std::string(src));
-    handle.Wait();
-    auto handleResult = handle.Get();
-    if (!handleResult)
-    {
-        throw ModelParseError("Asset could not be loaded: " + handleResult.Error);
+        WGPUShaderModule shaderModule = wgpuDeviceCreateShaderModule(device->WgpuDevice, &shaderDesc);
+
+        WGPUCompilationInfoCallbackInfo callbackInfo = WGPU_COMPILATION_INFO_CALLBACK_INFO_INIT;
+        callbackInfo.mode = WGPUCallbackMode_WaitAnyOnly;
+        callbackInfo.callback = compilationCallbackInfo;
+        WGPUFuture compilationFuture = wgpuShaderModuleGetCompilationInfo(
+            shaderModule, callbackInfo);
+
+        WGPUFutureWaitInfo waitInfo = {compilationFuture, 0};
+        wgpuInstanceWaitAny(instance->WgpuInstance, 1, &waitInfo, UINT64_MAX);
+        result.WgpuShader = shaderModule;
+        return result;
     }
-    std::string sourceCode = handleResult.Data.data();
-    shaderWGSL.code = WGPUStringView{sourceCode.c_str(), sourceCode.length()};
-
-    WGPUShaderModuleDescriptor shaderDesc = WGPU_SHADER_MODULE_DESCRIPTOR_INIT;
-    shaderDesc.nextInChain = &shaderWGSL.chain;
-
-    WGPUShaderModule shaderModule = wgpuDeviceCreateShaderModule(device->WgpuDevice, &shaderDesc);
-
-    WGPUCompilationInfoCallbackInfo callbackInfo = WGPU_COMPILATION_INFO_CALLBACK_INFO_INIT;
-    callbackInfo.mode = WGPUCallbackMode_WaitAnyOnly;
-    callbackInfo.callback = compilationCallbackInfo;
-    WGPUFuture compilationFuture = wgpuShaderModuleGetCompilationInfo(
-        shaderModule, callbackInfo);
-
-    WGPUFutureWaitInfo waitInfo = {compilationFuture, 0};
-    wgpuInstanceWaitAny(instance->WgpuInstance, 1, &waitInfo, UINT64_MAX);
-    result.WgpuShader = shaderModule;
-    return result;
-}
+} // namespace Pretop::RHI

@@ -1,5 +1,4 @@
 #pragma once
-
 #include <condition_variable>
 #include <memory>
 #include <mutex>
@@ -8,135 +7,139 @@
 #include <utility>
 
 #if defined(__EMSCRIPTEN__)
-    #include <emscripten.h>
+#include <emscripten.h>
 #endif
 
-template <typename T>
-class TaskState
+namespace Pretop::Asset
 {
-public:
-    void SetResult(T value)
+    template <typename T>
+    class TaskState
     {
-        std::lock_guard<std::mutex> lock(_mutex);
-        if (_ready)
+    public:
+        void SetResult(T value)
         {
-            throw std::logic_error("Task already completed.");
+            std::lock_guard<std::mutex> lock(_mutex);
+            if (_ready)
+            {
+                throw std::logic_error("Task already completed.");
+            }
+
+            _value = std::move(value);
+            _ready = true;
+            _conditionVariable.notify_all();
         }
 
-        _value = std::move(value);
-        _ready = true;
-        _conditionVariable.notify_all();
-    }
-
-    bool Ready() const noexcept
-    {
-        std::lock_guard<std::mutex> lock(_mutex);
-        return _ready;
-    }
-
-    void Wait() const
-    {
-        std::unique_lock<std::mutex> lock(_mutex);
-        _conditionVariable.wait(lock, [this] { return _ready; });
-    }
-
-    T Get() const
-    {
-        std::lock_guard<std::mutex> lock(_mutex);
-        if (!_ready)
+        bool Ready() const noexcept
         {
-            throw std::logic_error("Task is not ready.");
+            std::lock_guard<std::mutex> lock(_mutex);
+            return _ready;
         }
 
-        return *_value;
-    }
-
-private:
-    mutable std::mutex _mutex;
-    mutable std::condition_variable _conditionVariable;
-    bool _ready = false;
-    std::optional<T> _value;
-};
-
-template <typename T>
-class Task
-{
-public:
-    Task() = default;
-
-    explicit Task(std::shared_ptr<TaskState<T>> state)
-        : _state(std::move(state))
-    {
-    }
-
-    bool Valid() const noexcept
-    {
-        return static_cast<bool>(_state);
-    }
-
-    bool Ready() const noexcept
-    {
-        return _state && _state->Ready();
-    }
-
-    void Wait() const
-    {
-        if (!Valid())
+        void Wait() const
         {
-            throw std::logic_error("Task is not valid.");
+            std::unique_lock<std::mutex> lock(_mutex);
+            _conditionVariable.wait(lock, [this]
+                                    { return _ready; });
         }
+
+        T Get() const
+        {
+            std::lock_guard<std::mutex> lock(_mutex);
+            if (!_ready)
+            {
+                throw std::logic_error("Task is not ready.");
+            }
+
+            return *_value;
+        }
+
+    private:
+        mutable std::mutex _mutex;
+        mutable std::condition_variable _conditionVariable;
+        bool _ready = false;
+        std::optional<T> _value;
+    };
+
+    template <typename T>
+    class Task
+    {
+    public:
+        Task() = default;
+
+        explicit Task(std::shared_ptr<TaskState<T>> state)
+            : _state(std::move(state))
+        {
+        }
+
+        bool Valid() const noexcept
+        {
+            return static_cast<bool>(_state);
+        }
+
+        bool Ready() const noexcept
+        {
+            return _state && _state->Ready();
+        }
+
+        void Wait() const
+        {
+            if (!Valid())
+            {
+                throw std::logic_error("Task is not valid.");
+            }
 
 #if defined(__EMSCRIPTEN__)
-        while (!Ready())
-        {
-            emscripten_sleep(0);
-        }
+            while (!Ready())
+            {
+                emscripten_sleep(0);
+            }
 #else
-        _state->Wait();
+            _state->Wait();
 #endif
-    }
-
-    T Get() const
-    {
-        if (!Valid())
-        {
-            throw std::logic_error("Task is not valid.");
         }
 
-        if (!Ready())
+        T Get() const
         {
-            throw std::logic_error("Task is not ready.");
+            if (!Valid())
+            {
+                throw std::logic_error("Task is not valid.");
+            }
+
+            if (!Ready())
+            {
+                throw std::logic_error("Task is not ready.");
+            }
+
+            return _state->Get();
         }
 
-        return _state->Get();
-    }
+    private:
+        std::shared_ptr<TaskState<T>> _state;
 
-private:
-    std::shared_ptr<TaskState<T>> _state;
+        template <typename U>
+        friend class TaskCompletion;
+    };
 
-    template <typename U>
-    friend class TaskCompletion;
-};
-
-template <typename T>
-class TaskCompletion
-{
-public:
-    TaskCompletion()
-        : _state(std::make_shared<TaskState<T>>())
+    template <typename T>
+    class TaskCompletion
     {
-    }
+    public:
+        TaskCompletion()
+            : _state(std::make_shared<TaskState<T>>())
+        {
+        }
 
-    Task<T> CreateTask() const
-    {
-        return Task<T>{_state};
-    }
+        Task<T> CreateTask() const
+        {
+            return Task<T>{_state};
+        }
 
-    void SetResult(T value)
-    {
-        _state->SetResult(std::move(value));
-    }
+        void SetResult(T value)
+        {
+            _state->SetResult(std::move(value));
+        }
 
-private:
-    std::shared_ptr<TaskState<T>> _state;
-};
+    private:
+        std::shared_ptr<TaskState<T>> _state;
+    };
+} // namespace Pretop::Asset

@@ -5,11 +5,14 @@
 #include "NATIVE_AssetLoader.hpp"
 #endif
 
-std::unique_ptr<AssetLoader> AssetLoaderFactory::CreateAssetLoader()
+namespace Pretop::Asset
 {
+    std::unique_ptr<AssetLoader> AssetLoaderFactory::CreateAssetLoader()
+    {
 #ifdef __EMSCRIPTEN__
-    return std::make_unique<WebAssetLoader>();
+        return std::make_unique<WebAssetLoader>();
 #else
-    return std::make_unique<NativeAssetLoader>();
+        return std::make_unique<NativeAssetLoader>();
 #endif
-}
+    }
+} // namespace Pretop::Asset

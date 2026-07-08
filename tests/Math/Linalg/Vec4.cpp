@@ -2,6 +2,8 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include "../../../Source/Math/Linalg/Vec4.hpp"
 
+using namespace Pretop::Math;
+
 TEST_CASE("Vec4 addition works", "[math][linalg][vec4]")
 {
     Vec4 v1{1, 2, 0, 3};

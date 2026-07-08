@@ -3,6 +3,8 @@
 #include "../../Source/Math/Euler.hpp"
 #include "../../Source/Math/Constants.hpp"
 
+using namespace Pretop::Math;
+
 TEST_CASE("X euler rotate basis vectors as expected", "[math][euler]")
 {
     Euler e{90.0f * (float)Deg2Rad, 0, 0};

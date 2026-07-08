@@ -6,17 +6,20 @@
 #include "VertexLayout.hpp"
 #include "BindingLayout.hpp"
 
-class AppPipeline
+namespace Pretop::RHI
 {
-public:
-    AppPipeline(
-        AppDevice *device,
-        AppShader &shader,
-        WGPUTextureFormat format,
-        AppVertexLayout &vertexLayout,
-        AppBindingLayout &pipelineLayout);
-    ~AppPipeline();
+    class AppPipeline
+    {
+    public:
+        AppPipeline(
+            AppDevice *device,
+            AppShader &shader,
+            WGPUTextureFormat format,
+            AppVertexLayout &vertexLayout,
+            AppBindingLayout &pipelineLayout);
+        ~AppPipeline();
 
-    WGPURenderPassDepthStencilAttachment WgpuDepthStencilAttachment;
-    WGPURenderPipeline WgpuPipeline;
-};
+        WGPURenderPassDepthStencilAttachment WgpuDepthStencilAttachment;
+        WGPURenderPipeline WgpuPipeline;
+    };
+} // namespace Pretop::RHI

@@ -10,14 +10,17 @@
 #include "BindGroup.hpp"
 #include "RenderPassEncoder.hpp"
 
-class AppCommandBuffer
+namespace Pretop::RHI
 {
-public:
-    AppCommandBuffer(AppDevice *device);
-    ~AppCommandBuffer();
-    std::unique_ptr<AppRenderPassEncoder> AddCommand(AppRenderPassCommand &command);
+    class AppCommandBuffer
+    {
+    public:
+        AppCommandBuffer(AppDevice *device);
+        ~AppCommandBuffer();
+        std::unique_ptr<AppRenderPassEncoder> AddCommand(AppRenderPassCommand &command);
 
-    void Finish();
-    WGPUCommandEncoder WgpuEncoder;
-    WGPUCommandBuffer WgpuBuffer;
-};
+        void Finish();
+        WGPUCommandEncoder WgpuEncoder;
+        WGPUCommandBuffer WgpuBuffer;
+    };
+} // namespace Pretop::RHI

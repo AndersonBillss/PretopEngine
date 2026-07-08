@@ -3,6 +3,7 @@
 #include <webgpu/webgpu.h>
 #include <functional>
 #include <initializer_list>
+#include <vector>
 #include "../Window/Window.hpp"
 #include "Adapter.hpp"
 #include "Device.hpp"
@@ -10,83 +11,86 @@
 #include "CommandBuffer.hpp"
 #include "Buffer.hpp"
 
-class Application
+namespace Pretop::RHI
 {
-public:
-    using TickCallback = std::function<void(double dt, WGPUTextureView targetView)>;
-    using StartupCallback = std::function<void(Application &app)>;
-
-    Application();
-
-    void Initialize(StartupCallback callback);
-    void Run(TickCallback callback);
-
-    void WriteBufZero(const AppBuffer &buf)
+    class Application
     {
-        std::vector<uint8_t> data = buf.ZeroBuffer();
-        wgpuQueueWriteBuffer(
-            this->_queue,
-            buf.WgpuBuffer,
-            0,
-            data.data(),
-            data.size());
-    }
-    void WriteBuf(const AppBuffer &buf, void *data, size_t numBytes)
-    {
-        wgpuQueueWriteBuffer(
-            this->_queue,
-            buf.WgpuBuffer,
-            0,
-            data,
-            numBytes);
-    }
+    public:
+        using TickCallback = std::function<void(double dt, WGPUTextureView targetView)>;
+        using StartupCallback = std::function<void(Application &app)>;
 
-    template <class T>
-    void WriteBuf(const AppBuffer &buf, T &data)
-    {
-        wgpuQueueWriteBuffer(
-            this->_queue,
-            buf.WgpuBuffer,
-            0,
-            &data,
-            sizeof(T));
-    }
+        Application();
 
-    template <class T>
-    void WriteVec(const AppBuffer &buf, std::vector<T> &vec)
-    {
-        wgpuQueueWriteBuffer(
-            this->_queue,
-            buf.WgpuBuffer,
-            0,
-            vec.data(),
-            vec.size() * sizeof(T));
-    }
+        void Initialize(StartupCallback callback);
+        void Run(TickCallback callback);
 
-    void SubmitCommandBuffer(AppCommandBuffer &buf);
-    void SetWindow(std::unique_ptr<Window> win);
-    void LogQueueCommands();
-    WGPUTextureView GetNextSurfaceTextureView();
-    WGPUTextureFormat WindowFormat;
+        void WriteBufZero(const AppBuffer &buf)
+        {
+            std::vector<uint8_t> data = buf.ZeroBuffer();
+            wgpuQueueWriteBuffer(
+                this->_queue,
+                buf.WgpuBuffer,
+                0,
+                data.data(),
+                data.size());
+        }
+        void WriteBuf(const AppBuffer &buf, void *data, size_t numBytes)
+        {
+            wgpuQueueWriteBuffer(
+                this->_queue,
+                buf.WgpuBuffer,
+                0,
+                data,
+                numBytes);
+        }
 
-    Application *InspectInstance();
-    Application *InspectDevice();
-    Application *InspectAdapter();
-    Application *InspectQueue();
+        template <class T>
+        void WriteBuf(const AppBuffer &buf, T &data)
+        {
+            wgpuQueueWriteBuffer(
+                this->_queue,
+                buf.WgpuBuffer,
+                0,
+                &data,
+                sizeof(T));
+        }
 
-    std::unique_ptr<AppInstance> Instance;
+        template <class T>
+        void WriteVec(const AppBuffer &buf, std::vector<T> &vec)
+        {
+            wgpuQueueWriteBuffer(
+                this->_queue,
+                buf.WgpuBuffer,
+                0,
+                vec.data(),
+                vec.size() * sizeof(T));
+        }
 
-private:
-    void CreateQueue();
+        void SubmitCommandBuffer(AppCommandBuffer &buf);
+        void SetWindow(std::unique_ptr<Pretop::Window::Window> win);
+        void LogQueueCommands();
+        WGPUTextureView GetNextSurfaceTextureView();
+        WGPUTextureFormat WindowFormat;
 
-    bool _logQueueCommands;
-    std::unique_ptr<AppAdapter> _adapter;
-    WGPUQueue _queue;
-    WGPUSurface _windowSurface;
-    std::unique_ptr<Window> _window;
+        Application *InspectInstance();
+        Application *InspectDevice();
+        Application *InspectAdapter();
+        Application *InspectQueue();
 
-public:
-    // This must go after the private section or else the initializer
-    // list order will order the constructors incorrectly
-    std::unique_ptr<AppDevice> Device;
-};
+        std::unique_ptr<AppInstance> Instance;
+
+    private:
+        void CreateQueue();
+
+        bool _logQueueCommands;
+        std::unique_ptr<AppAdapter> _adapter;
+        WGPUQueue _queue;
+        WGPUSurface _windowSurface;
+        std::unique_ptr<Pretop::Window::Window> _window;
+
+    public:
+        // This must go after the private section or else the initializer
+        // list order will order the constructors incorrectly
+        std::unique_ptr<AppDevice> Device;
+    };
+} // namespace Pretop::RHI

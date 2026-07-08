@@ -1,6 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include "../../../Source/Math/Linalg/Mat4x4.hpp"
 
+using namespace Pretop::Math;
+
 TEST_CASE("Mat4x4 Vec4 multiplication works", "[math][linalg][mat4x4]")
 {
     Mat4x4 m{

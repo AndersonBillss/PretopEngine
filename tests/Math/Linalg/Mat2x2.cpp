@@ -1,6 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include "../../../Source/Math/Linalg/Mat2x2.hpp"
 
+using namespace Pretop::Math;
+
 TEST_CASE("Mat2x2 Vec2 multiplication works", "[math][linalg][mat2x2]")
 {
     Mat2x2 m{1.0f, 2.0f,
@@ -33,6 +35,6 @@ TEST_CASE("Mat2x2 transpose works", "[math][linalg][mat2x2]")
     Mat2x2 m{1.0f, 2.0f,
              3.0f, 4.0f};
     Mat2x2 mT{1.0f, 3.0f,
-               2.0f, 4.0f};
+              2.0f, 4.0f};
     REQUIRE(Transpose(m) == mT);
 }

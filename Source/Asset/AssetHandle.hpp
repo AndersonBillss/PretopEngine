@@ -1,74 +1,74 @@
 #pragma once
-
 #include "AssetTypes.hpp"
 #include "Task.hpp"
 
 #include <stdexcept>
 #include <utility>
 
-template <typename T>
-class AssetHandle
+namespace Pretop::Asset
 {
-public:
-    using ValueType = T;
-    using ResultType = AssetResult<T>;
-
-    AssetHandle() = default;
-
-    AssetHandle(AssetId id, AssetKind kind, Task<ResultType> task)
-        : _id(std::move(id))
-        , _kind(kind)
-        , _task(std::move(task))
+    template <typename T>
+    class AssetHandle
     {
-    }
+    public:
+        using ValueType = T;
+        using ResultType = AssetResult<T>;
 
-    const AssetId& Id() const noexcept
-    {
-        return _id;
-    }
+        AssetHandle() = default;
 
-    AssetKind Kind() const noexcept
-    {
-        return _kind;
-    }
-
-    bool Valid() const noexcept
-    {
-        return _task.Valid();
-    }
-
-    bool Ready() const noexcept
-    {
-        return Valid() && _task.Ready();
-    }
-
-    void Wait()
-    {
-        if (!Valid())
+        AssetHandle(AssetId id, AssetKind kind, Task<ResultType> task)
+            : _id(std::move(id)), _kind(kind), _task(std::move(task))
         {
-            throw std::logic_error("AssetHandle is not valid.");
         }
 
-        _task.Wait();
-    }
-
-    ResultType Get()
-    {
-        if (!Valid())
+        const AssetId &Id() const noexcept
         {
-            throw std::logic_error("AssetHandle is not valid.");
+            return _id;
         }
 
-        return _task.Get();
-    }
+        AssetKind Kind() const noexcept
+        {
+            return _kind;
+        }
 
-    explicit operator bool() const noexcept
-    {
-        return Valid();
-    }
+        bool Valid() const noexcept
+        {
+            return _task.Valid();
+        }
 
-private:
-    AssetId _id;
-    AssetKind _kind = AssetKind::Binary;
-    Task<ResultType> _task;
-};
+        bool Ready() const noexcept
+        {
+            return Valid() && _task.Ready();
+        }
+
+        void Wait()
+        {
+            if (!Valid())
+            {
+                throw std::logic_error("AssetHandle is not valid.");
+            }
+
+            _task.Wait();
+        }
+
+        ResultType Get()
+        {
+            if (!Valid())
+            {
+                throw std::logic_error("AssetHandle is not valid.");
+            }
+
+            return _task.Get();
+        }
+
+        explicit operator bool() const noexcept
+        {
+            return Valid();
+        }
+
+    private:
+        AssetId _id;
+        AssetKind _kind = AssetKind::Binary;
+        Task<ResultType> _task;
+    };
+} // namespace Pretop::Asset

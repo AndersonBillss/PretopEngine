@@ -5,38 +5,41 @@
 #include <cstring>
 #include <string>
 #include <cstddef>
-
+#include <vector>
 #include "Device.hpp"
 
-class AppBuffer
+namespace Pretop::RHI
 {
-public:
-    AppBuffer(AppDevice *device, size_t size, WGPUBufferUsage usage)
+    class AppBuffer
     {
-        WGPUBufferDescriptor bufferDesc = WGPU_BUFFER_DESCRIPTOR_INIT;
-        const std::string bufferLabel = "Test index buffer";
-        bufferDesc.label = WGPUStringView{bufferLabel.c_str(), bufferLabel.size()};
-        bufferDesc.usage = usage;
-        bufferDesc.size = size;
-        bufferDesc.mappedAtCreation = false;
-        this->WgpuBuffer = wgpuDeviceCreateBuffer(device->WgpuDevice, &bufferDesc);
-    }
-
-    ~AppBuffer()
-    {
-        wgpuBufferRelease(this->WgpuBuffer);
-    }
-
-    std::vector<uint8_t> ZeroBuffer() const
-    {
-        std::vector<uint8_t> result;
-        size_t numBytes = wgpuBufferGetSize(this->WgpuBuffer);
-        for (size_t i = 0; i < numBytes; i++)
+    public:
+        AppBuffer(AppDevice *device, size_t size, WGPUBufferUsage usage)
         {
-            result.push_back(0);
+            WGPUBufferDescriptor bufferDesc = WGPU_BUFFER_DESCRIPTOR_INIT;
+            const std::string bufferLabel = "Test index buffer";
+            bufferDesc.label = WGPUStringView{bufferLabel.c_str(), bufferLabel.size()};
+            bufferDesc.usage = usage;
+            bufferDesc.size = size;
+            bufferDesc.mappedAtCreation = false;
+            this->WgpuBuffer = wgpuDeviceCreateBuffer(device->WgpuDevice, &bufferDesc);
         }
-        return result;
-    }
 
-    WGPUBuffer WgpuBuffer;
-};
+        ~AppBuffer()
+        {
+            wgpuBufferRelease(this->WgpuBuffer);
+        }
+
+        std::vector<uint8_t> ZeroBuffer() const
+        {
+            std::vector<uint8_t> result;
+            size_t numBytes = wgpuBufferGetSize(this->WgpuBuffer);
+            for (size_t i = 0; i < numBytes; i++)
+            {
+                result.push_back(0);
+            }
+            return result;
+        }
+
+        WGPUBuffer WgpuBuffer;
+    };
+} // namespace Pretop::RHI

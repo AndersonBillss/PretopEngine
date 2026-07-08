@@ -1,5 +1,4 @@
 #include "WEB_AssetLoader.hpp"
-
 #include <cstring>
 #include <fstream>
 #include <iterator>
@@ -15,7 +14,7 @@
 #error "WebAssetLoader should only be compiled for Emscripten builds."
 #endif
 
-namespace
+namespace Pretop::Asset
 {
     template <typename T>
     struct FetchContext
@@ -158,21 +157,21 @@ namespace
 
         return result;
     }
-}
 
-AssetHandle<AssetBytes>
-WebAssetLoader::LoadBinaryAsync(std::string_view path)
-{
-    return LoadImpl<AssetBytes>(path, AssetKind::Binary);
-}
+    AssetHandle<AssetBytes>
+    WebAssetLoader::LoadBinaryAsync(std::string_view path)
+    {
+        return LoadImpl<AssetBytes>(path, AssetKind::Binary);
+    }
 
-AssetHandle<AssetText>
-WebAssetLoader::LoadTextAsync(std::string_view path)
-{
-    TaskCompletion<AssetResult<AssetText>> completion;
-    auto task = completion.CreateTask();
+    AssetHandle<AssetText>
+    WebAssetLoader::LoadTextAsync(std::string_view path)
+    {
+        TaskCompletion<AssetResult<AssetText>> completion;
+        auto task = completion.CreateTask();
 
-    completion.SetResult(ReadTextFromVfs(path));
+        completion.SetResult(ReadTextFromVfs(path));
 
-    return AssetHandle<AssetText>{std::string(path), AssetKind::Text, std::move(task)};
-}
+        return AssetHandle<AssetText>{std::string(path), AssetKind::Text, std::move(task)};
+    }
+} // namespace Pretop::Asset

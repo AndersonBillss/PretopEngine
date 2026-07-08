@@ -4,12 +4,15 @@
 #include "Device.hpp"
 #include "Buffer.hpp"
 
-class AppBindGroup
+namespace Pretop::RHI
 {
-public:
-    AppBindGroup(AppDevice *device,
-                 WGPUBindGroupLayout &layout,
-                 std::vector<WGPUBindGroupEntry> &bindGroupEntries);
-    ~AppBindGroup();
-    WGPUBindGroup WgpuBindGroup;
-};
+    class AppBindGroup
+    {
+    public:
+        AppBindGroup(AppDevice *device,
+                     WGPUBindGroupLayout &layout,
+                     std::vector<WGPUBindGroupEntry> &bindGroupEntries);
+        ~AppBindGroup();
+        WGPUBindGroup WgpuBindGroup;
+    };
+} // namespace Pretop::RHI

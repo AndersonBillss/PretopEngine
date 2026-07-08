@@ -7,12 +7,15 @@
 #include "BindGroup.hpp"
 #include "Buffer.hpp"
 
-class AppBindingLayout
+namespace Pretop::RHI
 {
-public:
-    AppBindingLayout(AppDevice *device, std::initializer_list<std::initializer_list<WGPUBindGroupLayoutEntry>> layoutEntries);
-    ~AppBindingLayout();
+    class AppBindingLayout
+    {
+    public:
+        AppBindingLayout(AppDevice *device, std::initializer_list<std::initializer_list<WGPUBindGroupLayoutEntry>> layoutEntries);
+        ~AppBindingLayout();
 
-    WGPUPipelineLayout WgpuLayout;
-    std::vector<WGPUBindGroupLayout> WgpuBindGroupLayouts;
-};
+        WGPUPipelineLayout WgpuLayout;
+        std::vector<WGPUBindGroupLayout> WgpuBindGroupLayouts;
+    };
+} // namespace Pretop::RHI

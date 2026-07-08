@@ -4,9 +4,12 @@
 #include "Instance.hpp"
 #include "../Asset/AssetLoader.hpp"
 
-class AppShader
+namespace Pretop::RHI
 {
-public:
-    static AppShader Pipeline(AppDevice *device, AppInstance *instance, AssetLoader *assetLoader, std::string_view src);
-    WGPUShaderModule WgpuShader;
-};
+    class AppShader
+    {
+    public:
+        static AppShader Pipeline(AppDevice *device, AppInstance *instance, Asset::AssetLoader *assetLoader, std::string_view src);
+        WGPUShaderModule WgpuShader;
+    };
+} // namespace Pretop::RHI

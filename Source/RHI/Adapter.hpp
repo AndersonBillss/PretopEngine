@@ -4,13 +4,16 @@
 #include <memory>
 #include "Instance.hpp"
 
-class AppAdapter
+namespace Pretop::RHI
 {
-public:
-    using RequestAdapterCallback = std::function<void(std::unique_ptr<AppAdapter>)>;
-    AppAdapter(WGPUAdapter adapter);
-    static void Request(AppInstance *instance, RequestAdapterCallback callback);
-    WGPUAdapter WgpuAdapter;
+    class AppAdapter
+    {
+    public:
+        using RequestAdapterCallback = std::function<void(std::unique_ptr<AppAdapter>)>;
+        AppAdapter(WGPUAdapter adapter);
+        static void Request(AppInstance *instance, RequestAdapterCallback callback);
+        WGPUAdapter WgpuAdapter;
 
-    void Inspect();
-};
+        void Inspect();
+    };
+} // namespace Pretop::RHI

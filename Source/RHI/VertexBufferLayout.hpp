@@ -2,18 +2,20 @@
 #include <initializer_list>
 #include <vector>
 #include <webgpu/webgpu.h>
-
 #include "LayoutType.hpp"
 
-class AppVertexBufferLayout
+namespace Pretop::RHI
 {
-public:
-    AppVertexBufferLayout(std::initializer_list<LayoutType> shape, size_t startLayout);
-    std::vector<WGPUVertexAttribute> WgpuAttrs;
-    size_t ArrayStride;
-    size_t EndLayout;
+    class AppVertexBufferLayout
+    {
+    public:
+        AppVertexBufferLayout(std::initializer_list<LayoutType> shape, size_t startLayout);
+        std::vector<WGPUVertexAttribute> WgpuAttrs;
+        size_t ArrayStride;
+        size_t EndLayout;
 
-private:
-    WGPUVertexFormat GetFmt(LayoutType attrType);
-    size_t GetSize(LayoutType numType);
-};
+    private:
+        WGPUVertexFormat GetFmt(LayoutType attrType);
+        size_t GetSize(LayoutType numType);
+    };
+} // namespace Pretop::RHI

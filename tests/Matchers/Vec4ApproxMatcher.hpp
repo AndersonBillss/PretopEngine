@@ -3,6 +3,8 @@
 #include <sstream>
 #include "../../Source/Math/Linalg/Vec4.hpp"
 
+using Pretop::Math::Vec4;
+
 class Vec4ApproxMatcher : public Catch::Matchers::MatcherBase<Vec4>
 {
     Vec4 _expected;

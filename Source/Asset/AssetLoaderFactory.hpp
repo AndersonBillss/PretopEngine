@@ -3,7 +3,10 @@
 #include <string>
 #include "AssetLoader.hpp"
 
-namespace AssetLoaderFactory
+namespace Pretop::Asset
 {
-    std::unique_ptr<AssetLoader> CreateAssetLoader();
-}
+    namespace AssetLoaderFactory
+    {
+        std::unique_ptr<AssetLoader> CreateAssetLoader();
+    }
+} // namespace Pretop::Asset

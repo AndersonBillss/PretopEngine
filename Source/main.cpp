@@ -2,5 +2,5 @@
 
 int main(int, char **)
 {
-    return LoadModel();
+    return Pretop::Demos::LoadModel();
 }

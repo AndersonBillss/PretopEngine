@@ -1,10 +1,13 @@
 #include "PrintStringView.hpp"
 
-std::ostream &operator<<(std::ostream &os, WGPUStringView stringView)
+namespace Pretop
 {
-    for (size_t i = 0; i < stringView.length; i++)
+    std::ostream &operator<<(std::ostream &os, WGPUStringView stringView)
     {
-        os << stringView.data[i];
+        for (size_t i = 0; i < stringView.length; i++)
+        {
+            os << stringView.data[i];
+        }
+        return os;
     }
-    return os;
-}
+} // namespace Pretop

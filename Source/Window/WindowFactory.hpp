@@ -3,8 +3,11 @@
 #include <string>
 #include "Window.hpp"
 
-namespace WindowFactory
+namespace Pretop::Window
 {
-    std::unique_ptr<Window> CreateWindow(int width, int height, std::string title);
-    std::unique_ptr<Window> CreateWindow(std::string title);
-}
+    namespace WindowFactory
+    {
+        std::unique_ptr<Window> CreateWindow(int width, int height, std::string title);
+        std::unique_ptr<Window> CreateWindow(std::string title);
+    }
+} // namespace Pretop::Window

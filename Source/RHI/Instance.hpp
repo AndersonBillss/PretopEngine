@@ -1,12 +1,15 @@
 #pragma once
 #include <webgpu/webgpu.h>
 
-class AppInstance
+namespace Pretop::RHI
 {
-public:
-    AppInstance();
-    WGPUInstance WgpuInstance;
+    class AppInstance
+    {
+    public:
+        AppInstance();
+        WGPUInstance WgpuInstance;
 
-private:
-    WGPUInstance CreateInstance();
-};
+    private:
+        WGPUInstance CreateInstance();
+    };
+} // namespace Pretop::RHI

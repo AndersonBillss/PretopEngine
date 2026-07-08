@@ -3,13 +3,16 @@
 #include "Device.hpp"
 #include "Pipeline.hpp"
 
-class AppRenderPassCommand
+namespace Pretop::RHI
 {
-public:
-    AppRenderPassCommand(
-        AppDevice *device,
-        WGPUTextureView targetView,
-        WGPURenderPassDepthStencilAttachment &depthStencilAttachment);
-    WGPURenderPassDescriptor WgpuRenderPassDescriptor;
-    WGPURenderPassColorAttachment WgpuRenderPassColorAttachment;
-};
+    class AppRenderPassCommand
+    {
+    public:
+        AppRenderPassCommand(
+            AppDevice *device,
+            WGPUTextureView targetView,
+            WGPURenderPassDepthStencilAttachment &depthStencilAttachment);
+        WGPURenderPassDescriptor WgpuRenderPassDescriptor;
+        WGPURenderPassColorAttachment WgpuRenderPassColorAttachment;
+    };
+} // namespace Pretop::RHI

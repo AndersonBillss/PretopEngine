@@ -1,23 +1,26 @@
 #pragma once
 #include <ostream>
 
-struct Vec4
+namespace Pretop::Math
 {
-    float X;
-    float Y;
-    float Z;
-    float W;
+    struct Vec4
+    {
+        float X;
+        float Y;
+        float Z;
+        float W;
 
-    float Dot(const Vec4 &rhs) const;
-    float Length() const;
-    void Normalize();
-    Vec4 Normalized() const;
-    bool NearlyEquals(const Vec4 &rhs, float epsilon = 1e-5f) const;
-};
+        float Dot(const Vec4 &rhs) const;
+        float Length() const;
+        void Normalize();
+        Vec4 Normalized() const;
+        bool NearlyEquals(const Vec4 &rhs, float epsilon = 1e-5f) const;
+    };
 
-Vec4 operator+(const Vec4 &lhs, const Vec4 &rhs);
-void operator+=(Vec4 &lhs, const Vec4 &rhs);
-Vec4 operator-(const Vec4 &lhs, const Vec4 &rhs);
-void operator-=(Vec4 &lhs, const Vec4 &rhs);
-bool operator==(const Vec4 &lhs, const Vec4 &rhs);
-std::ostream &operator<<(std::ostream &os, const Vec4 &v);
+    Vec4 operator+(const Vec4 &lhs, const Vec4 &rhs);
+    void operator+=(Vec4 &lhs, const Vec4 &rhs);
+    Vec4 operator-(const Vec4 &lhs, const Vec4 &rhs);
+    void operator-=(Vec4 &lhs, const Vec4 &rhs);
+    bool operator==(const Vec4 &lhs, const Vec4 &rhs);
+    std::ostream &operator<<(std::ostream &os, const Vec4 &v);
+} // namespace Pretop::Math
