@@ -112,12 +112,12 @@ namespace Pretop::RHI
                                          void *userDataPointer,
                                          void *)
         {
-            AdapterRequestUserData userData = *reinterpret_cast<AdapterRequestUserData *>(userDataPointer);
+            AdapterRequestUserData *userData = reinterpret_cast<AdapterRequestUserData *>(userDataPointer);
             if (status == WGPURequestAdapterStatus_Success)
             {
                 std::unique_ptr<AppAdapter> result = std::make_unique<AppAdapter>(adapter);
-                userData.Callback(std::move(result));
-                free(userDataPointer);
+                userData->Callback(std::move(result));
+                delete userData;
             }
             else
             {

@@ -5,25 +5,27 @@
 
 namespace Pretop::RHI
 {
-    Application::Application()
+    Application::Application(StartupCallback callback)
     {
+        this->_startupCallback = callback;
         this->_logQueueCommands = false;
         this->Instance = nullptr;
         this->_adapter = nullptr;
-        this->_adapter = nullptr;
+        this->Device = nullptr;
     }
 
-    void Application::Initialize(StartupCallback callback)
+    void Application::Create(StartupCallback callback)
     {
-        this->Instance = std::make_unique<AppInstance>();
-        AppAdapter::Request(this->Instance.get(), [&](std::unique_ptr<AppAdapter> adapter)
+        Application *application = new Application(callback);
+        application->Instance = std::make_unique<AppInstance>();
+        AppAdapter::Request(application->Instance.get(), [application](std::unique_ptr<AppAdapter> adapter)
                             {
-        this->_adapter = std::move(adapter);
-        AppDevice::Request(this->Instance.get(), this->_adapter.get(), [&](std::unique_ptr<AppDevice> device) {
-            this->Device = std::move(device);
-            CreateQueue();
-            callback(*this);
-        }); });
+            application->_adapter = std::move(adapter);
+            AppDevice::Request(application->Instance.get(), application->_adapter.get(), [application](std::unique_ptr<AppDevice> device) {
+                application->Device = std::move(device);
+                application->CreateQueue();
+                application->_startupCallback(*application);
+            }); });
     }
 
     void Application::Run(TickCallback callback)
@@ -74,12 +76,13 @@ namespace Pretop::RHI
 
         _window->SetOnExit([this]()
                            {
-    wgpuSurfaceUnconfigure(this->_windowSurface);
-    wgpuQueueRelease(this->_queue);
-    wgpuSurfaceRelease(this->_windowSurface);
-    wgpuDeviceRelease(this->Device->WgpuDevice);
-    wgpuAdapterRelease(this->_adapter->WgpuAdapter);
-    wgpuInstanceRelease(this->Instance->WgpuInstance); });
+            wgpuSurfaceUnconfigure(this->_windowSurface);
+            wgpuQueueRelease(this->_queue);
+            wgpuSurfaceRelease(this->_windowSurface);
+            wgpuDeviceRelease(this->Device->WgpuDevice);
+            wgpuAdapterRelease(this->_adapter->WgpuAdapter);
+            wgpuInstanceRelease(this->Instance->WgpuInstance); 
+            this->_cleanup(); });
     }
 
     void Application::CreateQueue()
@@ -114,6 +117,11 @@ namespace Pretop::RHI
             /* userdata1 */ this,
             /* userdata2 */ nullptr};
         wgpuQueueOnSubmittedWorkDone(this->_queue, workQueueWorkDoneCb);
+    }
+
+    void Application::_cleanup()
+    {
+        delete this;
     }
 
     void Application::LogQueueCommands()

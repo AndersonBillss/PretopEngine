@@ -19,9 +19,7 @@ namespace Pretop::RHI
         using TickCallback = std::function<void(double dt, WGPUTextureView targetView)>;
         using StartupCallback = std::function<void(Application &app)>;
 
-        Application();
-
-        void Initialize(StartupCallback callback);
+        static void Create(StartupCallback callback);
         void Run(TickCallback callback);
 
         void WriteBufZero(const AppBuffer &buf)
@@ -80,9 +78,12 @@ namespace Pretop::RHI
         std::unique_ptr<AppInstance> Instance;
 
     private:
+        Application(StartupCallback callback);
         void CreateQueue();
+        void _cleanup();
 
         bool _logQueueCommands;
+        StartupCallback _startupCallback;
         std::unique_ptr<AppAdapter> _adapter;
         WGPUQueue _queue;
         WGPUSurface _windowSurface;

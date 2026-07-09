@@ -168,8 +168,7 @@ namespace Pretop::Demos
     int LoadModel()
     {
         std::cout << "Hello, WebGPU!!" << std::endl;
-        Application application;
-        application.Initialize(Start);
+        Application::Create(Start);
         return 0;
     }
 } // namespace Pretop::Demos

@@ -23,12 +23,12 @@ namespace Pretop::RHI
                                             void *userDataPointer,
                                             void *)
         {
-            DeviceRequestUserData userData = *reinterpret_cast<DeviceRequestUserData *>(userDataPointer);
+            DeviceRequestUserData *userData = reinterpret_cast<DeviceRequestUserData *>(userDataPointer);
             if (status == WGPURequestDeviceStatus_Success)
             {
                 std::unique_ptr<AppDevice> appDevice = std::make_unique<AppDevice>(device);
-                userData.Callback(std::move(appDevice));
-                free(userDataPointer);
+                userData->Callback(std::move(appDevice));
+                delete userData;
             }
             else
             {
