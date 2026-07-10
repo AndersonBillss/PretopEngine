@@ -12,12 +12,12 @@
 
 namespace Pretop::RHI
 {
-    class AppCommandBuffer
+    class CommandBuffer
     {
     public:
-        AppCommandBuffer(AppDevice *device);
-        ~AppCommandBuffer();
-        std::unique_ptr<AppRenderPassEncoder> AddCommand(AppRenderPassCommand &command);
+        CommandBuffer(Device *device);
+        ~CommandBuffer();
+        std::unique_ptr<RenderPassEncoder> AddCommand(RenderPassCommand &command);
 
         void Finish();
         WGPUCommandEncoder WgpuEncoder;

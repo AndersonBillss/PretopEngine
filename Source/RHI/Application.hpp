@@ -22,7 +22,7 @@ namespace Pretop::RHI
         static void Create(StartupCallback callback);
         void Run(TickCallback callback);
 
-        void WriteBufZero(const AppBuffer &buf)
+        void WriteBufZero(const Buffer &buf)
         {
             std::vector<uint8_t> data = buf.ZeroBuffer();
             wgpuQueueWriteBuffer(
@@ -32,7 +32,7 @@ namespace Pretop::RHI
                 data.data(),
                 data.size());
         }
-        void WriteBuf(const AppBuffer &buf, void *data, size_t numBytes)
+        void WriteBuf(const Buffer &buf, void *data, size_t numBytes)
         {
             wgpuQueueWriteBuffer(
                 this->_queue,
@@ -43,7 +43,7 @@ namespace Pretop::RHI
         }
 
         template <class T>
-        void WriteBuf(const AppBuffer &buf, T &data)
+        void WriteBuf(const Buffer &buf, T &data)
         {
             wgpuQueueWriteBuffer(
                 this->_queue,
@@ -54,7 +54,7 @@ namespace Pretop::RHI
         }
 
         template <class T>
-        void WriteVec(const AppBuffer &buf, std::vector<T> &vec)
+        void WriteVec(const Buffer &buf, std::vector<T> &vec)
         {
             wgpuQueueWriteBuffer(
                 this->_queue,
@@ -64,7 +64,7 @@ namespace Pretop::RHI
                 vec.size() * sizeof(T));
         }
 
-        void SubmitCommandBuffer(AppCommandBuffer &buf);
+        void SubmitCommandBuffer(CommandBuffer &buf);
         void SetWindow(std::unique_ptr<Pretop::Window::Window> win);
         void LogQueueCommands();
         WGPUTextureView GetNextSurfaceTextureView();
@@ -75,7 +75,7 @@ namespace Pretop::RHI
         Application *InspectAdapter();
         Application *InspectQueue();
 
-        std::unique_ptr<AppInstance> Instance;
+        std::unique_ptr<Instance> Instance;
 
     private:
         Application(StartupCallback callback);
@@ -83,7 +83,7 @@ namespace Pretop::RHI
 
         bool _logQueueCommands;
         StartupCallback _startupCallback;
-        std::unique_ptr<AppAdapter> _adapter;
+        std::unique_ptr<Adapter> _adapter;
         WGPUQueue _queue;
         WGPUSurface _windowSurface;
         std::unique_ptr<Pretop::Window::Window> _window;
@@ -91,6 +91,6 @@ namespace Pretop::RHI
     public:
         // This must go after the private section or else the initializer
         // list order will order the constructors incorrectly
-        std::unique_ptr<AppDevice> Device;
+        std::unique_ptr<Device> Device;
     };
 } // namespace Pretop::RHI

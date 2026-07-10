@@ -4,8 +4,8 @@
 
 namespace Pretop::RHI
 {
-    AppBindGroup::AppBindGroup(
-        AppDevice *device,
+    BindGroup::BindGroup(
+        Device *device,
         WGPUBindGroupLayout &layout,
         std::vector<WGPUBindGroupEntry> &bindGroupEntries)
     {
@@ -19,7 +19,7 @@ namespace Pretop::RHI
         this->WgpuBindGroup = wgpuDeviceCreateBindGroup(device->WgpuDevice, &bindGroupDesc);
     }
 
-    AppBindGroup::~AppBindGroup()
+    BindGroup::~BindGroup()
     {
         wgpuBindGroupRelease(WgpuBindGroup);
     }

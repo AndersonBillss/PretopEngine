@@ -8,16 +8,16 @@
 
 namespace Pretop::RHI
 {
-    class AppPipeline
+    class Pipeline
     {
     public:
-        AppPipeline(
-            AppDevice *device,
-            AppShader &shader,
+        Pipeline(
+            Device *device,
+            Shader &shader,
             WGPUTextureFormat format,
-            AppVertexLayout &vertexLayout,
-            AppBindingLayout &pipelineLayout);
-        ~AppPipeline();
+            VertexLayout &vertexLayout,
+            BindingLayout &pipelineLayout);
+        ~Pipeline();
 
         WGPURenderPassDepthStencilAttachment WgpuDepthStencilAttachment;
         WGPURenderPipeline WgpuPipeline;

@@ -66,9 +66,9 @@ namespace Pretop::Demos
         application.LogQueueCommands();
         application.SetWindow(WindowFactory::CreateWindow("My Window"));
 
-        AppShader shader = AppShader::Pipeline(application.Device.get(), application.Instance.get(), assetLoader.get(), "shaders/shader.wgsl");
+        Shader shader = Shader::Pipeline(application.Device.get(), application.Instance.get(), assetLoader.get(), "shaders/shader.wgsl");
 
-        AppBuffer vertices(application.Device.get(), model.Vertices.size() * sizeof(Vertex), WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex);
+        Buffer vertices(application.Device.get(), model.Vertices.size() * sizeof(Vertex), WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex);
         application.WriteVec(vertices, model.Vertices);
 
         uint32_t indicesSize = 0;
@@ -83,7 +83,7 @@ namespace Pretop::Demos
             std::vector<uint16_t> indicesVec = std::get<std::vector<uint16_t>>(model.Indices);
             indicesSize = indicesVec.size() * sizeof(uint16_t);
         }
-        AppBuffer indices(application.Device.get(), indicesSize, WGPUBufferUsage_CopyDst | WGPUBufferUsage_Index);
+        Buffer indices(application.Device.get(), indicesSize, WGPUBufferUsage_CopyDst | WGPUBufferUsage_Index);
         if (is32bitIndexBuffer)
         {
             std::vector<uint32_t> indicesVec = std::get<std::vector<uint32_t>>(model.Indices);
@@ -94,7 +94,7 @@ namespace Pretop::Demos
             std::vector<uint16_t> indicesVec = std::get<std::vector<uint16_t>>(model.Indices);
             application.WriteVec(indices, indicesVec);
         }
-        AppVertexLayout vertexLayout = {{LayoutType::Float32x3, LayoutType::Float32x3}};
+        VertexLayout vertexLayout = {{LayoutType::Float32x3, LayoutType::Float32x3}};
 
         WGPUBindGroupLayoutEntry bindingLayoutEntry = WGPU_BIND_GROUP_LAYOUT_ENTRY_INIT;
         bindingLayoutEntry.binding = 0;
@@ -102,16 +102,16 @@ namespace Pretop::Demos
         bindingLayoutEntry.buffer.minBindingSize = sizeof(MyUniforms);
         bindingLayoutEntry.buffer.hasDynamicOffset = true;
         bindingLayoutEntry.visibility = WGPUShaderStage_Vertex;
-        AppBindingLayout bindingLayout(application.Device.get(), {{bindingLayoutEntry}});
+        BindingLayout bindingLayout(application.Device.get(), {{bindingLayoutEntry}});
 
-        AppPipeline pipeline(application.Device.get(), shader, application.WindowFormat, vertexLayout, bindingLayout);
-        AppBuffer myUniformBuffer(application.Device.get(), sizeof(MyUniforms), WGPUBufferUsage_CopyDst | WGPUBufferUsage_Uniform);
+        Pipeline pipeline(application.Device.get(), shader, application.WindowFormat, vertexLayout, bindingLayout);
+        Buffer myUniformBuffer(application.Device.get(), sizeof(MyUniforms), WGPUBufferUsage_CopyDst | WGPUBufferUsage_Uniform);
 
         std::vector<WGPUBindGroupEntry> bindings = {WGPU_BIND_GROUP_ENTRY_INIT};
         bindings[0].binding = 0;
         bindings[0].buffer = myUniformBuffer.WgpuBuffer;
         bindings[0].size = sizeof(MyUniforms);
-        AppBindGroup bindGroup(application.Device.get(), bindingLayout.WgpuBindGroupLayouts[0], bindings);
+        BindGroup bindGroup(application.Device.get(), bindingLayout.WgpuBindGroupLayouts[0], bindings);
         application.WriteBufZero(myUniformBuffer);
 
         float seconds = 0;
@@ -137,10 +137,10 @@ namespace Pretop::Demos
                         u.ProjectionMatrix = Mat4x4::Perspective(near, far, 60.0f * Deg2Rad, 640.0 / 480.0);
                         application.WriteBuf(myUniformBuffer, u);
 
-                        AppCommandBuffer commandBuffer(application.Device.get());
+                        CommandBuffer commandBuffer(application.Device.get());
                         std::cout << "DELTATIME: " << dt << std::endl;
-                        AppRenderPassCommand command(application.Device.get(), targetView, pipeline.WgpuDepthStencilAttachment);
-                        std::vector<AppBuffer *> bufs = {&vertices};
+                        RenderPassCommand command(application.Device.get(), targetView, pipeline.WgpuDepthStencilAttachment);
+                        std::vector<Buffer *> bufs = {&vertices};
 
                         auto cmd = commandBuffer.AddCommand(command);
                         cmd->SetPipeline(pipeline)

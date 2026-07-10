@@ -5,16 +5,16 @@
 
 namespace Pretop::RHI
 {
-    AppDevice::AppDevice(WGPUDevice device)
+    Device::Device(WGPUDevice device)
     {
         this->WgpuDevice = device;
     }
 
     struct DeviceRequestUserData
     {
-        AppDevice::RequestDeviceCallback Callback;
+        Device::RequestDeviceCallback Callback;
     };
-    void AppDevice::Request(const AppInstance *instance, const AppAdapter *adapter, RequestDeviceCallback callback)
+    void Device::Request(const Instance *instance, const Adapter *adapter, RequestDeviceCallback callback)
     {
         auto onDescriptorRequestEnded = [](
                                             WGPURequestDeviceStatus status,
@@ -26,7 +26,7 @@ namespace Pretop::RHI
             DeviceRequestUserData *userData = reinterpret_cast<DeviceRequestUserData *>(userDataPointer);
             if (status == WGPURequestDeviceStatus_Success)
             {
-                std::unique_ptr<AppDevice> appDevice = std::make_unique<AppDevice>(device);
+                std::unique_ptr<Device> appDevice = std::make_unique<Device>(device);
                 userData->Callback(std::move(appDevice));
                 delete userData;
             }
@@ -51,7 +51,7 @@ namespace Pretop::RHI
             info);
     }
 
-    void AppDevice::Inspect()
+    void Device::Inspect()
     {
         WGPULimits limits = WGPU_LIMITS_INIT;
         bool success = wgpuDeviceGetLimits(this->WgpuDevice, &limits) == WGPUStatus_Success;
@@ -74,7 +74,7 @@ namespace Pretop::RHI
     {
         std::cout << "WGPU device error: " << message << std::endl;
     }
-    WGPUDeviceDescriptor AppDevice::CreateDeviceDescriptor(const AppInstance *instance, const AppAdapter *adapter)
+    WGPUDeviceDescriptor Device::CreateDeviceDescriptor(const Instance *instance, const Adapter *adapter)
     {
         WGPUDeviceDescriptor deviceDescriptor = WGPU_DEVICE_DESCRIPTOR_INIT;
         WGPUDeviceLostCallbackInfo deviceLostCb = {

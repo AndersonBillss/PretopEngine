@@ -6,12 +6,12 @@
 
 namespace Pretop::RHI
 {
-    class AppAdapter
+    class Adapter
     {
     public:
-        using RequestAdapterCallback = std::function<void(std::unique_ptr<AppAdapter>)>;
-        AppAdapter(WGPUAdapter adapter);
-        static void Request(AppInstance *instance, RequestAdapterCallback callback);
+        using RequestAdapterCallback = std::function<void(std::unique_ptr<Adapter>)>;
+        Adapter(WGPUAdapter adapter);
+        static void Request(Instance *instance, RequestAdapterCallback callback);
         WGPUAdapter WgpuAdapter;
 
         void Inspect();

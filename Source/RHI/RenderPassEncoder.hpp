@@ -7,17 +7,17 @@
 
 namespace Pretop::RHI
 {
-    class AppRenderPassEncoder
+    class RenderPassEncoder
     {
     public:
-        AppRenderPassEncoder(WGPUCommandEncoder &encoder, WGPURenderPassDescriptor &renderPass);
-        AppRenderPassEncoder &SetPipeline(AppPipeline &pipeline);
-        AppRenderPassEncoder &SetVertexBuffers(std::vector<AppBuffer *> &vertexBuffers);
-        AppRenderPassEncoder &SetBindGroups(std::vector<std::unique_ptr<AppBindGroup>> &bindGroups);
-        AppRenderPassEncoder &SetBindGroup(AppBindGroup *bindGroup, size_t groupIndex, std::vector<uint32_t> dynamicOffset);
-        AppRenderPassEncoder &SetBindGroup(AppBindGroup *bindGroup, size_t groupIndex);
-        AppRenderPassEncoder &Draw(size_t vertexCount);
-        AppRenderPassEncoder &DrawIndexed(AppBuffer &indexBuffer,
+        RenderPassEncoder(WGPUCommandEncoder &encoder, WGPURenderPassDescriptor &renderPass);
+        RenderPassEncoder &SetPipeline(Pipeline &pipeline);
+        RenderPassEncoder &SetVertexBuffers(std::vector<Buffer *> &vertexBuffers);
+        RenderPassEncoder &SetBindGroups(std::vector<std::unique_ptr<BindGroup>> &bindGroups);
+        RenderPassEncoder &SetBindGroup(BindGroup *bindGroup, size_t groupIndex, std::vector<uint32_t> dynamicOffset);
+        RenderPassEncoder &SetBindGroup(BindGroup *bindGroup, size_t groupIndex);
+        RenderPassEncoder &Draw(size_t vertexCount);
+        RenderPassEncoder &DrawIndexed(Buffer &indexBuffer,
                                           size_t indexCount,
                                           WGPUIndexFormat indexFormat);
         void Finish();

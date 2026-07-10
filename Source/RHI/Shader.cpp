@@ -4,7 +4,7 @@
 
 namespace Pretop::RHI
 {
-    AppShader AppShader::Pipeline(AppDevice *device, AppInstance *instance, Asset::AssetLoader *assetLoader, std::string_view src)
+    Shader Shader::Pipeline(Device *device, Instance *instance, Asset::AssetLoader *assetLoader, std::string_view src)
     {
         auto compilationCallbackInfo = [](
                                            WGPUCompilationInfoRequestStatus,
@@ -22,7 +22,7 @@ namespace Pretop::RHI
             }
         };
 
-        AppShader result;
+        Shader result;
         WGPUShaderSourceWGSL shaderWGSL = WGPU_SHADER_SOURCE_WGSL_INIT;
         shaderWGSL.chain.sType = WGPUSType_ShaderSourceWGSL;
 

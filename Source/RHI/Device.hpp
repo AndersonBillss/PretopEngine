@@ -7,16 +7,16 @@
 
 namespace Pretop::RHI
 {
-    class AppDevice
+    class Device
     {
     public:
-        using RequestDeviceCallback = std::function<void(std::unique_ptr<AppDevice>)>;
-        AppDevice(WGPUDevice device);
-        static void Request(const AppInstance *instance, const AppAdapter *adapter, RequestDeviceCallback callback);
+        using RequestDeviceCallback = std::function<void(std::unique_ptr<Device>)>;
+        Device(WGPUDevice device);
+        static void Request(const Instance *instance, const Adapter *adapter, RequestDeviceCallback callback);
         void Inspect();
         WGPUDevice WgpuDevice;
 
     private:
-        static WGPUDeviceDescriptor CreateDeviceDescriptor(const AppInstance *instance, const AppAdapter *adapter);
+        static WGPUDeviceDescriptor CreateDeviceDescriptor(const Instance *instance, const Adapter *adapter);
     };
 } // namespace Pretop::RHI

@@ -5,10 +5,10 @@
 
 namespace Pretop::RHI
 {
-    class AppVertexLayout
+    class VertexLayout
     {
     public:
-        AppVertexLayout(std::initializer_list<std::initializer_list<LayoutType>> layout);
-        std::vector<AppVertexBufferLayout> BufferLayouts;
+        VertexLayout(std::initializer_list<std::initializer_list<LayoutType>> layout);
+        std::vector<VertexBufferLayout> BufferLayouts;
     };
 } // namespace Pretop::RHI

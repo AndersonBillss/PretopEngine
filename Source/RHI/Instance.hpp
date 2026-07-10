@@ -3,10 +3,10 @@
 
 namespace Pretop::RHI
 {
-    class AppInstance
+    class Instance
     {
     public:
-        AppInstance();
+        Instance();
         WGPUInstance WgpuInstance;
 
     private:

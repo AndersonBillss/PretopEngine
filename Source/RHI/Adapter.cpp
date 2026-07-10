@@ -93,7 +93,7 @@ namespace Pretop::RHI
 #endif // not __EMSCRIPTEN__
     };
 
-    AppAdapter::AppAdapter(WGPUAdapter adapter)
+    Adapter::Adapter(WGPUAdapter adapter)
     {
         WGPURequestAdapterOptions adapterOpts = WGPU_REQUEST_ADAPTER_OPTIONS_INIT;
         this->WgpuAdapter = adapter;
@@ -101,9 +101,9 @@ namespace Pretop::RHI
 
     struct AdapterRequestUserData
     {
-        AppAdapter::RequestAdapterCallback Callback;
+        Adapter::RequestAdapterCallback Callback;
     };
-    void AppAdapter::Request(AppInstance *instance, RequestAdapterCallback callback)
+    void Adapter::Request(Instance *instance, RequestAdapterCallback callback)
     {
         auto onAdapterRequestEnded = [](
                                          WGPURequestAdapterStatus status,
@@ -115,7 +115,7 @@ namespace Pretop::RHI
             AdapterRequestUserData *userData = reinterpret_cast<AdapterRequestUserData *>(userDataPointer);
             if (status == WGPURequestAdapterStatus_Success)
             {
-                std::unique_ptr<AppAdapter> result = std::make_unique<AppAdapter>(adapter);
+                std::unique_ptr<Adapter> result = std::make_unique<Adapter>(adapter);
                 userData->Callback(std::move(result));
                 delete userData;
             }
@@ -141,7 +141,7 @@ namespace Pretop::RHI
         wgpuInstanceRequestAdapter(instance->WgpuInstance, &adapterOpts, info);
     }
 
-    void AppAdapter::Inspect()
+    void Adapter::Inspect()
     {
         WGPULimits supportedLimits = {};
         supportedLimits.nextInChain = nullptr;

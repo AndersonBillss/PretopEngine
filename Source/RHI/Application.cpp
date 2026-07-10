@@ -17,11 +17,11 @@ namespace Pretop::RHI
     void Application::Create(StartupCallback callback)
     {
         Application *application = new Application(callback);
-        application->Instance = std::make_unique<AppInstance>();
-        AppAdapter::Request(application->Instance.get(), [application](std::unique_ptr<AppAdapter> adapter)
+        application->Instance = std::make_unique<Instance>();
+        Adapter::Request(application->Instance.get(), [application](std::unique_ptr<Adapter> adapter)
                             {
             application->_adapter = std::move(adapter);
-            AppDevice::Request(application->Instance.get(), application->_adapter.get(), [application](std::unique_ptr<AppDevice> device) {
+            Device::Request(application->Instance.get(), application->_adapter.get(), [application](std::unique_ptr<Device> device) {
                 application->Device = std::move(device);
                 application->CreateQueue();
                 application->_startupCallback(*application);
@@ -46,7 +46,7 @@ namespace Pretop::RHI
         _window->Run();
     }
 
-    void Application::SubmitCommandBuffer(AppCommandBuffer &buf)
+    void Application::SubmitCommandBuffer(CommandBuffer &buf)
     {
         wgpuQueueSubmit(this->_queue, 1, &buf.WgpuBuffer);
     }

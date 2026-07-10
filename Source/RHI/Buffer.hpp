@@ -10,10 +10,10 @@
 
 namespace Pretop::RHI
 {
-    class AppBuffer
+    class Buffer
     {
     public:
-        AppBuffer(AppDevice *device, size_t size, WGPUBufferUsage usage)
+        Buffer(Device *device, size_t size, WGPUBufferUsage usage)
         {
             WGPUBufferDescriptor bufferDesc = WGPU_BUFFER_DESCRIPTOR_INIT;
             const std::string bufferLabel = "Test index buffer";
@@ -24,7 +24,7 @@ namespace Pretop::RHI
             this->WgpuBuffer = wgpuDeviceCreateBuffer(device->WgpuDevice, &bufferDesc);
         }
 
-        ~AppBuffer()
+        ~Buffer()
         {
             wgpuBufferRelease(this->WgpuBuffer);
         }

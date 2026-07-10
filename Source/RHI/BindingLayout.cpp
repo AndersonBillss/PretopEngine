@@ -2,8 +2,8 @@
 
 namespace Pretop::RHI
 {
-    AppBindingLayout::AppBindingLayout(
-        AppDevice *device, std::initializer_list<std::initializer_list<WGPUBindGroupLayoutEntry>> layoutEntries)
+    BindingLayout::BindingLayout(
+        Device *device, std::initializer_list<std::initializer_list<WGPUBindGroupLayoutEntry>> layoutEntries)
     {
         for (const auto &bindGroupLayouts : layoutEntries)
         {
@@ -25,7 +25,7 @@ namespace Pretop::RHI
         this->WgpuLayout = wgpuDeviceCreatePipelineLayout(device->WgpuDevice, &layoutDesc);
     }
 
-    AppBindingLayout::~AppBindingLayout()
+    BindingLayout::~BindingLayout()
     {
         wgpuPipelineLayoutRelease(this->WgpuLayout);
         for (const auto &bindGroupLayout : this->WgpuBindGroupLayouts)

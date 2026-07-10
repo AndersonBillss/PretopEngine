@@ -4,7 +4,7 @@
 
 namespace Pretop::RHI
 {
-    AppVertexBufferLayout::AppVertexBufferLayout(std::initializer_list<LayoutType> shape, size_t startLayout = 0)
+    VertexBufferLayout::VertexBufferLayout(std::initializer_list<LayoutType> shape, size_t startLayout = 0)
     {
         size_t i = startLayout;
         size_t totalOffset = 0;
@@ -22,7 +22,7 @@ namespace Pretop::RHI
         this->ArrayStride = totalOffset;
     };
 
-    WGPUVertexFormat AppVertexBufferLayout::GetFmt(LayoutType attrType)
+    WGPUVertexFormat VertexBufferLayout::GetFmt(LayoutType attrType)
     {
         const std::unordered_map<size_t, WGPUVertexFormat> toWGUFmt = {
             {Uint8, WGPUVertexFormat_Uint8},
@@ -73,7 +73,7 @@ namespace Pretop::RHI
         return it->second;
     }
 
-    size_t AppVertexBufferLayout::GetSize(LayoutType numType)
+    size_t VertexBufferLayout::GetSize(LayoutType numType)
     {
         const std::unordered_map<size_t, size_t> nTypeToSize = {
             {Uint8, 1 * 1},

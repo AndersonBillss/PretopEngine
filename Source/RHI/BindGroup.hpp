@@ -6,13 +6,13 @@
 
 namespace Pretop::RHI
 {
-    class AppBindGroup
+    class BindGroup
     {
     public:
-        AppBindGroup(AppDevice *device,
+        BindGroup(Device *device,
                      WGPUBindGroupLayout &layout,
                      std::vector<WGPUBindGroupEntry> &bindGroupEntries);
-        ~AppBindGroup();
+        ~BindGroup();
         WGPUBindGroup WgpuBindGroup;
     };
 } // namespace Pretop::RHI

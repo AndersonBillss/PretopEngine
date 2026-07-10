@@ -6,10 +6,10 @@
 
 namespace Pretop::RHI
 {
-    class AppShader
+    class Shader
     {
     public:
-        static AppShader Pipeline(AppDevice *device, AppInstance *instance, Asset::AssetLoader *assetLoader, std::string_view src);
+        static Shader Pipeline(Device *device, Instance *instance, Asset::AssetLoader *assetLoader, std::string_view src);
         WGPUShaderModule WgpuShader;
     };
 } // namespace Pretop::RHI

@@ -6,10 +6,10 @@
 
 namespace Pretop::RHI
 {
-    class AppVertexBufferLayout
+    class VertexBufferLayout
     {
     public:
-        AppVertexBufferLayout(std::initializer_list<LayoutType> shape, size_t startLayout);
+        VertexBufferLayout(std::initializer_list<LayoutType> shape, size_t startLayout);
         std::vector<WGPUVertexAttribute> WgpuAttrs;
         size_t ArrayStride;
         size_t EndLayout;

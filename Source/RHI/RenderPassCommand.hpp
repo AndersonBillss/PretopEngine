@@ -5,11 +5,11 @@
 
 namespace Pretop::RHI
 {
-    class AppRenderPassCommand
+    class RenderPassCommand
     {
     public:
-        AppRenderPassCommand(
-            AppDevice *device,
+        RenderPassCommand(
+            Device *device,
             WGPUTextureView targetView,
             WGPURenderPassDepthStencilAttachment &depthStencilAttachment);
         WGPURenderPassDescriptor WgpuRenderPassDescriptor;

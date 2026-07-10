@@ -3,12 +3,12 @@
 
 namespace Pretop::RHI
 {
-    AppInstance::AppInstance()
+    Instance::Instance()
     {
         this->WgpuInstance = CreateInstance();
     }
 
-    WGPUInstance AppInstance::CreateInstance()
+    WGPUInstance Instance::CreateInstance()
     {
         WGPUInstanceDescriptor desc = {};
         desc.nextInChain = nullptr;

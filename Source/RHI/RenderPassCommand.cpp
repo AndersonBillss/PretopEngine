@@ -2,8 +2,8 @@
 
 namespace Pretop::RHI
 {
-    AppRenderPassCommand::AppRenderPassCommand(
-        AppDevice *device,
+    RenderPassCommand::RenderPassCommand(
+        Device *device,
         WGPUTextureView targetView,
         WGPURenderPassDepthStencilAttachment &depthStencilAttachment)
     {

@@ -6,7 +6,7 @@ namespace Pretop::RHI
 {
     const std::string cmdBufferLabel = "command buffer";
 
-    AppCommandBuffer::AppCommandBuffer(AppDevice *device)
+    CommandBuffer::CommandBuffer(Device *device)
     {
         WGPUCommandEncoderDescriptor encoderDesc = {};
         encoderDesc.nextInChain = nullptr;
@@ -15,17 +15,17 @@ namespace Pretop::RHI
         this->WgpuEncoder = wgpuDeviceCreateCommandEncoder(device->WgpuDevice, &encoderDesc);
     }
 
-    AppCommandBuffer::~AppCommandBuffer()
+    CommandBuffer::~CommandBuffer()
     {
         wgpuCommandEncoderRelease(this->WgpuEncoder);
     }
 
-    std::unique_ptr<AppRenderPassEncoder> AppCommandBuffer::AddCommand(AppRenderPassCommand &command)
+    std::unique_ptr<RenderPassEncoder> CommandBuffer::AddCommand(RenderPassCommand &command)
     {
-        return std::make_unique<AppRenderPassEncoder>(this->WgpuEncoder, command.WgpuRenderPassDescriptor);
+        return std::make_unique<RenderPassEncoder>(this->WgpuEncoder, command.WgpuRenderPassDescriptor);
     }
 
-    void AppCommandBuffer::Finish()
+    void CommandBuffer::Finish()
     {
         WGPUCommandBufferDescriptor cmdBufferDescriptor = {};
         cmdBufferDescriptor.nextInChain = nullptr;

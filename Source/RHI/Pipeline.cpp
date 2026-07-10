@@ -2,12 +2,12 @@
 
 namespace Pretop::RHI
 {
-    AppPipeline::AppPipeline(
-        AppDevice *device,
-        AppShader &shader,
+    Pipeline::Pipeline(
+        Device *device,
+        Shader &shader,
         WGPUTextureFormat format,
-        AppVertexLayout &vertexLayout,
-        AppBindingLayout &pipelineLayout)
+        VertexLayout &vertexLayout,
+        BindingLayout &pipelineLayout)
     {
         std::vector<WGPUVertexBufferLayout> layouts = {};
         for (const auto &layout : vertexLayout.BufferLayouts)
@@ -120,7 +120,7 @@ namespace Pretop::RHI
         this->WgpuPipeline = wgpuDeviceCreateRenderPipeline(device->WgpuDevice, &pipelineDesc);
     }
 
-    AppPipeline::~AppPipeline()
+    Pipeline::~Pipeline()
     {
         wgpuRenderPipelineRelease(this->WgpuPipeline);
     }

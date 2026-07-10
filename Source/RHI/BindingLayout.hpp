@@ -9,11 +9,11 @@
 
 namespace Pretop::RHI
 {
-    class AppBindingLayout
+    class BindingLayout
     {
     public:
-        AppBindingLayout(AppDevice *device, std::initializer_list<std::initializer_list<WGPUBindGroupLayoutEntry>> layoutEntries);
-        ~AppBindingLayout();
+        BindingLayout(Device *device, std::initializer_list<std::initializer_list<WGPUBindGroupLayoutEntry>> layoutEntries);
+        ~BindingLayout();
 
         WGPUPipelineLayout WgpuLayout;
         std::vector<WGPUBindGroupLayout> WgpuBindGroupLayouts;
