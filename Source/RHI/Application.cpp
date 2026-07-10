@@ -25,6 +25,7 @@ namespace Pretop::RHI
                 application->Device = std::move(device);
                 application->CreateQueue();
                 application->_startupCallback(*application);
+                delete application;
             }); });
     }
 
@@ -81,8 +82,7 @@ namespace Pretop::RHI
             wgpuSurfaceRelease(this->_windowSurface);
             wgpuDeviceRelease(this->Device->WgpuDevice);
             wgpuAdapterRelease(this->_adapter->WgpuAdapter);
-            wgpuInstanceRelease(this->Instance->WgpuInstance); 
-            this->_cleanup(); });
+            wgpuInstanceRelease(this->Instance->WgpuInstance); });
     }
 
     void Application::CreateQueue()
@@ -117,11 +117,6 @@ namespace Pretop::RHI
             /* userdata1 */ this,
             /* userdata2 */ nullptr};
         wgpuQueueOnSubmittedWorkDone(this->_queue, workQueueWorkDoneCb);
-    }
-
-    void Application::_cleanup()
-    {
-        delete this;
     }
 
     void Application::LogQueueCommands()

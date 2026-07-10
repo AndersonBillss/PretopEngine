@@ -80,7 +80,6 @@ namespace Pretop::RHI
     private:
         Application(StartupCallback callback);
         void CreateQueue();
-        void _cleanup();
 
         bool _logQueueCommands;
         StartupCallback _startupCallback;
