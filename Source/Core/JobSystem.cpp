@@ -26,10 +26,14 @@ namespace Pretop::Core
         Completion completion{nullptr};
         Handle handle = _addJobRecord(job, completion);
         {
-            std::lock_guard lock(_jobMutex);
-            _jobs.push(std::move(job));
+            std::lock_guard lock(_workMutex);
+            WorkEntry workEntry{
+                handle,
+                job,
+                completion};
+            _work.push(workEntry);
         }
-        _jobAvailable.notify_one();
+        _workAvailable.notify_one();
         return handle;
     }
 
@@ -37,10 +41,14 @@ namespace Pretop::Core
     {
         Handle handle = _addJobRecord(job, completion);
         {
-            std::lock_guard lock(_jobMutex);
-            _jobs.push(std::move(job));
+            std::lock_guard lock(_workMutex);
+            WorkEntry workEntry{
+                handle,
+                job,
+                completion};
+            _work.push(workEntry);
         }
-        _jobAvailable.notify_one();
+        _workAvailable.notify_one();
         return handle;
     }
 

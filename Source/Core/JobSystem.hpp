@@ -34,13 +34,28 @@ namespace Pretop::Core
 
     private:
         const static uint32_t _jobStateGenerationInvalid = 0;
+
         struct JobRecord
         {
-            std::atomic<JobState> State{JobState::InProgress};
+            JobState State{JobState::InProgress};
             uint32_t Generation = 0;
             void *UserData;
             Completion Completion;
         };
+
+        struct CompletionEntry
+        {
+            Handle Handle;
+            Completion Completion;
+        };
+
+        struct WorkEntry
+        {
+            Handle Handle;
+            Job Job;
+            Completion Completion;
+        };
+
         void _doJob();
         Handle _addJobRecord(const Job &job, const Completion &completion);
         const JobRecord *_getRecord(Handle handle) const;
@@ -50,17 +65,11 @@ namespace Pretop::Core
         bool _isValid(const Handle &handle) const;
         Handle _createHandle(uint32_t handleIndex) const;
 
-        struct CompletionEntry
-        {
-            Handle job;
-            Completion completion;
-        };
-
         std::vector<std::thread> _threads;
 
-        std::queue<Job> _jobs;
-        std::mutex _jobMutex;
-        std::condition_variable _jobAvailable;
+        std::queue<WorkEntry> _work;
+        std::mutex _workMutex;
+        std::condition_variable _workAvailable;
 
         std::queue<CompletionEntry> _completions;
         std::mutex _completionMutex;
