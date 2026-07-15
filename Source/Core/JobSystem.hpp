@@ -38,7 +38,7 @@ namespace Pretop::Core
         {
             std::atomic<JobState> State{JobState::InProgress};
             uint32_t Generation = 0;
-            void *userData;
+            void *UserData;
             Completion Completion;
         };
         void _doJob();

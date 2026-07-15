@@ -6,7 +6,7 @@ namespace Pretop::Core
 {
     struct Job
     {
-        JobFn fn = nullptr;
-        void *userData = nullptr;
+        JobFn Fn = nullptr;
+        void *UserData = nullptr;
     };
 }

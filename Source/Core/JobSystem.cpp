@@ -61,7 +61,7 @@ namespace Pretop::Core
             if (
                 record.State == JobState::Ready && record.Completion.Done != nullptr && _isValid(record))
             {
-                record.Completion.Done(_createHandle(i), record.userData);
+                record.Completion.Done(_createHandle(i), record.UserData);
             }
         }
     }
@@ -85,7 +85,7 @@ namespace Pretop::Core
             _jobRecords.emplace_back(JobRecord{
                 JobState::InProgress,
                 kStartingGeneration,
-                job.userData,
+                job.UserData,
                 completion});
         }
         else
@@ -97,7 +97,7 @@ namespace Pretop::Core
                 newGeneration = kStartingGeneration;
 
             record.State = JobState::InProgress;
-            record.userData = job.userData;
+            record.UserData = job.UserData;
             record.Generation = newGeneration;
             record.Completion = completion;
 
