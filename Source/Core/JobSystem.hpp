@@ -24,6 +24,7 @@ namespace Pretop::Core
         };
 
         JobSystem();
+        ~JobSystem();
 
         Handle Submit(Job job);
         Handle Submit(Job job, Completion completion);
@@ -73,6 +74,8 @@ namespace Pretop::Core
 
         std::queue<CompletionEntry> _completions;
         std::mutex _completionMutex;
+
+        bool _stop;
 
         std::vector<JobRecord> _jobRecords;
     };

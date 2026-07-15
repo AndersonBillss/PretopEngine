@@ -19,6 +19,19 @@ namespace Pretop::Core
             _threads.push_back(std::thread([&]()
                                            { this->_doJob(); }));
         }
+        _stop = false;
+    }
+
+    JobSystem::~JobSystem()
+    {
+        _stop = true;
+        _workAvailable.notify_all();
+
+        for (auto &thread : _threads)
+        {
+            if (thread.joinable())
+                thread.join();
+        }
     }
 
     Handle JobSystem::Submit(Job job)
