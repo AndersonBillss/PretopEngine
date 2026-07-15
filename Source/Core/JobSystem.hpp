@@ -29,6 +29,7 @@ namespace Pretop::Core
         Handle Submit(Job job, Completion completion);
 
         JobState GetState(Handle handle) const;
+        void *GetData(Handle handle) const;
         void PumpMainThreadCompletions();
 
     private:

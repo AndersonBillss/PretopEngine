@@ -49,6 +49,15 @@ namespace Pretop::Core
         return _getRecord(handle)->State;
     }
 
+    void *JobSystem::GetData(Handle handle) const
+    {
+        if (!_isValid(handle))
+        {
+            return nullptr;
+        }
+        return _getRecord(handle)->UserData;
+    }
+
     void JobSystem::PumpMainThreadCompletions()
     {
         for (uint32_t i = 0; i < _jobRecords.size(); i++)
