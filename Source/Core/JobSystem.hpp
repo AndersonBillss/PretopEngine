@@ -46,6 +46,9 @@ namespace Pretop::Core
         JobRecord *_getRecord(Handle handle);
         void _releaseJobRecord(Handle handle);
         int _findStaleHandle();
+        bool _isValid(const JobRecord &record);
+        bool _isValid(const Handle &handle);
+        Handle _createHandle(uint32_t handleIndex);
 
         struct CompletionEntry
         {

@@ -55,6 +55,15 @@ namespace Pretop::Core
 
     void JobSystem::PumpMainThreadCompletions()
     {
+        for (uint32_t i = 0; i < _jobRecords.size(); i++)
+        {
+            const auto &record = _jobRecords[i];
+            if (
+                record.state == JobState::Ready && record.Completion.done != nullptr && _isValid(record))
+            {
+                record.Completion.done(_createHandle(i), record.userData);
+            }
+        }
     }
 
     void JobSystem::_doJob()
@@ -63,7 +72,7 @@ namespace Pretop::Core
 
     Handle JobSystem::_addJobRecord(const Job &job, const Completion &completion)
     {
-        constexpr uint32_t kStartingGeneration = 1;
+        uint32_t kStartingGeneration = _jobStateGenerationInvalid;
 
         Handle handle{};
         int staleHandleIndex = _findStaleHandle();
@@ -101,7 +110,7 @@ namespace Pretop::Core
 
     JobSystem::JobRecord *JobSystem::_getRecord(Handle handle)
     {
-        if (handle.generation == 0)
+        if (!_isValid(handle))
         {
             return nullptr;
         }
@@ -118,18 +127,35 @@ namespace Pretop::Core
         {
             return;
         }
-        _jobRecords[handle.index].generation = 0;
+        _jobRecords[handle.index].generation = _jobStateGenerationInvalid;
     }
 
     int JobSystem::_findStaleHandle()
     {
         for (uint32_t i = 0; i < _jobRecords.size(); i++)
         {
-            if (_jobRecords[i].generation == _jobStateGenerationInvalid)
+            if (!_isValid(_jobRecords[i]))
             {
                 return i;
             }
         }
         return -1;
+    }
+
+    bool JobSystem::_isValid(const JobRecord &record)
+    {
+        return record.generation != _jobStateGenerationInvalid;
+    }
+
+    bool JobSystem::_isValid(const Handle &handle)
+    {
+        return handle.generation != _jobStateGenerationInvalid;
+    }
+
+    Handle JobSystem::_createHandle(uint32_t handleIndex)
+    {
+        Handle handle;
+        handle.index = handleIndex;
+        handle.generation = _jobRecords[handleIndex].generation;
     }
 }
