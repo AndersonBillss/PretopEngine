@@ -96,6 +96,11 @@ namespace Pretop::Core
     }
     void JobSystem::_releaseJobRecord(Handle handle)
     {
+        if (handle.index >= _jobRecords.size())
+        {
+            return;
+        }
+        _jobRecords[handle.index].generation = 0;
     }
     int JobSystem::_findStaleHandle()
     {
