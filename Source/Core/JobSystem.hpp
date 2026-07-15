@@ -41,7 +41,6 @@ namespace Pretop::Core
             JobState State{JobState::InProgress};
             uint32_t Generation = 0;
             void *UserData;
-            Completion Completion;
         };
 
         struct CompletionEntry
@@ -60,6 +59,7 @@ namespace Pretop::Core
         void _doJob();
         Handle _addJobRecord(const Job &job, const Completion &completion);
         const JobRecord *_getRecord(Handle handle) const;
+        JobRecord *_getRecord(Handle handle);
         void _releaseJobRecord(Handle handle);
         int _findStaleHandle() const;
         bool _isValid(const JobRecord &record) const;

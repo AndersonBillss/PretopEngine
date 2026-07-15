@@ -81,14 +81,28 @@ namespace Pretop::Core
 
     void JobSystem::PumpMainThreadCompletions()
     {
-        for (uint32_t i = 0; i < _jobRecords.size(); i++)
+        std::queue<CompletionEntry> pending;
+
         {
-            const auto &record = _jobRecords[i];
-            if (
-                record.State == JobState::Ready && record.Completion.Done != nullptr && _isValid(record))
+            std::lock_guard lock(_completionMutex);
+            std::swap(pending, _completions);
+        }
+
+        while (!pending.empty())
+        {
+            CompletionEntry completion = pending.front();
+            pending.pop();
+
+            JobRecord *record = _getRecord(completion.Handle);
+            if (!record || !_isValid(*record))
+                continue;
+
+            if (completion.Completion.Done)
             {
-                record.Completion.Done(_createHandle(i), record.UserData);
+                completion.Completion.Done(completion.Handle, record->UserData);
             }
+
+            record->State = JobState::Ready;
         }
     }
 
@@ -112,7 +126,7 @@ namespace Pretop::Core
                 JobState::InProgress,
                 kStartingGeneration,
                 job.UserData,
-                completion});
+            });
         }
         else
         {
@@ -125,7 +139,6 @@ namespace Pretop::Core
             record.State = JobState::InProgress;
             record.UserData = job.UserData;
             record.Generation = newGeneration;
-            record.Completion = completion;
 
             handle.Index = static_cast<uint32_t>(staleHandleIndex);
             handle.Generation = newGeneration;
@@ -135,6 +148,19 @@ namespace Pretop::Core
     }
 
     const JobSystem::JobRecord *JobSystem::_getRecord(Handle handle) const
+    {
+        if (!_isValid(handle))
+        {
+            return nullptr;
+        }
+        if (_jobRecords[handle.Index].Generation != handle.Generation)
+        {
+            return nullptr;
+        }
+        return &_jobRecords[handle.Index];
+    }
+
+    JobSystem::JobRecord *JobSystem::_getRecord(Handle handle)
     {
         if (!_isValid(handle))
         {
