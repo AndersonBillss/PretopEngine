@@ -20,9 +20,11 @@ namespace Pretop::Core
                                            { this->_doJob(); }));
         }
     }
+
     JobSystem::~JobSystem()
     {
     }
+
     Handle JobSystem::Submit(Job job)
     {
         Handle handle = _addJobRecord(job);
@@ -33,19 +35,24 @@ namespace Pretop::Core
         _jobAvailable.notify_one();
         return handle;
     }
+
     Handle JobSystem::Submit(Job job, Completion completion)
     {
     }
+
     JobSystem::JobState JobSystem::GetState(Handle handle) const
     {
         return JobState();
     }
+
     void JobSystem::PumpMainThreadCompletions()
     {
     }
+
     void JobSystem::_doJob()
     {
     }
+
     Handle JobSystem::_addJobRecord(const Job &job)
     {
         constexpr uint32_t kStartingGeneration = 1;
@@ -82,6 +89,7 @@ namespace Pretop::Core
 
         return handle;
     }
+
     JobSystem::JobRecord *JobSystem::_getRecord(Handle handle)
     {
         if (handle.generation == 0)
@@ -94,6 +102,7 @@ namespace Pretop::Core
         }
         return &_jobRecords[handle.index];
     }
+
     void JobSystem::_releaseJobRecord(Handle handle)
     {
         if (handle.index >= _jobRecords.size())
@@ -102,6 +111,7 @@ namespace Pretop::Core
         }
         _jobRecords[handle.index].generation = 0;
     }
+
     int JobSystem::_findStaleHandle()
     {
         for (uint32_t i = 0; i < _jobRecords.size(); i++)
