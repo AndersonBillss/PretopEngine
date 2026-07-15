@@ -39,9 +39,10 @@ namespace Pretop::Core
             std::atomic<JobState> state{JobState::InProgress};
             uint32_t generation = 0;
             void *userData;
+            Completion Completion;
         };
         void _doJob();
-        Handle _addJobRecord(const Job &job);
+        Handle _addJobRecord(const Job &job, const Completion &completion);
         JobRecord *_getRecord(Handle handle);
         void _releaseJobRecord(Handle handle);
         int _findStaleHandle();

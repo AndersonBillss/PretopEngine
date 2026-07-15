@@ -27,7 +27,8 @@ namespace Pretop::Core
 
     Handle JobSystem::Submit(Job job)
     {
-        Handle handle = _addJobRecord(job);
+        Completion completion{nullptr};
+        Handle handle = _addJobRecord(job, completion);
         {
             std::lock_guard lock(_jobMutex);
             _jobs.push(std::move(job));
@@ -38,6 +39,13 @@ namespace Pretop::Core
 
     Handle JobSystem::Submit(Job job, Completion completion)
     {
+        Handle handle = _addJobRecord(job, completion);
+        {
+            std::lock_guard lock(_jobMutex);
+            _jobs.push(std::move(job));
+        }
+        _jobAvailable.notify_one();
+        return handle;
     }
 
     JobSystem::JobState JobSystem::GetState(Handle handle) const
@@ -53,7 +61,7 @@ namespace Pretop::Core
     {
     }
 
-    Handle JobSystem::_addJobRecord(const Job &job)
+    Handle JobSystem::_addJobRecord(const Job &job, const Completion &completion)
     {
         constexpr uint32_t kStartingGeneration = 1;
 
@@ -69,7 +77,7 @@ namespace Pretop::Core
                 JobState::InProgress,
                 kStartingGeneration,
                 job.userData,
-            });
+                completion});
         }
         else
         {
@@ -82,6 +90,7 @@ namespace Pretop::Core
             record.state = JobState::InProgress;
             record.userData = job.userData;
             record.generation = newGeneration;
+            record.Completion = completion;
 
             handle.index = static_cast<uint32_t>(staleHandleIndex);
             handle.generation = newGeneration;
