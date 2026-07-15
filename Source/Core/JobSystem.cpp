@@ -25,7 +25,13 @@ namespace Pretop::Core
     }
     Handle JobSystem::Submit(Job job)
     {
-        return Handle();
+        Handle handle = _addJobRecord(job);
+        {
+            std::lock_guard lock(_jobMutex);
+            _jobs.push(std::move(job));
+        }
+        _jobAvailable.notify_one();
+        return handle;
     }
     Handle JobSystem::Submit(Job job, Completion completion)
     {
@@ -40,34 +46,40 @@ namespace Pretop::Core
     void JobSystem::_doJob()
     {
     }
-    Handle JobSystem::_addJobRecord(Job &job)
+    Handle JobSystem::_addJobRecord(const Job &job)
     {
-        uint32_t startingGeneration = 1;
-        Handle handle;
+        constexpr uint32_t kStartingGeneration = 1;
+
+        Handle handle{};
         int staleHandleIndex = _findStaleHandle();
+
         if (staleHandleIndex == -1)
         {
-            handle.generation = startingGeneration;
-            handle.index = _jobRecords.size();
-            _jobRecords.push_back(JobRecord{
+            handle.index = static_cast<uint32_t>(_jobRecords.size());
+            handle.generation = kStartingGeneration;
+
+            _jobRecords.emplace_back(JobRecord{
                 JobState::InProgress,
-                startingGeneration,
-                job,
+                kStartingGeneration,
+                job.userData,
             });
         }
         else
         {
-            uint32_t newGeneration = _jobRecords[staleHandleIndex].generation + 1;
+            auto &record = _jobRecords[staleHandleIndex];
+
+            uint32_t newGeneration = record.generation + 1;
             if (newGeneration == _jobStateGenerationInvalid)
-            {
-                newGeneration = startingGeneration;
-            }
+                newGeneration = kStartingGeneration;
+
+            record.state = JobState::InProgress;
+            record.userData = job.userData;
+            record.generation = newGeneration;
+
+            handle.index = static_cast<uint32_t>(staleHandleIndex);
             handle.generation = newGeneration;
-            handle.index = staleHandleIndex;
-            _jobRecords[staleHandleIndex].state = JobState::InProgress;
-            _jobRecords[staleHandleIndex].job = job;
-            _jobRecords[staleHandleIndex].generation = newGeneration;
         }
+
         return handle;
     }
     JobSystem::JobRecord *JobSystem::_getRecord(Handle handle)
