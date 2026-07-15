@@ -21,10 +21,6 @@ namespace Pretop::Core
         }
     }
 
-    JobSystem::~JobSystem()
-    {
-    }
-
     Handle JobSystem::Submit(Job job)
     {
         Completion completion{nullptr};
@@ -50,7 +46,7 @@ namespace Pretop::Core
 
     JobSystem::JobState JobSystem::GetState(Handle handle) const
     {
-        return JobState();
+        return _getRecord(handle)->State;
     }
 
     void JobSystem::PumpMainThreadCompletions()
@@ -108,7 +104,7 @@ namespace Pretop::Core
         return handle;
     }
 
-    JobSystem::JobRecord *JobSystem::_getRecord(Handle handle)
+    const JobSystem::JobRecord *JobSystem::_getRecord(Handle handle) const
     {
         if (!_isValid(handle))
         {
@@ -130,7 +126,7 @@ namespace Pretop::Core
         _jobRecords[handle.Index].Generation = _jobStateGenerationInvalid;
     }
 
-    int JobSystem::_findStaleHandle()
+    int JobSystem::_findStaleHandle() const
     {
         for (uint32_t i = 0; i < _jobRecords.size(); i++)
         {
@@ -142,17 +138,17 @@ namespace Pretop::Core
         return -1;
     }
 
-    bool JobSystem::_isValid(const JobRecord &record)
+    bool JobSystem::_isValid(const JobRecord &record) const
     {
         return record.Generation != _jobStateGenerationInvalid;
     }
 
-    bool JobSystem::_isValid(const Handle &handle)
+    bool JobSystem::_isValid(const Handle &handle) const
     {
         return handle.Generation != _jobStateGenerationInvalid;
     }
 
-    Handle JobSystem::_createHandle(uint32_t handleIndex)
+    Handle JobSystem::_createHandle(uint32_t handleIndex) const
     {
         Handle handle;
         handle.Index = handleIndex;

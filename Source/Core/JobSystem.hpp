@@ -24,7 +24,6 @@ namespace Pretop::Core
         };
 
         JobSystem();
-        ~JobSystem();
 
         Handle Submit(Job job);
         Handle Submit(Job job, Completion completion);
@@ -43,12 +42,12 @@ namespace Pretop::Core
         };
         void _doJob();
         Handle _addJobRecord(const Job &job, const Completion &completion);
-        JobRecord *_getRecord(Handle handle);
+        const JobRecord *_getRecord(Handle handle) const;
         void _releaseJobRecord(Handle handle);
-        int _findStaleHandle();
-        bool _isValid(const JobRecord &record);
-        bool _isValid(const Handle &handle);
-        Handle _createHandle(uint32_t handleIndex);
+        int _findStaleHandle() const;
+        bool _isValid(const JobRecord &record) const;
+        bool _isValid(const Handle &handle) const;
+        Handle _createHandle(uint32_t handleIndex) const;
 
         struct CompletionEntry
         {
