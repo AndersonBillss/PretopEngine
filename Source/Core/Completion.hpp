@@ -7,6 +7,6 @@ namespace Pretop::Core
 {
     struct Completion
     {
-        MainThreadFn done = nullptr;
+        MainThreadFn Done = nullptr;
     };
 }

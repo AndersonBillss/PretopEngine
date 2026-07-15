@@ -4,7 +4,7 @@
 namespace Pretop::Core
 {
     struct Handle {
-        uint32_t index;
-        uint32_t generation;
+        uint32_t Index;
+        uint32_t Generation;
     };
 }

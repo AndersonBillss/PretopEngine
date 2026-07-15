@@ -36,8 +36,8 @@ namespace Pretop::Core
         const static uint32_t _jobStateGenerationInvalid = 0;
         struct JobRecord
         {
-            std::atomic<JobState> state{JobState::InProgress};
-            uint32_t generation = 0;
+            std::atomic<JobState> State{JobState::InProgress};
+            uint32_t Generation = 0;
             void *userData;
             Completion Completion;
         };

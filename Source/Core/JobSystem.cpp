@@ -59,9 +59,9 @@ namespace Pretop::Core
         {
             const auto &record = _jobRecords[i];
             if (
-                record.state == JobState::Ready && record.Completion.done != nullptr && _isValid(record))
+                record.State == JobState::Ready && record.Completion.Done != nullptr && _isValid(record))
             {
-                record.Completion.done(_createHandle(i), record.userData);
+                record.Completion.Done(_createHandle(i), record.userData);
             }
         }
     }
@@ -79,8 +79,8 @@ namespace Pretop::Core
 
         if (staleHandleIndex == -1)
         {
-            handle.index = static_cast<uint32_t>(_jobRecords.size());
-            handle.generation = kStartingGeneration;
+            handle.Index = static_cast<uint32_t>(_jobRecords.size());
+            handle.Generation = kStartingGeneration;
 
             _jobRecords.emplace_back(JobRecord{
                 JobState::InProgress,
@@ -92,17 +92,17 @@ namespace Pretop::Core
         {
             auto &record = _jobRecords[staleHandleIndex];
 
-            uint32_t newGeneration = record.generation + 1;
+            uint32_t newGeneration = record.Generation + 1;
             if (newGeneration == _jobStateGenerationInvalid)
                 newGeneration = kStartingGeneration;
 
-            record.state = JobState::InProgress;
+            record.State = JobState::InProgress;
             record.userData = job.userData;
-            record.generation = newGeneration;
+            record.Generation = newGeneration;
             record.Completion = completion;
 
-            handle.index = static_cast<uint32_t>(staleHandleIndex);
-            handle.generation = newGeneration;
+            handle.Index = static_cast<uint32_t>(staleHandleIndex);
+            handle.Generation = newGeneration;
         }
 
         return handle;
@@ -114,20 +114,20 @@ namespace Pretop::Core
         {
             return nullptr;
         }
-        if (_jobRecords[handle.index].generation != handle.generation)
+        if (_jobRecords[handle.Index].Generation != handle.Generation)
         {
             return nullptr;
         }
-        return &_jobRecords[handle.index];
+        return &_jobRecords[handle.Index];
     }
 
     void JobSystem::_releaseJobRecord(Handle handle)
     {
-        if (handle.index >= _jobRecords.size())
+        if (handle.Index >= _jobRecords.size())
         {
             return;
         }
-        _jobRecords[handle.index].generation = _jobStateGenerationInvalid;
+        _jobRecords[handle.Index].Generation = _jobStateGenerationInvalid;
     }
 
     int JobSystem::_findStaleHandle()
@@ -144,18 +144,18 @@ namespace Pretop::Core
 
     bool JobSystem::_isValid(const JobRecord &record)
     {
-        return record.generation != _jobStateGenerationInvalid;
+        return record.Generation != _jobStateGenerationInvalid;
     }
 
     bool JobSystem::_isValid(const Handle &handle)
     {
-        return handle.generation != _jobStateGenerationInvalid;
+        return handle.Generation != _jobStateGenerationInvalid;
     }
 
     Handle JobSystem::_createHandle(uint32_t handleIndex)
     {
         Handle handle;
-        handle.index = handleIndex;
-        handle.generation = _jobRecords[handleIndex].generation;
+        handle.Index = handleIndex;
+        handle.Generation = _jobRecords[handleIndex].Generation;
     }
 }
