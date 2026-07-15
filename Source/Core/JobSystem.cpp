@@ -40,7 +40,7 @@ namespace Pretop::Core
     void JobSystem::_doJob()
     {
     }
-    Handle JobSystem::_addJobRecord(Job job)
+    Handle JobSystem::_addJobRecord(Job &job)
     {
         uint32_t startingGeneration = 1;
         Handle handle;
@@ -69,6 +69,18 @@ namespace Pretop::Core
             _jobRecords[staleHandleIndex].generation = newGeneration;
         }
         return handle;
+    }
+    JobSystem::JobRecord *JobSystem::_getRecord(Handle handle)
+    {
+        if (handle.generation == 0)
+        {
+            return nullptr;
+        }
+        if (_jobRecords[handle.index].generation != handle.generation)
+        {
+            return nullptr;
+        }
+        return &_jobRecords[handle.index];
     }
     void JobSystem::_releaseJobRecord(Handle handle)
     {

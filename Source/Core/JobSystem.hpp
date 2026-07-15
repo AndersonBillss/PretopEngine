@@ -33,11 +33,6 @@ namespace Pretop::Core
         void PumpMainThreadCompletions();
 
     private:
-        void _doJob();
-        Handle _addJobRecord(Job job);
-        void _releaseJobRecord(Handle handle);
-        int _findStaleHandle();
-
         const static uint32_t _jobStateGenerationInvalid = 0;
         struct JobRecord
         {
@@ -45,6 +40,11 @@ namespace Pretop::Core
             uint32_t generation = 0;
             Job job;
         };
+        void _doJob();
+        Handle _addJobRecord(Job &job);
+        JobRecord *_getRecord(Handle handle);
+        void _releaseJobRecord(Handle handle);
+        int _findStaleHandle();
 
         struct CompletionEntry
         {
