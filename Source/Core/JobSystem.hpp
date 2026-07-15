@@ -31,6 +31,8 @@ namespace Pretop::Core
 
         JobState GetState(Handle handle) const;
         void *GetData(Handle handle) const;
+        void Release(Handle handle);
+        
         void PumpMainThreadCompletions();
 
     private:
@@ -57,14 +59,17 @@ namespace Pretop::Core
         };
 
         void _doJob();
+
         Handle _addJobRecord(const Job &job, const Completion &completion);
         const JobRecord *_getRecord(Handle handle) const;
         JobRecord *_getRecord(Handle handle);
         void _releaseJobRecord(Handle handle);
-        int _findStaleHandle() const;
-        bool _isValid(const JobRecord &record) const;
-        bool _isValid(const Handle &handle) const;
+
         Handle _createHandle(uint32_t handleIndex) const;
+        int _findStaleHandle() const;
+
+        bool _isValid(const JobRecord &record) const;
+        bool _isValid(Handle handle) const;
 
         std::vector<std::thread> _threads;
 

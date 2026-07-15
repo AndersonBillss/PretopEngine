@@ -79,6 +79,11 @@ namespace Pretop::Core
         return _getRecord(handle)->UserData;
     }
 
+    void JobSystem::Release(Handle handle)
+    {
+        _releaseJobRecord(handle);
+    }
+
     void JobSystem::PumpMainThreadCompletions()
     {
         std::queue<CompletionEntry> pending;
@@ -199,7 +204,7 @@ namespace Pretop::Core
         return record.Generation != _jobStateGenerationInvalid;
     }
 
-    bool JobSystem::_isValid(const Handle &handle) const
+    bool JobSystem::_isValid(Handle handle) const
     {
         return handle.Generation != _jobStateGenerationInvalid;
     }
