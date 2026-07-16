@@ -17,15 +17,18 @@ namespace Pretop::RHI
     void Application::Create(StartupCallback callback)
     {
         Application *application = new Application(callback);
-        application->Instance = std::make_unique<Instance>();
+        application->Instance = std::make_unique<Pretop::RHI::Instance>();
         Adapter::Request(application->Instance.get(), [application](std::unique_ptr<Adapter> adapter)
-                            {
+                         {
             application->_adapter = std::move(adapter);
-            Device::Request(application->Instance.get(), application->_adapter.get(), [application](std::unique_ptr<Device> device) {
-                application->Device = std::move(device);
-                application->CreateQueue();
-                application->_startupCallback(*application);
-                delete application;
+            Device::Request(
+                application->Instance.get(), 
+                application->_adapter.get(), 
+                [application](std::unique_ptr<Pretop::RHI::Device> device) {
+                    application->Device = std::move(device);
+                    application->CreateQueue();
+                    application->_startupCallback(*application);
+                    delete application;
             }); });
     }
 

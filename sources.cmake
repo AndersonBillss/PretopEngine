@@ -5,6 +5,7 @@ set(PRETOP_ENGINE_MAIN
 set(PRETOP_ENGINE_SOURCES
   Source/Asset/AssetLoaderFactory.cpp
   Source/Asset/LoadGlb.cpp
+  Source/Core/JobSystem.cpp
   Source/Demos/LoadModel.cpp
   Source/Math/CeilToBufferOffset.cpp
   Source/Math/Euler.cpp
@@ -39,6 +40,7 @@ set(PRETOP_ENGINE_SOURCES_WEB
   Source/Window/WEB_CanvasWindow.cpp
 )
 set(PRETOP_ENGINE_TEST_SOURCES
+  tests/Core/JobSystem.cpp
   tests/Math/Euler.cpp
   tests/Math/Linalg/Mat2x2.cpp
   tests/Math/Linalg/Mat3x3.cpp

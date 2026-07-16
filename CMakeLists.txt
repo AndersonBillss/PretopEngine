@@ -70,6 +70,10 @@ else()
     dawn::webgpu_dawn
     glfw
   )
+
+  target_link_options(pretop_engine PRIVATE
+    "-pthreads"
+  )
 endif()
 
 option(BUILD_TESTING "Build tests" ON)

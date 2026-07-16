@@ -240,8 +240,6 @@ namespace Pretop::Core
 
     Handle JobSystem::_createHandle(uint32_t handleIndex) const
     {
-        Handle handle;
-        handle.Index = handleIndex;
-        handle.Generation = _jobRecords[handleIndex].Generation;
+        return Handle{handleIndex, _jobRecords[handleIndex].Generation};
     }
 }
