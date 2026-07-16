@@ -113,6 +113,35 @@ namespace Pretop::Core
 
     void JobSystem::_doJob()
     {
+        WorkEntry work;
+
+        while (true)
+        {
+            {
+                std::unique_lock lock(_workMutex);
+                _workAvailable.wait(lock, [&]
+                                    { return _stop || !_work.empty(); });
+
+                if (_stop && _work.empty())
+                    break;
+
+                work = std::move(_work.front());
+                _work.pop();
+            }
+
+            try
+            {
+                work.Job.Fn(work.Job.UserData);
+            }
+            catch (...)
+            {
+            }
+
+            {
+                std::lock_guard lock(_completionMutex);
+                _completions.push(CompletionEntry{work.Handle, work.Completion});
+            }
+        }
     }
 
     Handle JobSystem::_addJobRecord(const Job &job, const Completion &completion)

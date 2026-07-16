@@ -32,7 +32,7 @@ namespace Pretop::Core
         JobState GetState(Handle handle) const;
         void *GetData(Handle handle) const;
         void Release(Handle handle);
-        
+
         void PumpMainThreadCompletions();
 
     private:
@@ -80,7 +80,7 @@ namespace Pretop::Core
         std::queue<CompletionEntry> _completions;
         std::mutex _completionMutex;
 
-        bool _stop;
+        std::atomic<bool> _stop;
 
         std::vector<JobRecord> _jobRecords;
     };
