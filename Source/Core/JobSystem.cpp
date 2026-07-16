@@ -104,6 +104,7 @@ namespace Pretop::Core
 
             if (completion.Completion.Done)
             {
+                record->State = JobState::Ready;
                 completion.Completion.Done(completion.Handle, record->UserData);
             }
 
@@ -146,7 +147,7 @@ namespace Pretop::Core
 
     Handle JobSystem::_addJobRecord(const Job &job, const Completion &completion)
     {
-        uint32_t kStartingGeneration = _jobStateGenerationInvalid;
+        uint32_t kStartingGeneration = _jobStateGenerationInvalid + 1;
 
         Handle handle{};
         int staleHandleIndex = _findStaleHandle();
