@@ -19,20 +19,21 @@ void Add(void *data)
     addData->result = addData->a + addData->b;
 }
 
+void WaitUntilDone(JobSystem &jobSystem, Handle handle)
+{
+    while (jobSystem.GetState(handle) == JobSystem::JobState::InProgress)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+}
+
 TEST_CASE("JobSystem with one job works", "[Core][JobSystem]")
 {
     JobSystem jobSystem;
     AddData *addData = new AddData{1, 2, 0};
-    Job job{Add, addData};
-    Handle handle = jobSystem.Submit(job);
-    jobSystem.GetState(handle);
+    Handle handle = jobSystem.Submit(Job{Add, addData});
+    WaitUntilDone(jobSystem, handle);
 
-    while (jobSystem.GetState(handle) == JobSystem::JobState::InProgress)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        jobSystem.PumpMainThreadCompletions();
-    }
-
+    REQUIRE(jobSystem.GetState(handle) == JobSystem::JobState::Ready);
     REQUIRE(addData->result == 3);
+
     delete addData;
 }

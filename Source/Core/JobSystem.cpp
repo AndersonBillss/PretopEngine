@@ -38,12 +38,15 @@ namespace Pretop::Core
     {
         Completion completion{nullptr};
         Handle handle = _addJobRecord(job, completion);
+        JobRecord *record = _getRecord(handle);
         {
             std::lock_guard lock(_workMutex);
             WorkEntry workEntry{
                 handle,
                 job,
-                completion};
+                completion,
+                record,
+            };
             _work.push(workEntry);
         }
         _workAvailable.notify_one();
@@ -67,7 +70,7 @@ namespace Pretop::Core
 
     JobSystem::JobState JobSystem::GetState(Handle handle) const
     {
-        return _getRecord(handle)->State;
+        return _getRecord(handle)->State.load();
     }
 
     void *JobSystem::GetData(Handle handle) const
@@ -99,16 +102,15 @@ namespace Pretop::Core
             pending.pop();
 
             JobRecord *record = _getRecord(completion.Handle);
-            if (!record || !_isValid(*record))
+            if (!record || !_isValid(record))
                 continue;
 
             if (completion.Completion.Done)
             {
-                record->State = JobState::Ready;
                 completion.Completion.Done(completion.Handle, record->UserData);
             }
 
-            record->State = JobState::Ready;
+            record->State.store(JobState::Ready);
         }
     }
 
@@ -133,9 +135,11 @@ namespace Pretop::Core
             try
             {
                 work.Job.Fn(work.Job.UserData);
+                work.Record->State.store(JobState::Ready);
             }
             catch (...)
             {
+                work.Record->State.store(JobState::Error);
             }
 
             {
@@ -157,11 +161,11 @@ namespace Pretop::Core
             handle.Index = static_cast<uint32_t>(_jobRecords.size());
             handle.Generation = kStartingGeneration;
 
-            _jobRecords.emplace_back(JobRecord{
-                JobState::InProgress,
-                kStartingGeneration,
-                job.UserData,
-            });
+            _jobRecords.emplace_back();
+            auto &record = _jobRecords.back();
+            record.State.store(JobState::InProgress);
+            record.Generation = kStartingGeneration;
+            record.UserData = job.UserData;
         }
         else
         {
@@ -171,7 +175,7 @@ namespace Pretop::Core
             if (newGeneration == _jobStateGenerationInvalid)
                 newGeneration = kStartingGeneration;
 
-            record.State = JobState::InProgress;
+            record.State.store(JobState::InProgress);
             record.UserData = job.UserData;
             record.Generation = newGeneration;
 
@@ -221,7 +225,7 @@ namespace Pretop::Core
     {
         for (uint32_t i = 0; i < _jobRecords.size(); i++)
         {
-            if (!_isValid(_jobRecords[i]))
+            if (!_isValid(&_jobRecords[i]))
             {
                 return i;
             }
@@ -229,9 +233,9 @@ namespace Pretop::Core
         return -1;
     }
 
-    bool JobSystem::_isValid(const JobRecord &record) const
+    bool JobSystem::_isValid(const JobRecord *record) const
     {
-        return record.Generation != _jobStateGenerationInvalid;
+        return record->Generation != _jobStateGenerationInvalid;
     }
 
     bool JobSystem::_isValid(Handle handle) const

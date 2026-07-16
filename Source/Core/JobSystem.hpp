@@ -40,9 +40,31 @@ namespace Pretop::Core
 
         struct JobRecord
         {
-            JobState State{JobState::InProgress};
+            std::atomic<JobState> State{JobState::InProgress};
             uint32_t Generation = 0;
-            void *UserData;
+            void *UserData = nullptr;
+            Completion Completion;
+
+            JobRecord() = default;
+            JobRecord(const JobRecord &) = delete;
+            JobRecord &operator=(const JobRecord &) = delete;
+
+            JobRecord(JobRecord &&other) noexcept
+            {
+                State.store(other.State.load(std::memory_order_relaxed), std::memory_order_relaxed);
+                Generation = other.Generation;
+                UserData = other.UserData;
+                Completion = std::move(other.Completion);
+            }
+
+            JobRecord &operator=(JobRecord &&other) noexcept
+            {
+                State.store(other.State.load(std::memory_order_relaxed), std::memory_order_relaxed);
+                Generation = other.Generation;
+                UserData = other.UserData;
+                Completion = std::move(other.Completion);
+                return *this;
+            }
         };
 
         struct CompletionEntry
@@ -56,6 +78,7 @@ namespace Pretop::Core
             Handle Handle;
             Job Job;
             Completion Completion;
+            JobRecord *Record;
         };
 
         void _doJob();
@@ -68,7 +91,7 @@ namespace Pretop::Core
         Handle _createHandle(uint32_t handleIndex) const;
         int _findStaleHandle() const;
 
-        bool _isValid(const JobRecord &record) const;
+        bool _isValid(const JobRecord *record) const;
         bool _isValid(Handle handle) const;
 
         std::vector<std::thread> _threads;
