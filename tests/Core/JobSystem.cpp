@@ -49,6 +49,7 @@ TEST_CASE("JobSystem with multiple jobs works", "[Core][JobSystem]")
 
     AddData *addData2 = new AddData{2, 3, 0};
     Handle handle2 = jobSystem.Submit(Job{Add, addData2});
+    std::cout << jobSystem << std::endl;
 
     WaitUntilDone(jobSystem, handle1);
     WaitUntilDone(jobSystem, handle2);

@@ -247,4 +247,69 @@ namespace Pretop::Core
     {
         return Handle{handleIndex, _jobRecords[handleIndex].Generation};
     }
+
+    std::ostream &operator<<(std::ostream &os, JobSystem &js)
+    {
+        std::queue<JobSystem::WorkEntry> workCopy;
+        {
+            std::lock_guard lock(js._workMutex);
+            workCopy = js._work;
+        }
+        std::queue<JobSystem::CompletionEntry> completionsCopy;
+        {
+            std::lock_guard lock(js._completionMutex);
+            completionsCopy = js._completions;
+        }
+
+        os << "Job Records:\n";
+        for (uint32_t i = 0; i < js._jobRecords.size(); i++)
+        {
+            const auto &record = js._jobRecords[i];
+            os << "  " << i << " - Generation: " << record.Generation
+               << ", Status: " << record.State->load() << "\n";
+        }
+
+        os << "Queued jobs:\n";
+
+        uint32_t jobOrder = 0;
+        while (!workCopy.empty())
+        {
+            const auto &workItem = workCopy.front();
+            workCopy.pop();
+            os << "  " << jobOrder << " - Handle: " << workItem.Handle << "\n";
+            jobOrder++;
+        }
+        os << "Completions queued:\n";
+        uint32_t completionsOrder = 0;
+        while (!completionsCopy.empty())
+        {
+            const auto &completionsItem = completionsCopy.front();
+            completionsCopy.pop();
+            os << "  " << completionsOrder << " - Handle: " << completionsItem.Handle << "\n";
+            completionsOrder++;
+        }
+        return os;
+    }
+
+    std::ostream &operator<<(std::ostream &os, Pretop::Core::JobSystem::JobState js)
+    {
+        switch (js)
+        {
+        case Pretop::Core::JobSystem::JobState::Error:
+            os << "Error";
+            break;
+        case Pretop::Core::JobSystem::JobState::InProgress:
+            os << "InProgress";
+            break;
+        case Pretop::Core::JobSystem::JobState::Ready:
+            os << "Ready";
+            break;
+        }
+        return os;
+    }
+    std::ostream &operator<<(std::ostream &os, Pretop::Core::Handle handle)
+    {
+        os << "{ " << "Index: " << handle.Index << ", " << "Generation: " << handle.Generation << " }";
+        return os;
+    }
 }

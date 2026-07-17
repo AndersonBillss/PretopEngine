@@ -7,6 +7,7 @@
 #include <condition_variable>
 #include <atomic>
 #include <memory>
+#include <ostream>
 
 #include "Job.hpp"
 #include "Completion.hpp"
@@ -35,6 +36,8 @@ namespace Pretop::Core
         void Release(Handle handle);
 
         void PumpMainThreadCompletions();
+
+        friend std::ostream &operator<<(std::ostream &os, JobSystem &js);
 
     private:
         const static uint32_t _jobStateGenerationInvalid = 0;
@@ -87,4 +90,6 @@ namespace Pretop::Core
 
         std::vector<JobRecord> _jobRecords;
     };
+    std::ostream &operator<<(std::ostream &os, Pretop::Core::JobSystem::JobState js);
+    std::ostream &operator<<(std::ostream &os, Pretop::Core::Handle handle);
 }
