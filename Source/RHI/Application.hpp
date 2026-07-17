@@ -75,7 +75,7 @@ namespace Pretop::RHI
         Application *InspectAdapter();
         Application *InspectQueue();
 
-        std::unique_ptr<Instance> Instance;
+        std::unique_ptr<Pretop::RHI::Instance> Instance;
 
     private:
         Application(StartupCallback callback);
@@ -91,6 +91,6 @@ namespace Pretop::RHI
     public:
         // This must go after the private section or else the initializer
         // list order will order the constructors incorrectly
-        std::unique_ptr<Device> Device;
+        std::unique_ptr<Pretop::RHI::Device> Device;
     };
 } // namespace Pretop::RHI

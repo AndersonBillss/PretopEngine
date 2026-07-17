@@ -44,20 +44,20 @@ namespace Pretop::Core
             std::unique_ptr<std::atomic<JobState>> State;
             uint32_t Generation = 0;
             void *UserData = nullptr;
-            Completion Completion;
+            Pretop::Core::Completion Completion;
         };
 
         struct CompletionEntry
         {
-            Handle Handle;
-            Completion Completion;
+            Pretop::Core::Handle Handle;
+            Pretop::Core::Completion Completion;
         };
 
         struct WorkEntry
         {
-            Handle Handle;
-            Job Job;
-            Completion Completion;
+            Pretop::Core::Handle Handle;
+            Pretop::Core::Job Job;
+            Pretop::Core::Completion Completion;
             std::atomic<JobState> *State;
         };
 

@@ -72,7 +72,7 @@ else()
   )
 
   target_link_options(pretop_engine PRIVATE
-    "-pthreads"
+    "-pthread"
   )
 endif()
 
