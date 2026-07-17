@@ -6,6 +6,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
+#include <memory>
 
 #include "Job.hpp"
 #include "Completion.hpp"
@@ -40,31 +41,10 @@ namespace Pretop::Core
 
         struct JobRecord
         {
-            std::atomic<JobState> State{JobState::InProgress};
+            std::unique_ptr<std::atomic<JobState>> State;
             uint32_t Generation = 0;
             void *UserData = nullptr;
             Completion Completion;
-
-            JobRecord() = default;
-            JobRecord(const JobRecord &) = delete;
-            JobRecord &operator=(const JobRecord &) = delete;
-
-            JobRecord(JobRecord &&other) noexcept
-            {
-                State.store(other.State.load(std::memory_order_relaxed), std::memory_order_relaxed);
-                Generation = other.Generation;
-                UserData = other.UserData;
-                Completion = std::move(other.Completion);
-            }
-
-            JobRecord &operator=(JobRecord &&other) noexcept
-            {
-                State.store(other.State.load(std::memory_order_relaxed), std::memory_order_relaxed);
-                Generation = other.Generation;
-                UserData = other.UserData;
-                Completion = std::move(other.Completion);
-                return *this;
-            }
         };
 
         struct CompletionEntry
@@ -78,7 +58,7 @@ namespace Pretop::Core
             Handle Handle;
             Job Job;
             Completion Completion;
-            JobRecord *Record;
+            std::atomic<JobState> *State;
         };
 
         void _doJob();

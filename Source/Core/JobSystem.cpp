@@ -38,14 +38,14 @@ namespace Pretop::Core
     {
         Completion completion{nullptr};
         Handle handle = _addJobRecord(job, completion);
-        JobRecord *record = _getRecord(handle);
+        std::atomic<JobState> *jobState = _getRecord(handle)->State.get();
         {
             std::lock_guard lock(_workMutex);
             WorkEntry workEntry{
                 handle,
                 job,
                 completion,
-                record,
+                jobState,
             };
             _work.push(workEntry);
         }
@@ -70,7 +70,7 @@ namespace Pretop::Core
 
     JobSystem::JobState JobSystem::GetState(Handle handle) const
     {
-        return _getRecord(handle)->State.load();
+        return _getRecord(handle)->State->load();
     }
 
     void *JobSystem::GetData(Handle handle) const
@@ -110,7 +110,7 @@ namespace Pretop::Core
                 completion.Completion.Done(completion.Handle, record->UserData);
             }
 
-            record->State.store(JobState::Ready);
+            record->State->store(JobState::Ready);
         }
     }
 
@@ -135,11 +135,11 @@ namespace Pretop::Core
             try
             {
                 work.Job.Fn(work.Job.UserData);
-                work.Record->State.store(JobState::Ready);
+                work.State->store(JobState::Ready);
             }
             catch (...)
             {
-                work.Record->State.store(JobState::Error);
+                work.State->store(JobState::Error);
             }
 
             {
@@ -163,7 +163,7 @@ namespace Pretop::Core
 
             _jobRecords.emplace_back();
             auto &record = _jobRecords.back();
-            record.State.store(JobState::InProgress);
+            record.State = std::make_unique<std::atomic<JobState>>(JobState::InProgress);
             record.Generation = kStartingGeneration;
             record.UserData = job.UserData;
         }
@@ -175,7 +175,7 @@ namespace Pretop::Core
             if (newGeneration == _jobStateGenerationInvalid)
                 newGeneration = kStartingGeneration;
 
-            record.State.store(JobState::InProgress);
+            record.State->store(JobState::InProgress);
             record.UserData = job.UserData;
             record.Generation = newGeneration;
 
