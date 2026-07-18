@@ -78,3 +78,29 @@ TEST_CASE("JobSystem calls callbacks on completion", "[Core][JobSystem]")
 
     delete addData;
 }
+
+TEST_CASE("JobSystem calls multiple callbacks on completion", "[Core][JobSystem][only]")
+{
+    JobSystem jobSystem;
+
+    AddData *addData1 = new AddData{1, 2, 0};
+    AddData *addData2 = new AddData{2, 3, 0};
+
+    Handle handle1 = jobSystem.Submit(Job{Add, addData1}, {[](Handle handle, void *data)
+                                                           {
+        AddData *addData = reinterpret_cast<AddData *>(data);
+        REQUIRE(addData->result == 3); }});
+
+    Handle handle2 = jobSystem.Submit(Job{Add, addData2}, {[](Handle handle, void *data)
+                                                           {
+        AddData *addData = reinterpret_cast<AddData *>(data);
+        REQUIRE(addData->result == 5); }});
+
+    WaitUntilDone(jobSystem, handle1);
+    WaitUntilDone(jobSystem, handle2);
+
+    jobSystem.PumpMainThreadCompletions();
+
+    delete addData1;
+    delete addData2;
+}
