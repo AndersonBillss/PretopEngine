@@ -264,6 +264,7 @@ namespace Pretop::Core
             completionsCopy = js._completions;
         }
 
+        os << "Num Threads: " << js._threads.size() << "\n";
         os << "Job Records:\n";
         for (uint32_t i = 0; i < js._jobRecords.size(); i++)
         {
