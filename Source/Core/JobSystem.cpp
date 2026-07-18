@@ -1,3 +1,4 @@
+#include <magic_enum/magic_enum.hpp>
 #include "JobSystem.hpp"
 
 namespace Pretop::Core
@@ -293,18 +294,7 @@ namespace Pretop::Core
 
     std::ostream &operator<<(std::ostream &os, Pretop::Core::JobSystem::JobState js)
     {
-        switch (js)
-        {
-        case Pretop::Core::JobSystem::JobState::Error:
-            os << "Error";
-            break;
-        case Pretop::Core::JobSystem::JobState::InProgress:
-            os << "InProgress";
-            break;
-        case Pretop::Core::JobSystem::JobState::Ready:
-            os << "Ready";
-            break;
-        }
+        os << magic_enum::enum_name(js);
         return os;
     }
     std::ostream &operator<<(std::ostream &os, Pretop::Core::Handle handle)

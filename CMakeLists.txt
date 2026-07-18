@@ -14,11 +14,20 @@ FetchContent_Declare(
   GIT_TAG v3.12.0
 )
 
-FetchContent_MakeAvailable(nlohmann_json)
+FetchContent_Declare(
+  magic_enum
+  GIT_REPOSITORY https://github.com/Neargye/magic_enum.git
+  GIT_TAG master
+)
+
+FetchContent_MakeAvailable(nlohmann_json magic_enum)
 
 add_library(pretop_engine_core STATIC ${PRETOP_ENGINE_SOURCES})
 target_include_directories(pretop_engine_core PUBLIC include)
-target_link_libraries(pretop_engine_core PUBLIC nlohmann_json::nlohmann_json)
+target_link_libraries(pretop_engine_core PUBLIC
+  nlohmann_json::nlohmann_json
+  magic_enum::magic_enum
+)
 
 add_executable(pretop_engine ${PRETOP_ENGINE_MAIN})
 target_link_libraries(pretop_engine PRIVATE pretop_engine_core)
@@ -31,10 +40,10 @@ if(EMSCRIPTEN)
   set_target_properties(pretop_engine PROPERTIES SUFFIX ".html")
 
   target_compile_definitions(pretop_engine_core PRIVATE WEBGPU_BACKEND_EMDAWNWEBGPU=1)
-  target_compile_options(pretop_engine_core PRIVATE 
+  target_compile_options(pretop_engine_core PRIVATE
     "--use-port=emdawnwebgpu"
   )
-  target_compile_options(pretop_engine PRIVATE 
+  target_compile_options(pretop_engine PRIVATE
     "--use-port=emdawnwebgpu"
   )
 
