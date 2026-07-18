@@ -71,7 +71,7 @@ TEST_CASE("JobSystem calls callbacks on completion", "[Core][JobSystem]")
     AddData *addData = new AddData{1, 2, 0, false};
     Handle handle = jobSystem.Submit(
         Job{Add, addData},
-        {[](Handle handle, void *data)
+        {[](void *data)
          {
              AddData *addData = reinterpret_cast<AddData *>(data);
              addData->completionRan = true;
@@ -98,7 +98,7 @@ TEST_CASE("JobSystem calls multiple callbacks on completion", "[Core][JobSystem]
 
     Handle handle1 = jobSystem.Submit(
         Job{Add, addData1},
-        {[](Handle handle, void *data)
+        {[](void *data)
          {
              AddData *addData = reinterpret_cast<AddData *>(data);
              addData->completionRan = true;
@@ -107,7 +107,7 @@ TEST_CASE("JobSystem calls multiple callbacks on completion", "[Core][JobSystem]
 
     Handle handle2 = jobSystem.Submit(
         Job{Add, addData2},
-        {[](Handle handle, void *data)
+        {[](void *data)
          {
              AddData *addData = reinterpret_cast<AddData *>(data);
              addData->completionRan = true;

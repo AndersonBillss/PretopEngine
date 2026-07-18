@@ -110,7 +110,7 @@ namespace Pretop::Core
 
             if (completion.Completion.Done)
             {
-                completion.Completion.Done(completion.Handle, record->UserData);
+                completion.Completion.Done(record->UserData);
             }
 
             record->State->store(JobState::Ready);

@@ -1,7 +1,7 @@
 #pragma once
 #include "Handle.hpp"
 
-using MainThreadFn = void (*)(Pretop::Core::Handle, void *);
+using MainThreadFn = void (*)(void *);
 
 namespace Pretop::Core
 {
