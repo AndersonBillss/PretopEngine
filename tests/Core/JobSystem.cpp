@@ -49,7 +49,6 @@ TEST_CASE("JobSystem with multiple jobs works", "[Core][JobSystem]")
 
     AddData *addData2 = new AddData{2, 3, 0};
     Handle handle2 = jobSystem.Submit(Job{Add, addData2});
-    std::cout << jobSystem << std::endl;
 
     WaitUntilDone(jobSystem, handle1);
     WaitUntilDone(jobSystem, handle2);
@@ -62,4 +61,20 @@ TEST_CASE("JobSystem with multiple jobs works", "[Core][JobSystem]")
 
     delete addData1;
     delete addData2;
+}
+
+TEST_CASE("JobSystem calls callbacks on completion", "[Core][JobSystem]")
+{
+    JobSystem jobSystem;
+
+    AddData *addData = new AddData{1, 2, 0};
+    Handle handle = jobSystem.Submit(Job{Add, addData}, {[](Handle handle, void *data)
+                                                         {
+        AddData *addData = reinterpret_cast<AddData *>(data);
+        REQUIRE(addData->result == 3); }});
+
+    WaitUntilDone(jobSystem, handle);
+    jobSystem.PumpMainThreadCompletions();
+
+    delete addData;
 }

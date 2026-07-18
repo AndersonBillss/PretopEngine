@@ -57,12 +57,14 @@ namespace Pretop::Core
     Handle JobSystem::Submit(Job job, Completion completion)
     {
         Handle handle = _addJobRecord(job, completion);
+        std::atomic<JobState> *jobState = _getRecord(handle)->State.get();
         {
             std::lock_guard lock(_workMutex);
             WorkEntry workEntry{
                 handle,
                 job,
-                completion};
+                completion,
+                jobState};
             _work.push(workEntry);
         }
         _workAvailable.notify_one();
