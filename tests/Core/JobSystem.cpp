@@ -12,6 +12,7 @@ struct AddData
     int a;
     int b;
     int result;
+    bool completionRan;
 };
 void Add(void *data)
 {
@@ -29,7 +30,7 @@ TEST_CASE("JobSystem with one job works", "[Core][JobSystem]")
 {
     JobSystem jobSystem;
 
-    AddData *addData = new AddData{1, 2, 0};
+    AddData *addData = new AddData{1, 2, 0, false};
     Handle handle = jobSystem.Submit(Job{Add, addData});
 
     WaitUntilDone(jobSystem, handle);
@@ -44,10 +45,10 @@ TEST_CASE("JobSystem with multiple jobs works", "[Core][JobSystem]")
 {
     JobSystem jobSystem;
 
-    AddData *addData1 = new AddData{1, 2, 0};
+    AddData *addData1 = new AddData{1, 2, 0, false};
     Handle handle1 = jobSystem.Submit(Job{Add, addData1});
 
-    AddData *addData2 = new AddData{2, 3, 0};
+    AddData *addData2 = new AddData{2, 3, 0, false};
     Handle handle2 = jobSystem.Submit(Job{Add, addData2});
 
     WaitUntilDone(jobSystem, handle1);
@@ -67,39 +68,62 @@ TEST_CASE("JobSystem calls callbacks on completion", "[Core][JobSystem]")
 {
     JobSystem jobSystem;
 
-    AddData *addData = new AddData{1, 2, 0};
-    Handle handle = jobSystem.Submit(Job{Add, addData}, {[](Handle handle, void *data)
-                                                         {
-        AddData *addData = reinterpret_cast<AddData *>(data);
-        REQUIRE(addData->result == 3); }});
+    AddData *addData = new AddData{1, 2, 0, false};
+    Handle handle = jobSystem.Submit(
+        Job{Add, addData},
+        {[](Handle handle, void *data)
+         {
+             AddData *addData = reinterpret_cast<AddData *>(data);
+             addData->completionRan = true;
+             REQUIRE(addData->result == 3);
+         }});
 
     WaitUntilDone(jobSystem, handle);
+
+    REQUIRE(jobSystem.GetState(handle) == JobSystem::JobState::Ready);
+
     jobSystem.PumpMainThreadCompletions();
+
+    REQUIRE(addData->completionRan);
 
     delete addData;
 }
 
-TEST_CASE("JobSystem calls multiple callbacks on completion", "[Core][JobSystem][only]")
+TEST_CASE("JobSystem calls multiple callbacks on completion", "[Core][JobSystem]")
 {
     JobSystem jobSystem;
 
-    AddData *addData1 = new AddData{1, 2, 0};
-    AddData *addData2 = new AddData{2, 3, 0};
+    AddData *addData1 = new AddData{1, 2, 0, false};
+    AddData *addData2 = new AddData{2, 3, 0, false};
 
-    Handle handle1 = jobSystem.Submit(Job{Add, addData1}, {[](Handle handle, void *data)
-                                                           {
-        AddData *addData = reinterpret_cast<AddData *>(data);
-        REQUIRE(addData->result == 3); }});
+    Handle handle1 = jobSystem.Submit(
+        Job{Add, addData1},
+        {[](Handle handle, void *data)
+         {
+             AddData *addData = reinterpret_cast<AddData *>(data);
+             addData->completionRan = true;
+             REQUIRE(addData->result == 3);
+         }});
 
-    Handle handle2 = jobSystem.Submit(Job{Add, addData2}, {[](Handle handle, void *data)
-                                                           {
-        AddData *addData = reinterpret_cast<AddData *>(data);
-        REQUIRE(addData->result == 5); }});
+    Handle handle2 = jobSystem.Submit(
+        Job{Add, addData2},
+        {[](Handle handle, void *data)
+         {
+             AddData *addData = reinterpret_cast<AddData *>(data);
+             addData->completionRan = true;
+             REQUIRE(addData->result == 5);
+         }});
 
     WaitUntilDone(jobSystem, handle1);
     WaitUntilDone(jobSystem, handle2);
 
+    REQUIRE(jobSystem.GetState(handle1) == JobSystem::JobState::Ready);
+    REQUIRE(jobSystem.GetState(handle2) == JobSystem::JobState::Ready);
+
     jobSystem.PumpMainThreadCompletions();
+
+    REQUIRE(addData1->completionRan);
+    REQUIRE(addData2->completionRan);
 
     delete addData1;
     delete addData2;
