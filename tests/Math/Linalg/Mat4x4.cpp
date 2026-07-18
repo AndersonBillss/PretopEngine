@@ -3,7 +3,7 @@
 
 using namespace Pretop::Math;
 
-TEST_CASE("Mat4x4 Vec4 multiplication works", "[math][linalg][mat4x4]")
+TEST_CASE("Mat4x4 Vec4 multiplication works", "[Math][Linalg][Mat4x4]")
 {
     Mat4x4 m{
         1.0f, 2.0f, 3.0f, 4.0f,
@@ -22,7 +22,7 @@ TEST_CASE("Mat4x4 Vec4 multiplication works", "[math][linalg][mat4x4]")
     REQUIRE(Transpose(m) * v == result);
 }
 
-TEST_CASE("Mat4x4 Mat4x4 multiplication works", "[math][linalg][mat4x4]")
+TEST_CASE("Mat4x4 Mat4x4 multiplication works", "[Math][Linalg][Mat4x4]")
 {
     Mat4x4 m1{
         1.0f, 2.0f, 3.0f, 4.0f,
@@ -45,7 +45,7 @@ TEST_CASE("Mat4x4 Mat4x4 multiplication works", "[math][linalg][mat4x4]")
     REQUIRE(Transpose(m1) * Transpose(m2) == Transpose(result));
 }
 
-TEST_CASE("Mat4x4 multiplied by identity matrix remain the same", "[math][linalg][mat4x4]")
+TEST_CASE("Mat4x4 multiplied by identity matrix remain the same", "[Math][Linalg][Mat4x4]")
 {
     Mat4x4 m{
         1.0f, 2.0f, 3.0f, 4.0f,
@@ -56,7 +56,7 @@ TEST_CASE("Mat4x4 multiplied by identity matrix remain the same", "[math][linalg
     REQUIRE(m * Mat4x4::Identity() == m);
 }
 
-TEST_CASE("Mat4x4 transpose works", "[math][linalg][mat4x4]")
+TEST_CASE("Mat4x4 transpose works", "[Math][Linalg][Mat4x4]")
 {
     Mat4x4 m{
         1.0f, 2.0f, 3.0f, 10.0f,

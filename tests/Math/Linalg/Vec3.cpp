@@ -4,7 +4,7 @@
 
 using namespace Pretop::Math;
 
-TEST_CASE("Vec3 addition works", "[math][linalg][vec3]")
+TEST_CASE("Vec3 addition works", "[Math][Linalg][Vec3]")
 {
     Vec3 v1{1, 2, 0};
     Vec3 v2{3, 4, 1};
@@ -14,7 +14,7 @@ TEST_CASE("Vec3 addition works", "[math][linalg][vec3]")
     REQUIRE(v1 == result);
 }
 
-TEST_CASE("Vec3 subtraction works", "[math][linalg][vec3]")
+TEST_CASE("Vec3 subtraction works", "[Math][Linalg][Vec3]")
 {
     Vec3 v1{1, 2, 2};
     Vec3 v2{3, 4, 0};
@@ -24,14 +24,14 @@ TEST_CASE("Vec3 subtraction works", "[math][linalg][vec3]")
     REQUIRE(v1 == result);
 }
 
-TEST_CASE("Vec3 dot product works", "[math][linalg][vec3]")
+TEST_CASE("Vec3 dot product works", "[Math][Linalg][Vec3]")
 {
     Vec3 v1{1, 2, 5};
     Vec3 v2{3, 4, 5};
     REQUIRE(v1.Dot(v2) == 36);
 }
 
-TEST_CASE("Vec3 length works", "[math][linalg][vec3]")
+TEST_CASE("Vec3 length works", "[Math][Linalg][Vec3]")
 {
     Vec3 v1{1.0f, 2.0f, 3.0f};
     REQUIRE_THAT(v1.Length(), Catch::Matchers::WithinAbs(3.74165739f, 0.0001f));

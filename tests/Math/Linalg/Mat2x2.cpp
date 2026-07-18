@@ -3,7 +3,7 @@
 
 using namespace Pretop::Math;
 
-TEST_CASE("Mat2x2 Vec2 multiplication works", "[math][linalg][mat2x2]")
+TEST_CASE("Mat2x2 Vec2 multiplication works", "[Math][Linalg][Mat2x2]")
 {
     Mat2x2 m{1.0f, 2.0f,
              3.0f, 4.0f};
@@ -12,7 +12,7 @@ TEST_CASE("Mat2x2 Vec2 multiplication works", "[math][linalg][mat2x2]")
     REQUIRE(Transpose(m) * v == result);
 }
 
-TEST_CASE("Mat2x2 Mat2x2 multiplication works", "[math][linalg][mat2x2]")
+TEST_CASE("Mat2x2 Mat2x2 multiplication works", "[Math][Linalg][Mat2x2]")
 {
     Mat2x2 m1{1.0f, 2.0f,
               3.0f, 4.0f};
@@ -23,14 +23,14 @@ TEST_CASE("Mat2x2 Mat2x2 multiplication works", "[math][linalg][mat2x2]")
     REQUIRE(Transpose(m1) * Transpose(m2) == Transpose(result));
 }
 
-TEST_CASE("Mat2x2 multiplied by identity matrix remain the same", "[math][linalg][mat2x2]")
+TEST_CASE("Mat2x2 multiplied by identity matrix remain the same", "[Math][Linalg][Mat2x2]")
 {
     Mat2x2 m{1.0f, 2.0f,
              3.0f, 4.0f};
     REQUIRE(m * Mat2x2::Identity() == m);
 }
 
-TEST_CASE("Mat2x2 transpose works", "[math][linalg][mat2x2]")
+TEST_CASE("Mat2x2 transpose works", "[Math][Linalg][Mat2x2]")
 {
     Mat2x2 m{1.0f, 2.0f,
              3.0f, 4.0f};

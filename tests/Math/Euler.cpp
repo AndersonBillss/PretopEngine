@@ -5,7 +5,7 @@
 
 using namespace Pretop::Math;
 
-TEST_CASE("X euler rotate basis vectors as expected", "[math][euler]")
+TEST_CASE("X euler rotate basis vectors as expected", "[Math][Euler]")
 {
     Euler e{90.0f * (float)Deg2Rad, 0, 0};
     Vec4 v1{1, 0, 0, 0};
@@ -21,7 +21,7 @@ TEST_CASE("X euler rotate basis vectors as expected", "[math][euler]")
     REQUIRE_THAT(e.ToMatrix() * v3, Vec4ApproxMatcher(result3, 1e-5f));
 }
 
-TEST_CASE("Y euler rotate basis vectors as expected", "[math][euler]")
+TEST_CASE("Y euler rotate basis vectors as expected", "[Math][Euler]")
 {
     Euler e{0, 90.0f * (float)Deg2Rad, 0};
     Vec4 v1{1, 0, 0, 0};
@@ -37,7 +37,7 @@ TEST_CASE("Y euler rotate basis vectors as expected", "[math][euler]")
     REQUIRE_THAT(e.ToMatrix() * v3, Vec4ApproxMatcher(result3, 1e-5f));
 }
 
-TEST_CASE("Z euler rotate basis vectors as expected", "[math][euler]")
+TEST_CASE("Z euler rotate basis vectors as expected", "[Math][Euler]")
 {
     Euler e{0, 0, 90.0f * (float)Deg2Rad};
     Vec4 v1{1, 0, 0, 0};

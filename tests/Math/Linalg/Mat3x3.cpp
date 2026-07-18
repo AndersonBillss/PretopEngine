@@ -3,7 +3,7 @@
 
 using namespace Pretop::Math;
 
-TEST_CASE("Mat3x3 Vec3 multiplication works", "[math][linalg][mat3x3]")
+TEST_CASE("Mat3x3 Vec3 multiplication works", "[Math][Linalg][Mat3x3]")
 {
     Mat3x3 m{1.0f, 2.0f, 3.0f,
              4.0f, 1.0f, 5.0f,
@@ -13,7 +13,7 @@ TEST_CASE("Mat3x3 Vec3 multiplication works", "[math][linalg][mat3x3]")
     REQUIRE(Transpose(m) * v == result);
 }
 
-TEST_CASE("Mat3x3 Mat3x3 multiplication works", "[math][linalg][mat3x3]")
+TEST_CASE("Mat3x3 Mat3x3 multiplication works", "[Math][Linalg][Mat3x3]")
 {
     Mat3x3 m1{1.0f, 2.0f, 3.0f,
               4.0f, 1.0f, 5.0f,
@@ -27,7 +27,7 @@ TEST_CASE("Mat3x3 Mat3x3 multiplication works", "[math][linalg][mat3x3]")
     REQUIRE(Transpose(m1) * Transpose(m2) == Transpose(result));
 }
 
-TEST_CASE("Mat3x3 multiplied by identity matrix remain the same", "[math][linalg][mat3x3]")
+TEST_CASE("Mat3x3 multiplied by identity matrix remain the same", "[Math][Linalg][Mat3x3]")
 {
     Mat3x3 m{1.0f, 2.0f, 3.0f,
              4.0f, 1.0f, 5.0f,
@@ -35,7 +35,7 @@ TEST_CASE("Mat3x3 multiplied by identity matrix remain the same", "[math][linalg
     REQUIRE(m * Mat3x3::Identity() == m);
 }
 
-TEST_CASE("Mat3x3 transpose works", "[math][linalg][mat3x3]")
+TEST_CASE("Mat3x3 transpose works", "[Math][Linalg][Mat3x3]")
 {
     Mat3x3 m{1.0f, 2.0f, 3.0f,
              4.0f, 1.0f, 5.0f,
