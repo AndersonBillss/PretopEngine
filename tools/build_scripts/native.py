@@ -5,7 +5,7 @@ from codegen.gen_sources import gen_sources
 ENGINE_OUT = f"{BUILD_DIR}/engine"
 
 # Native engine commands
-def build_native_debug():
+def build_native_debug(target="pretop_engine"):
     gen_sources()
     if (
         cmd(
@@ -27,7 +27,7 @@ def build_native_debug():
         print("Native Build failed")
         exit(1)
 
-    return cmd(["cmake", "--build", ENGINE_OUT])
+    return cmd(["cmake", "--build", ENGINE_OUT, "--target", target])
 
 
 def run_native_debug():
@@ -35,5 +35,5 @@ def run_native_debug():
     return cmd([f"build/engine/pretop_engine{EXE_SUFFIX}"])
 
 def run_tests(args: list[str]):
-    build_native_debug()
+    build_native_debug("pretop_engine_tests")
     return cmd([f"build/engine/pretop_engine_tests{EXE_SUFFIX}"] + args)
