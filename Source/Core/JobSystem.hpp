@@ -30,6 +30,7 @@ namespace Pretop::Core
 
         Handle Submit(Job job);
         Handle Submit(Job job, Completion completion);
+        void Dispatch(Job job);
 
         JobState GetState(Handle handle) const;
         void *GetData(Handle handle) const;
@@ -86,7 +87,7 @@ namespace Pretop::Core
         std::queue<CompletionEntry> _completions;
         std::mutex _completionMutex;
 
-        std::atomic<bool> _stop;
+        std::atomic<bool> _stop{false};
 
         std::vector<JobRecord> _jobRecords;
     };

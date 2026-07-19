@@ -47,9 +47,11 @@ if(EMSCRIPTEN)
   target_compile_definitions(pretop_engine_core PRIVATE WEBGPU_BACKEND_EMDAWNWEBGPU=1)
   target_compile_options(pretop_engine_core PRIVATE
     "--use-port=emdawnwebgpu"
+    "-pthread"
   )
   target_compile_options(pretop_engine PRIVATE
     "--use-port=emdawnwebgpu"
+    "-pthread"
   )
 
   target_link_options(pretop_engine PRIVATE
@@ -62,6 +64,8 @@ if(EMSCRIPTEN)
     "-sASYNCIFY"
     "-sFETCH"
     "-sNO_DISABLE_EXCEPTION_CATCHING"
+    "-pthread"
+    "-sPTHREAD_POOL_SIZE=navigator.hardwareConcurrency"
   )
 else()
   target_compile_definitions(pretop_engine PRIVATE pretop_ENGINE_USE_GLFW=1)

@@ -22,7 +22,6 @@ namespace Pretop::Core
             _threads.push_back(std::thread([&]()
                                            { this->_doJob(); }));
         }
-        _stop = false;
     }
 
     JobSystem::~JobSystem()
@@ -71,6 +70,15 @@ namespace Pretop::Core
         }
         _workAvailable.notify_one();
         return handle;
+    }
+
+    void JobSystem::Dispatch(Job job)
+    {
+        {
+            std::lock_guard lock(_workMutex);
+            _work.push(WorkEntry{Handle{}, job, Completion{}, nullptr});
+        }
+        _workAvailable.notify_one();
     }
 
     JobSystem::JobState JobSystem::GetState(Handle handle) const
@@ -133,11 +141,22 @@ namespace Pretop::Core
             try
             {
                 work.Job.Fn(work.Job.UserData);
-                work.State->store(JobState::Ready);
+                if (work.State)
+                {
+                    work.State->store(JobState::Ready);
+                }
             }
             catch (...)
             {
-                work.State->store(JobState::Error);
+                if (work.State)
+                {
+                    work.State->store(JobState::Error);
+                }
+            }
+
+            if (!work.Completion.Done)
+            {
+                continue;
             }
 
             {
