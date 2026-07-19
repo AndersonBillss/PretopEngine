@@ -74,7 +74,7 @@ namespace Pretop::Core
         Handle _createHandle(uint32_t handleIndex) const;
         int _findStaleHandle() const;
 
-        bool _isValid(const JobRecord *record) const;
+        bool _isValid(const JobRecord &record) const;
         bool _isValid(Handle handle) const;
 
         std::vector<std::thread> _threads;

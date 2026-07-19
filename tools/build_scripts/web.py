@@ -16,7 +16,17 @@ def build_web_debug():
     gen_sources()
     if (
         cmd(
-            [EMCMAKE, "cmake", "-S", ".", "-B", ENGINE_WEB_OUT, "-G", "Ninja"]
+            [
+                EMCMAKE, 
+                "cmake", 
+                "-S", 
+                ".", 
+                "-B", 
+                ENGINE_WEB_OUT, 
+                "-G", 
+                "Ninja",
+                "-DCMAKE_BUILD_TYPE=Debug",
+            ]
         ).returncode
         != 0
     ):

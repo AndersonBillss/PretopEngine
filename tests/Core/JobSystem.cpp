@@ -26,7 +26,7 @@ void WaitUntilDone(JobSystem &jobSystem, Handle handle)
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
 }
 
-TEST_CASE("JobSystem with one job works", "[Core][JobSystem]")
+TEST_CASE("JobSystem with one job works", "[Core][JobSystem][only]")
 {
     JobSystem jobSystem;
 

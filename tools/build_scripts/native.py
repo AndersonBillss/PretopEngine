@@ -1,3 +1,4 @@
+import os
 from utils.cmd import cmd 
 from shared.constants import BUILD_DIR, COMPILER_C, COMPILER_CPP, EXE_SUFFIX
 from codegen.gen_sources import gen_sources
@@ -20,6 +21,7 @@ def build_native_debug(target="pretop_engine"):
                 f"-DCMAKE_C_COMPILER={COMPILER_C}",
                 f"-DCMAKE_CXX_COMPILER={COMPILER_CPP}",
                 "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+                "-DCMAKE_BUILD_TYPE=Debug"
             ]
         ).returncode
         != 0

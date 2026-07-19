@@ -32,6 +32,11 @@ target_link_libraries(pretop_engine_core PUBLIC
 add_executable(pretop_engine ${PRETOP_ENGINE_MAIN})
 target_link_libraries(pretop_engine PRIVATE pretop_engine_core)
 
+target_compile_definitions(pretop_engine_core
+    PRIVATE
+        $<$<CONFIG:Debug>:PRETOP_DEBUG>
+)
+
 if(EMSCRIPTEN)
   target_sources(pretop_engine PRIVATE
     ${PRETOP_ENGINE_SOURCES_WEB}
