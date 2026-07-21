@@ -2,10 +2,8 @@
 #include <cstring>
 #include <fstream>
 #include <iterator>
-#include <new>
-#include <stdexcept>
+#include <functional>
 #include <string>
-#include <type_traits>
 #include <utility>
 
 #if defined(__EMSCRIPTEN__)
@@ -16,10 +14,9 @@
 
 namespace Pretop::Asset
 {
-    template <typename T>
     struct FetchContext
     {
-        TaskCompletion<AssetResult<T>> Completion;
+        AssetLoader::BinaryLoadCallback Callback;
     };
 
     inline std::string MakeHttpError(emscripten_fetch_t *fetch)
@@ -36,38 +33,21 @@ namespace Pretop::Asset
         return message;
     }
 
-    template <typename T>
-    AssetResult<T> BuildResultFromFetch(emscripten_fetch_t *fetch)
+    AssetResult<AssetBytes> BuildResultFromFetch(emscripten_fetch_t *fetch)
     {
-        AssetResult<T> result;
-
-        if constexpr (std::is_same_v<T, AssetBytes>)
+        AssetResult<AssetBytes> result;
+        result.Data.resize(static_cast<std::size_t>(fetch->numBytes));
+        if (!result.Data.empty())
         {
-            result.Data.resize(static_cast<std::size_t>(fetch->numBytes));
-            if (!result.Data.empty())
-            {
-                std::memcpy(result.Data.data(), fetch->data, result.Data.size());
-            }
-        }
-        else if constexpr (std::is_same_v<T, AssetText>)
-        {
-            result.Data.assign(
-                static_cast<const char *>(fetch->data),
-                static_cast<std::size_t>(fetch->numBytes));
-        }
-        else
-        {
-            static_assert(std::is_same_v<T, AssetBytes> || std::is_same_v<T, AssetText>,
-                          "Unsupported asset type for WebAssetLoader.");
+            std::memcpy(result.Data.data(), fetch->data, result.Data.size());
         }
 
         return result;
     }
 
-    template <typename T>
     void OnFetchSuccess(emscripten_fetch_t *fetch)
     {
-        auto *ctx = static_cast<FetchContext<T> *>(fetch->userData);
+        auto *ctx = static_cast<FetchContext *>(fetch->userData);
         if (!ctx)
         {
             emscripten_fetch_close(fetch);
@@ -76,51 +56,48 @@ namespace Pretop::Asset
 
         if (fetch->status < 200 || fetch->status >= 300)
         {
-            ctx->Completion.SetResult(AssetResult<T>{T{}, MakeHttpError(fetch)});
+            ctx->Callback(AssetResult<AssetBytes>{AssetBytes{}, MakeHttpError(fetch)});
         }
         else
         {
-            ctx->Completion.SetResult(BuildResultFromFetch<T>(fetch));
+            ctx->Callback(BuildResultFromFetch(fetch));
         }
 
         emscripten_fetch_close(fetch);
         delete ctx;
     }
 
-    template <typename T>
     void OnFetchError(emscripten_fetch_t *fetch)
     {
-        auto *ctx = static_cast<FetchContext<T> *>(fetch->userData);
+        auto *ctx = static_cast<FetchContext *>(fetch->userData);
         if (!ctx)
         {
             emscripten_fetch_close(fetch);
             return;
         }
 
-        ctx->Completion.SetResult(AssetResult<T>{T{}, MakeHttpError(fetch)});
+        ctx->Callback(AssetResult<AssetBytes>{AssetBytes{}, MakeHttpError(fetch)});
 
         emscripten_fetch_close(fetch);
         delete ctx;
     }
 
-    template <typename T>
-    AssetHandle<T> LoadImpl(std::string_view path, AssetKind kind)
+    void WebAssetLoader::ReadBinaryAsync(
+        std::string_view path,
+        BinaryLoadCallback callback)
     {
-        auto *ctx = new FetchContext<T>();
-        auto task = ctx->Completion.CreateTask();
+        auto *ctx = new FetchContext{std::move(callback)};
 
         emscripten_fetch_attr_t attr;
         emscripten_fetch_attr_init(&attr);
         std::strcpy(attr.requestMethod, "GET");
         attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
         attr.userData = ctx;
-        attr.onsuccess = &OnFetchSuccess<T>;
-        attr.onerror = &OnFetchError<T>;
+        attr.onsuccess = &OnFetchSuccess;
+        attr.onerror = &OnFetchError;
 
         std::string url(path);
         emscripten_fetch(&attr, url.c_str());
-
-        return AssetHandle<T>{std::move(url), kind, std::move(task)};
     }
 
     AssetResult<AssetText> ReadTextFromVfs(std::string_view path)
@@ -156,12 +133,6 @@ namespace Pretop::Asset
         }
 
         return result;
-    }
-
-    AssetHandle<AssetBytes>
-    WebAssetLoader::LoadBinaryAsync(std::string_view path)
-    {
-        return LoadImpl<AssetBytes>(path, AssetKind::Binary);
     }
 
     AssetHandle<AssetText>

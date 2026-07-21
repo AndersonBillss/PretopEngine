@@ -6,7 +6,9 @@ namespace Pretop::Asset
     class WebAssetLoader final : public AssetLoader
     {
     public:
-        AssetHandle<AssetBytes> LoadBinaryAsync(std::string_view path) override;
+        void ReadBinaryAsync(
+            std::string_view path,
+            BinaryLoadCallback callback) override;
         AssetHandle<AssetText> LoadTextAsync(std::string_view path) override;
     };
 } // namespace Pretop::Asset

@@ -1,10 +1,8 @@
 #pragma once
 #include <cstdint>
 #include <vector>
-#include <string>
-#include <memory>
 #include <variant>
-#include "AssetLoader.hpp"
+#include "AssetTypes.hpp"
 #include "../Math/Linalg/Vec3.hpp"
 
 namespace Pretop::Asset
@@ -23,5 +21,5 @@ namespace Pretop::Asset
         IndexList Indices;
     };
 
-    ParsedData LoadGlb(AssetLoader *assetLoader, const std::string &path);
+    ParsedData LoadGlb(const AssetBytes &bytes);
 } // namespace Pretop::Asset

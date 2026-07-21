@@ -12,6 +12,7 @@ namespace Pretop::Asset
     {
         Text,
         Binary,
+        Model,
     };
 
     using AssetBytes = std::vector<std::byte>;

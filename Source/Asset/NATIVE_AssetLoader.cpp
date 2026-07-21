@@ -51,34 +51,31 @@ namespace Pretop::Asset
             std::istreambuf_iterator<char>());
     }
 
-    AssetHandle<AssetBytes>
-    NativeAssetLoader::LoadBinaryAsync(std::string_view path)
+    void NativeAssetLoader::ReadBinaryAsync(
+        std::string_view path,
+        BinaryLoadCallback callback)
     {
-        TaskCompletion<AssetResult<AssetBytes>> completion;
-        auto task = completion.CreateTask();
         std::string pathCopy(path);
 
         std::thread(
-            [completion = std::move(completion), pathCopy = std::move(pathCopy)]() mutable
+            [callback = std::move(callback), pathCopy = std::move(pathCopy)]() mutable
             {
                 try
                 {
                     AssetBytes bytes = ReadBinaryFile(pathCopy);
-                    completion.SetResult(AssetResult<AssetBytes>{std::move(bytes), {}});
+                    callback(AssetResult<AssetBytes>{std::move(bytes), {}});
                 }
                 catch (const std::exception &e)
                 {
-                    completion.SetResult(AssetResult<AssetBytes>{AssetBytes{}, e.what()});
+                    callback(AssetResult<AssetBytes>{AssetBytes{}, e.what()});
                 }
                 catch (...)
                 {
-                    completion.SetResult(
+                    callback(
                         AssetResult<AssetBytes>{AssetBytes{}, "Unknown error while loading binary asset."});
                 }
             })
             .detach();
-
-        return AssetHandle<AssetBytes>{std::move(pathCopy), AssetKind::Binary, std::move(task)};
     }
 
     AssetHandle<AssetText>

@@ -56,7 +56,7 @@ namespace Pretop::Asset
         return value;
     }
 
-    std::vector<uint32_t> ReadIndicesU32(uint32_t indicesCount, std::byte *indicesChunkStart)
+    std::vector<uint32_t> ReadIndicesU32(uint32_t indicesCount, const std::byte *indicesChunkStart)
     {
         std::vector<uint32_t> indices;
         for (uint32_t i = 0; i < indicesCount; i++)
@@ -66,7 +66,7 @@ namespace Pretop::Asset
         }
         return indices;
     }
-    std::vector<uint16_t> ReadIndicesU16(uint32_t indicesCount, std::byte *indicesChunkStart)
+    std::vector<uint16_t> ReadIndicesU16(uint32_t indicesCount, const std::byte *indicesChunkStart)
     {
         std::vector<uint16_t> indices;
         for (uint32_t i = 0; i < indicesCount; i++)
@@ -77,16 +77,9 @@ namespace Pretop::Asset
         return indices;
     }
 
-    ParsedData LoadGlb(AssetLoader *assetLoader, const std::string &path)
+    ParsedData LoadGlb(const AssetBytes &bytes)
     {
-        auto handle = assetLoader->LoadBinaryAsync(path);
-        handle.Wait();
-        auto handleResult = handle.Get();
-        if (!handleResult)
-        {
-            throw ModelParseError("Asset could not be loaded: " + handleResult.Error);
-        }
-        std::byte *data = handleResult.Data.data();
+        const std::byte *data = bytes.data();
         uint32_t magic = ReadU32LE(data);
         if (magic != 0x46546C67)
         {
@@ -102,8 +95,8 @@ namespace Pretop::Asset
             throw ModelParseError("First chunk is not JSON");
         }
         // std::cout << "Chunk length: " << jsonChunkLength << std::endl;
-        char *jsonChunkStart = (char *)(data + 20);
-        char *jsonChunkEnd = jsonChunkStart + jsonChunkLength;
+        const char *jsonChunkStart = reinterpret_cast<const char *>(data + 20);
+        const char *jsonChunkEnd = jsonChunkStart + jsonChunkLength;
         nlohmann::json j = nlohmann::json::parse(jsonChunkStart, jsonChunkEnd);
         // std::cout << j.dump(2) << std::endl;
 
@@ -191,17 +184,18 @@ namespace Pretop::Asset
             indicesBufferOffset = indicesBufferView["byteOffset"];
         }
 
-        uint32_t binaryChunkLength = ReadU32LE((std::byte *)jsonChunkEnd);
+        const auto *jsonChunkBytes = reinterpret_cast<const std::byte *>(jsonChunkEnd);
+        uint32_t binaryChunkLength = ReadU32LE(jsonChunkBytes);
         // std::cout << "binaryChunkLength: " << binaryChunkLength << std::endl;
-        uint32_t binaryChunkType = ReadU32LE((std::byte *)jsonChunkEnd + 4);
+        uint32_t binaryChunkType = ReadU32LE(jsonChunkBytes + 4);
         if (binaryChunkType != ChunkType::Bin)
         {
             throw ModelParseError("Second chunk is not binary");
         }
-        std::byte *binaryChunkStart = (std::byte *)jsonChunkEnd + 8;
-        std::byte *posChunkStart = binaryChunkStart + posBufferOffset;
-        std::byte *normChunkStart = binaryChunkStart + normBufferOffset;
-        std::byte *indicesChunkStart = binaryChunkStart + indicesBufferOffset;
+        const std::byte *binaryChunkStart = jsonChunkBytes + 8;
+        const std::byte *posChunkStart = binaryChunkStart + posBufferOffset;
+        const std::byte *normChunkStart = binaryChunkStart + normBufferOffset;
+        const std::byte *indicesChunkStart = binaryChunkStart + indicesBufferOffset;
 
         ParsedData result;
         std::vector<Vertex> vertices;

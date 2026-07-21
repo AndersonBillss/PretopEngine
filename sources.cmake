@@ -4,6 +4,8 @@ set(PRETOP_ENGINE_MAIN
 )
 set(PRETOP_ENGINE_SOURCES
   Source/Asset/AssetLoaderFactory.cpp
+  Source/Asset/AssetManager.cpp
+  Source/Asset/AssetManagerFactory.cpp
   Source/Asset/LoadGlb.cpp
   Source/Core/JobSystem.cpp
   Source/Demos/LoadModel.cpp
@@ -40,6 +42,7 @@ set(PRETOP_ENGINE_SOURCES_WEB
   Source/Window/WEB_CanvasWindow.cpp
 )
 set(PRETOP_ENGINE_TEST_SOURCES
+  tests/Asset/AssetManager.cpp
   tests/Core/JobSystem.cpp
   tests/Math/Euler.cpp
   tests/Math/Linalg/Mat2x2.cpp
