@@ -40,7 +40,7 @@ namespace Pretop::Core
     {
         Completion completion{nullptr};
         Handle handle = _addJobRecord(job, completion);
-        std::atomic<JobState> *jobState = _getRecord(handle)->State.get();
+        std::atomic<Status> *jobState = _getRecord(handle)->State.get();
         {
             std::lock_guard lock(_workMutex);
             WorkEntry workEntry{
@@ -58,7 +58,7 @@ namespace Pretop::Core
     Handle JobSystem::Submit(Job job, Completion completion)
     {
         Handle handle = _addJobRecord(job, completion);
-        std::atomic<JobState> *jobState = _getRecord(handle)->State.get();
+        std::atomic<Status> *jobState = _getRecord(handle)->State.get();
         {
             std::lock_guard lock(_workMutex);
             WorkEntry workEntry{
@@ -81,7 +81,7 @@ namespace Pretop::Core
         _workAvailable.notify_one();
     }
 
-    JobSystem::JobState JobSystem::GetState(Handle handle) const
+    JobSystem::Status JobSystem::GetState(Handle handle) const
     {
         return _getRecord(handle)->State->load();
     }
@@ -113,10 +113,10 @@ namespace Pretop::Core
             JobRecord *record = _getRecord(completion.Handle);
             if (completion.Completion.Done)
             {
-                completion.Completion.Done(completion.Handle, record->UserData);
+                completion.Completion.Done(*this, completion.Handle);
             }
 
-            record->State->store(JobState::Ready);
+            record->State->store(Status::Ready);
         }
     }
 
@@ -143,14 +143,14 @@ namespace Pretop::Core
                 work.Job.Fn(work.Job.UserData);
                 if (work.State)
                 {
-                    work.State->store(JobState::Ready);
+                    work.State->store(Status::Ready);
                 }
             }
             catch (...)
             {
                 if (work.State)
                 {
-                    work.State->store(JobState::Error);
+                    work.State->store(Status::Error);
                 }
             }
 
@@ -180,7 +180,7 @@ namespace Pretop::Core
 
             _jobRecords.emplace_back();
             auto &record = _jobRecords.back();
-            record.State = std::make_unique<std::atomic<JobState>>(JobState::InProgress);
+            record.State = std::make_unique<std::atomic<Status>>(Status::InProgress);
             record.Generation = kStartingGeneration;
             record.UserData = job.UserData;
         }
@@ -192,7 +192,7 @@ namespace Pretop::Core
             if (newGeneration == _jobStateGenerationInvalid)
                 newGeneration = kStartingGeneration;
 
-            record.State->store(JobState::InProgress);
+            record.State->store(Status::InProgress);
             record.UserData = job.UserData;
             record.Generation = newGeneration;
 
@@ -245,8 +245,7 @@ namespace Pretop::Core
         }
         return handle.Generation != _jobStateGenerationInvalid &&
                _jobRecords[handle.Index].Generation == handle.Generation &&
-               _isValid(_jobRecords[handle.Index]);
-    }
+               _isValid(_jobRecords[handle.Index]); }
 
     Handle JobSystem::_createHandle(uint32_t handleIndex) const
     {
@@ -297,7 +296,7 @@ namespace Pretop::Core
         return os;
     }
 
-    std::ostream &operator<<(std::ostream &os, Pretop::Core::JobSystem::JobState js)
+    std::ostream &operator<<(std::ostream &os, Pretop::Core::JobSystem::Status js)
     {
         os << magic_enum::enum_name(js);
         return os;

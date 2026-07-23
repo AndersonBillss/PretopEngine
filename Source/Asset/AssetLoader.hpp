@@ -16,7 +16,7 @@ namespace Pretop::Asset
         using Status = Core::Status;
 
         using RawBytesCb = void (*)(const AssetBytes &bytes, void *userData);
-        using FinishCb = void (*)(std::string_view error, void *userData);
+        using FinishCb = void (*)(AssetLoader &assetLoader, Handle handle);
 
         virtual ~AssetLoader() = default;
 

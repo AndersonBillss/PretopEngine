@@ -10,7 +10,6 @@
 #include <ostream>
 
 #include "Job.hpp"
-#include "Completion.hpp"
 #include "Handle.hpp"
 #include "Status.hpp"
 
@@ -19,7 +18,13 @@ namespace Pretop::Core
     class JobSystem
     {
     public:
-        using JobState = Status;
+        using MainThreadFn = void (*)(JobSystem &, Pretop::Core::Handle);
+        struct Completion
+        {
+            MainThreadFn Done = nullptr;
+        };
+
+        using Status = Pretop::Core::Status;
 
         JobSystem();
         ~JobSystem();
@@ -28,7 +33,7 @@ namespace Pretop::Core
         Handle Submit(Job job, Completion completion);
         void Dispatch(Job job);
 
-        JobState GetState(Handle handle) const;
+        Status GetState(Handle handle) const;
         void *GetData(Handle handle) const;
         void Release(Handle handle);
 
@@ -41,24 +46,24 @@ namespace Pretop::Core
 
         struct JobRecord
         {
-            std::unique_ptr<std::atomic<JobState>> State;
+            std::unique_ptr<std::atomic<Status>> State;
             uint32_t Generation = 0;
             void *UserData = nullptr;
-            Pretop::Core::Completion Completion;
+            JobSystem::Completion Completion;
         };
 
         struct CompletionEntry
         {
             Pretop::Core::Handle Handle;
-            Pretop::Core::Completion Completion;
+            JobSystem::Completion Completion;
         };
 
         struct WorkEntry
         {
             Pretop::Core::Handle Handle;
             Pretop::Core::Job Job;
-            Pretop::Core::Completion Completion;
-            std::atomic<JobState> *State;
+            JobSystem::Completion Completion;
+            std::atomic<Status> *State;
         };
 
         void _doJob();
@@ -87,6 +92,6 @@ namespace Pretop::Core
 
         std::vector<JobRecord> _jobRecords;
     };
-    std::ostream &operator<<(std::ostream &os, Pretop::Core::JobSystem::JobState js);
+    std::ostream &operator<<(std::ostream &os, Pretop::Core::JobSystem::Status status);
     std::ostream &operator<<(std::ostream &os, Pretop::Core::Handle handle);
 }

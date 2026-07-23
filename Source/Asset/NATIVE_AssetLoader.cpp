@@ -61,6 +61,7 @@ namespace Pretop::Asset
         std::string ErrorText;
         AssetBytes Result;
         void *userData;
+        NativeAssetLoader *self;
     };
     AssetLoader::Handle NativeAssetLoader::ReadFile(std::string_view path, AssetLoader::RawBytesCb rawBytesCb, AssetLoader::FinishCb finishCb, void *userData)
     {
@@ -71,6 +72,7 @@ namespace Pretop::Asset
         data->ErrorText = "";
         data->Result = {};
         data->userData = userData;
+        data->self = this;
 
         return this->_js->Submit(
             {[](void *userData)
@@ -96,10 +98,11 @@ namespace Pretop::Asset
                  }
              },
              data},
-            {[](Handle handle, void *userData)
+            {[](Core::JobSystem &js, Handle handle)
              {
-                 ReadFileJobData *readFileData = reinterpret_cast<ReadFileJobData *>(userData);
-                 readFileData->FinishCb(readFileData->ErrorText, readFileData->userData);
+                 ReadFileJobData *readFileData =
+                     reinterpret_cast<ReadFileJobData *>(js.GetData(handle));
+                 readFileData->FinishCb(*readFileData->self, handle);
              }});
     };
 
@@ -113,7 +116,7 @@ namespace Pretop::Asset
         return std::move(reinterpret_cast<ReadFileJobData *>(_js->GetData(handle))->Result);
     }
 
-    void *NativeAssetLoader::GetRawData(Handle handle) 
+    void *NativeAssetLoader::GetRawData(Handle handle)
     {
         return std::move(reinterpret_cast<ReadFileJobData *>(_js->GetData(handle))->userData);
     }

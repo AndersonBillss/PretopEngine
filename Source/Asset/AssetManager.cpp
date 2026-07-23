@@ -33,7 +33,9 @@ namespace Pretop::Asset
                 LoadModelData *data = reinterpret_cast<LoadModelData *>(userData);
                 data->data = std::make_unique<ParsedData>(LoadGlb(bytes));
             },
-            [](std::string_view error, void *userData) {},
+            [](AssetLoader &loader, AssetManager::Handle handle) {
+                loader.Release(handle);
+            },
             loadModelData);
     }
 
