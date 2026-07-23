@@ -1,5 +1,4 @@
 #pragma once
-#include "AssetHandle.hpp"
 #include "../Core/JobSystem.hpp"
 
 #include <functional>
@@ -12,6 +11,8 @@ namespace Pretop::Asset
     class AssetLoader
     {
     public:
+        using AssetBytes = std::vector<std::byte>;
+
         using Handle = Core::Handle;
         using Status = Core::Status;
 

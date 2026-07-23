@@ -28,7 +28,7 @@ namespace Pretop::Asset
         loadModelData->data = nullptr;
         return _assetLoader->ReadFile(
             path,
-            [](const AssetBytes &bytes, void *userData)
+            [](const AssetLoader::AssetBytes &bytes, void *userData)
             {
                 LoadModelData *data = reinterpret_cast<LoadModelData *>(userData);
                 data->data = std::make_unique<ParsedData>(LoadGlb(bytes));
