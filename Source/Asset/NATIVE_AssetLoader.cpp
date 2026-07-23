@@ -128,6 +128,7 @@ namespace Pretop::Asset
 
     void NativeAssetLoader::Release(Handle handle)
     {
+        delete reinterpret_cast<ReadFileJobData *>(_js->GetData(handle));
         return _js->Release(handle);
     }
 }
