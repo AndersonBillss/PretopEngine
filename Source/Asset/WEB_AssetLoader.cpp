@@ -84,7 +84,8 @@ namespace Pretop::Asset
 
     void WebAssetLoader::ReadBinaryAsync(
         std::string_view path,
-        BinaryLoadCallback callback)
+        BinaryLoadCallback callback,
+        Core::JobSystem *js)
     {
         auto *ctx = new FetchContext{std::move(callback)};
 
@@ -135,8 +136,7 @@ namespace Pretop::Asset
         return result;
     }
 
-    AssetHandle<AssetText>
-    WebAssetLoader::LoadTextAsync(std::string_view path)
+    AssetHandle<AssetText> ssWebAssetLoader::LoadTextAsync(std::string_view path)
     {
         TaskCompletion<AssetResult<AssetText>> completion;
         auto task = completion.CreateTask();

@@ -113,7 +113,7 @@ namespace Pretop::Core
             JobRecord *record = _getRecord(completion.Handle);
             if (completion.Completion.Done)
             {
-                completion.Completion.Done(record->UserData);
+                completion.Completion.Done(completion.Handle, record->UserData);
             }
 
             record->State->store(JobState::Ready);

@@ -1,32 +1,39 @@
 #pragma once
 
-#include "AssetHandle.hpp"
+// #include "AssetHandle.hpp"
 #include "LoadGlb.hpp"
+#include "AssetLoader.hpp"
+#include "../Core/JobSystem.hpp"
 
 #include <memory>
 #include <string_view>
 
-namespace Pretop::Core
-{
-    class JobSystem;
-}
-
 namespace Pretop::Asset
 {
-    class AssetLoader;
-
     class AssetManager
     {
+        enum class AssetType
+        {
+            Shader,
+            GLB,
+        };
+
     public:
+        using Handle = Core::Handle;
+        using Status = Core::Status;
+
         AssetManager(
-            Core::JobSystem &jobSystem,
             std::unique_ptr<AssetLoader> assetLoader);
         ~AssetManager();
 
-        AssetHandle<ParsedData> LoadModelAsync(std::string_view path);
+        Handle LoadModel(std::string_view path);
+
+        Status GetState(Handle handle);
+        std::unique_ptr<ParsedData> GetGlbData(Handle handle);
+        std::string_view GetError(Handle handle);
+        void Release(Handle handle);
 
     private:
-        Core::JobSystem &_jobSystem;
         std::unique_ptr<AssetLoader> _assetLoader;
     };
 } // namespace Pretop::Asset

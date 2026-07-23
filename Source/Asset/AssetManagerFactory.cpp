@@ -6,7 +6,6 @@ namespace Pretop::Asset::AssetManagerFactory
     std::unique_ptr<AssetManager> CreateAssetManager(Core::JobSystem &jobSystem)
     {
         return std::make_unique<AssetManager>(
-            jobSystem,
-            AssetLoaderFactory::CreateAssetLoader());
+            AssetLoaderFactory::CreateAssetLoader(&jobSystem));
     }
 } // namespace Pretop::Asset::AssetManagerFactory

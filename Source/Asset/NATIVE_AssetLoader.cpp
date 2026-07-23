@@ -38,73 +38,93 @@ namespace Pretop::Asset
         return bytes;
     }
 
-    AssetText ReadTextFile(const std::string &path)
+    NativeAssetLoader::NativeAssetLoader(Core::JobSystem *js)
     {
-        std::ifstream file(path, std::ios::binary);
-        if (!file)
-        {
-            throw std::runtime_error("Failed to open text asset: " + path);
-        }
-
-        return AssetText(
-            std::istreambuf_iterator<char>(file),
-            std::istreambuf_iterator<char>());
+        this->_js = js;
     }
 
-    void NativeAssetLoader::ReadBinaryAsync(
-        std::string_view path,
-        BinaryLoadCallback callback)
+    AssetLoader::Handle NativeAssetLoader::ReadFile(std::string_view path)
     {
-        std::string pathCopy(path);
-
-        std::thread(
-            [callback = std::move(callback), pathCopy = std::move(pathCopy)]() mutable
-            {
-                try
-                {
-                    AssetBytes bytes = ReadBinaryFile(pathCopy);
-                    callback(AssetResult<AssetBytes>{std::move(bytes), {}});
-                }
-                catch (const std::exception &e)
-                {
-                    callback(AssetResult<AssetBytes>{AssetBytes{}, e.what()});
-                }
-                catch (...)
-                {
-                    callback(
-                        AssetResult<AssetBytes>{AssetBytes{}, "Unknown error while loading binary asset."});
-                }
-            })
-            .detach();
+        return ReadFile(path, nullptr, nullptr, nullptr);
     }
 
-    AssetHandle<AssetText>
-    NativeAssetLoader::LoadTextAsync(std::string_view path)
+    AssetLoader::Handle NativeAssetLoader::ReadFile(std::string_view path, AssetLoader::FinishCb finishCb, void *userData)
     {
-        TaskCompletion<AssetResult<AssetText>> completion;
-        auto task = completion.CreateTask();
-        std::string pathCopy(path);
-
-        std::thread(
-            [completion = std::move(completion), pathCopy = std::move(pathCopy)]() mutable
-            {
-                try
-                {
-                    AssetText text = ReadTextFile(pathCopy);
-                    completion.SetResult(AssetResult<AssetText>{std::move(text), {}});
-                }
-                catch (const std::exception &e)
-                {
-                    completion.SetResult(AssetResult<AssetText>{AssetText{}, e.what()});
-                }
-                catch (...)
-                {
-                    completion.SetResult(
-                        AssetResult<AssetText>{AssetText{}, "Unknown error while loading text asset."});
-                }
-            })
-            .detach();
-
-        return AssetHandle<AssetText>{std::move(pathCopy), AssetKind::Text, std::move(task)};
+        return ReadFile(path, nullptr, finishCb, nullptr);
     }
-} // namespace Pretop::Asset
+
+    struct ReadFileJobData
+    {
+        AssetLoader::RawBytesCb RawBytesCb;
+        AssetLoader::FinishCb FinishCb;
+        std::string Path;
+        std::string ErrorText;
+        AssetBytes Result;
+        void *userData;
+    };
+    AssetLoader::Handle NativeAssetLoader::ReadFile(std::string_view path, AssetLoader::RawBytesCb rawBytesCb, AssetLoader::FinishCb finishCb, void *userData)
+    {
+        ReadFileJobData *data = new ReadFileJobData;
+        data->RawBytesCb = rawBytesCb;
+        data->FinishCb = finishCb;
+        data->Path = std::string(path);
+        data->ErrorText = "";
+        data->Result = {};
+        data->userData = userData;
+
+        return this->_js->Submit(
+            {[](void *userData)
+             {
+                 ReadFileJobData *readFileData = reinterpret_cast<ReadFileJobData *>(userData);
+                 try
+                 {
+                     readFileData->Result = ReadBinaryFile(readFileData->Path);
+                     if (readFileData->RawBytesCb != nullptr)
+                     {
+                         readFileData->RawBytesCb(readFileData->Result, readFileData->userData);
+                     }
+                 }
+                 catch (const std::exception &e)
+                 {
+                     readFileData->ErrorText = e.what();
+                     throw;
+                 }
+                 catch (...)
+                 {
+                     readFileData->ErrorText = "Unknown error while loading binary asset.";
+                     throw;
+                 }
+             },
+             data},
+            {[](Handle handle, void *userData)
+             {
+                 ReadFileJobData *readFileData = reinterpret_cast<ReadFileJobData *>(userData);
+                 readFileData->FinishCb(readFileData->ErrorText, readFileData->userData);
+             }});
+    };
+
+    AssetLoader::Status NativeAssetLoader::GetStatus(Handle handle) const
+    {
+        return _js->GetState(handle);
+    }
+
+    const AssetBytes &NativeAssetLoader::GetBytes(Handle handle) const
+    {
+        return std::move(reinterpret_cast<ReadFileJobData *>(_js->GetData(handle))->Result);
+    }
+
+    void *NativeAssetLoader::GetRawData(Handle handle) 
+    {
+        return std::move(reinterpret_cast<ReadFileJobData *>(_js->GetData(handle))->userData);
+    }
+
+    std::string NativeAssetLoader::GetError(Handle handle) const
+    {
+        return reinterpret_cast<ReadFileJobData *>(_js->GetData(handle))->ErrorText;
+    }
+
+    void NativeAssetLoader::Release(Handle handle)
+    {
+        return _js->Release(handle);
+    }
+}

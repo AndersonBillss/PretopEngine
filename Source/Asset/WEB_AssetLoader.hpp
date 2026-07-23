@@ -8,7 +8,8 @@ namespace Pretop::Asset
     public:
         void ReadBinaryAsync(
             std::string_view path,
-            BinaryLoadCallback callback) override;
+            BinaryLoadCallback callback,
+            Core::JobSystem *js) override;
         AssetHandle<AssetText> LoadTextAsync(std::string_view path) override;
     };
 } // namespace Pretop::Asset

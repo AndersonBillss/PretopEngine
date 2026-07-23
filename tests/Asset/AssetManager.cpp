@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "../../Source/Asset/AssetLoader.hpp"
+#include "../../Source/Asset/NATIVE_AssetLoader.hpp"
 #include "../../Source/Asset/AssetManager.hpp"
 #include "../../Source/Core/JobSystem.hpp"
 
@@ -12,6 +12,12 @@
 
 using namespace Pretop::Asset;
 using namespace Pretop::Core;
+
+void WaitUntilDone(AssetManager &assetManager, Handle handle)
+{
+    while (assetManager.GetState(handle) == AssetManager::Status::InProgress)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+}
 
 namespace
 {
@@ -37,29 +43,6 @@ namespace
                   static_cast<std::streamsize>(bytes.size()));
         return bytes;
     }
-
-    class TestAssetLoader final : public AssetLoader
-    {
-    public:
-        void ReadBinaryAsync(
-            std::string_view path,
-            BinaryLoadCallback callback) override
-        {
-            try
-            {
-                callback(AssetResult<AssetBytes>{ReadBytes(std::string(path)), {}});
-            }
-            catch (const std::exception &error)
-            {
-                callback(AssetResult<AssetBytes>{AssetBytes{}, error.what()});
-            }
-        }
-
-        AssetHandle<AssetText> LoadTextAsync(std::string_view) override
-        {
-            return {};
-        }
-    };
 }
 
 TEST_CASE("LoadGlb parses model bytes", "[Asset][LoadGlb]")
@@ -76,36 +59,34 @@ TEST_CASE("LoadGlb parses model bytes", "[Asset][LoadGlb]")
 TEST_CASE("AssetManager loads models concurrently", "[Asset][AssetManager]")
 {
     JobSystem jobSystem;
-    AssetManager assetManager(jobSystem, std::make_unique<TestAssetLoader>());
+    AssetManager assetManager(std::make_unique<NativeAssetLoader>(&jobSystem));
 
-    auto plant = assetManager.LoadModelAsync(
+    Handle plantHandle = assetManager.LoadModel(
         AssetPath("DiffuseTransmissionPlant.glb"));
-    auto mammoth = assetManager.LoadModelAsync(
+    Handle mammothHandle = assetManager.LoadModel(
         AssetPath("woolly-mammoth-100k-4096_std.glb"));
 
-    plant.Wait();
-    mammoth.Wait();
+    WaitUntilDone(assetManager, plantHandle);
+    WaitUntilDone(assetManager, mammothHandle);
 
-    const auto plantResult = plant.Get();
-    const auto mammothResult = mammoth.Get();
+    const auto plantResult = assetManager.GetGlbData(plantHandle);
+    const auto mammothResult = assetManager.GetGlbData(mammothHandle);
 
-    REQUIRE(plant.Kind() == AssetKind::Model);
-    REQUIRE(mammoth.Kind() == AssetKind::Model);
     REQUIRE(plantResult);
     REQUIRE(mammothResult);
-    REQUIRE_FALSE(plantResult.Data.Vertices.empty());
-    REQUIRE_FALSE(mammothResult.Data.Vertices.empty());
+    REQUIRE_FALSE(plantResult->Vertices.empty());
+    REQUIRE_FALSE(mammothResult->Vertices.empty());
 }
 
 TEST_CASE("AssetManager reports byte loading errors", "[Asset][AssetManager]")
 {
     JobSystem jobSystem;
-    AssetManager assetManager(jobSystem, std::make_unique<TestAssetLoader>());
+    AssetManager assetManager(std::make_unique<NativeAssetLoader>(&jobSystem));
 
-    auto model = assetManager.LoadModelAsync(AssetPath("missing.glb"));
-    model.Wait();
+    auto handle = assetManager.LoadModel(AssetPath("missing.glb"));
+    WaitUntilDone(assetManager, handle);
 
-    const auto result = model.Get();
+    const auto result = assetManager.GetGlbData(handle);
     REQUIRE_FALSE(result);
-    REQUIRE_FALSE(result.Error.empty());
+    REQUIRE_FALSE(assetManager.GetState(handle) == AssetManager::Status::InProgress);
 }

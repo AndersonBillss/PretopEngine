@@ -12,18 +12,14 @@
 #include "Job.hpp"
 #include "Completion.hpp"
 #include "Handle.hpp"
+#include "Status.hpp"
 
 namespace Pretop::Core
 {
     class JobSystem
     {
     public:
-        enum class JobState
-        {
-            InProgress,
-            Ready,
-            Error,
-        };
+        using JobState = Status;
 
         JobSystem();
         ~JobSystem();

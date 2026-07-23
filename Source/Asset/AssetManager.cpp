@@ -10,83 +10,50 @@
 
 namespace Pretop::Asset
 {
-    namespace
-    {
-        using ModelResult = AssetResult<ParsedData>;
-
-        struct ParseModelJob
-        {
-            AssetBytes Bytes;
-            TaskCompletion<ModelResult> Completion;
-        };
-
-        void ParseModel(void *userData)
-        {
-            std::unique_ptr<ParseModelJob> job(static_cast<ParseModelJob *>(userData));
-
-            try
-            {
-                ParsedData model = LoadGlb(job->Bytes);
-                job->Completion.SetResult(ModelResult{std::move(model), {}});
-            }
-            catch (const std::exception &error)
-            {
-                job->Completion.SetResult(ModelResult{ParsedData{}, error.what()});
-            }
-            catch (...)
-            {
-                job->Completion.SetResult(
-                    ModelResult{ParsedData{}, "Unknown error while parsing model."});
-            }
-        }
-    } // namespace
-
     AssetManager::AssetManager(
-        Core::JobSystem &jobSystem,
         std::unique_ptr<AssetLoader> assetLoader)
-        : _jobSystem(jobSystem), _assetLoader(std::move(assetLoader))
+        : _assetLoader(std::move(assetLoader))
     {
     }
 
     AssetManager::~AssetManager() = default;
 
-    AssetHandle<ParsedData> AssetManager::LoadModelAsync(std::string_view path)
+    struct LoadModelData
     {
-        TaskCompletion<ModelResult> completion;
-        auto task = completion.CreateTask();
-        const std::string id(path);
-        Core::JobSystem *jobSystem = &_jobSystem;
-
-        _assetLoader->ReadBinaryAsync(
+        std::unique_ptr<ParsedData> data;
+    };
+    AssetManager::Handle AssetManager::LoadModel(std::string_view path)
+    {
+        LoadModelData *loadModelData = new LoadModelData;
+        loadModelData->data = nullptr;
+        return _assetLoader->ReadFile(
             path,
-            [jobSystem, completion = std::move(completion)](AssetResult<AssetBytes> result) mutable
+            [](const AssetBytes &bytes, void *userData)
             {
-                if (!result)
-                {
-                    completion.SetResult(ModelResult{ParsedData{}, std::move(result.Error)});
-                    return;
-                }
+                LoadModelData *data = reinterpret_cast<LoadModelData *>(userData);
+                data->data = std::make_unique<ParsedData>(LoadGlb(bytes));
+            },
+            [](std::string_view error, void *userData) {},
+            loadModelData);
+    }
 
-                auto job = std::make_unique<ParseModelJob>();
-                job->Bytes = std::move(result.Data);
-                job->Completion = completion;
+    AssetManager::Status AssetManager::GetState(Handle handle)
+    {
+        return _assetLoader->GetStatus(handle);
+    }
 
-                try
-                {
-                    jobSystem->Dispatch(Core::Job{ParseModel, job.get()});
-                    job.release();
-                }
-                catch (const std::exception &error)
-                {
-                    completion.SetResult(ModelResult{ParsedData{}, error.what()});
-                }
-                catch (...)
-                {
-                    completion.SetResult(
-                        ModelResult{ParsedData{}, "Unknown error while scheduling model parsing."});
-                }
-            });
+    std::unique_ptr<ParsedData> AssetManager::GetGlbData(Handle handle)
+    {
+        LoadModelData *loadModelData = reinterpret_cast<LoadModelData *>(_assetLoader->GetRawData(handle));
+        return std::move(loadModelData->data);
+    }
 
-        return AssetHandle<ParsedData>{id, AssetKind::Model, std::move(task)};
+    std::string_view AssetManager::GetError(Handle handle)
+    {
+        return _assetLoader->GetError(handle);
+    }
+    void AssetManager::Release(Handle handle)
+    {
+        return _assetLoader->Release(handle);
     }
 } // namespace Pretop::Asset

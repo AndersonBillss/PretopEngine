@@ -108,6 +108,7 @@ if(BUILD_TESTING AND NOT EMSCRIPTEN)
 
   add_executable(pretop_engine_tests
     ${PRETOP_ENGINE_TEST_SOURCES}
+    ${PRETOP_ENGINE_SOURCES_NATIVE}
   )
 
   target_link_libraries(pretop_engine_tests PRIVATE
