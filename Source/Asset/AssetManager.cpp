@@ -58,6 +58,7 @@ namespace Pretop::Asset
     }
     void AssetManager::Release(Handle handle)
     {
+        delete static_cast<LoadModelData *>(_assetLoader->GetRawData(handle));
         return _assetLoader->Release(handle);
     }
 } // namespace Pretop::Asset
