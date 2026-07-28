@@ -11,8 +11,9 @@
 namespace Pretop::Asset
 {
     AssetManager::AssetManager(
-        std::unique_ptr<AssetLoader> assetLoader)
-        : _assetLoader(std::move(assetLoader))
+        std::unique_ptr<AssetLoader> assetLoader,
+        RHI::Device *device)
+        : _assetLoader(std::move(assetLoader)), _device(device)
     {
     }
 
@@ -33,11 +34,7 @@ namespace Pretop::Asset
                 LoadModelData *data = reinterpret_cast<LoadModelData *>(userData);
                 data->data = std::make_unique<ParsedData>(LoadGlb(bytes));
             },
-            [](AssetLoader &loader, AssetManager::Handle handle)
-            {
-                delete reinterpret_cast<LoadModelData *>(loader.GetRawData(handle));
-                loader.Release(handle);
-            },
+            [](AssetLoader &loader, AssetManager::Handle handle) {},
             loadModelData);
     }
 
@@ -50,6 +47,33 @@ namespace Pretop::Asset
     {
         LoadModelData *loadModelData = reinterpret_cast<LoadModelData *>(_assetLoader->GetRawData(handle));
         return std::move(loadModelData->data);
+    }
+
+    struct LoadShaderModuleData
+    {
+        std::unique_ptr<RHI::Shader> data;
+        RHI::Device *device;
+    };
+    AssetManager::Handle AssetManager::LoadShaderModule(std::string_view path)
+    {
+        LoadShaderModuleData *loadShaderModuleData = new LoadShaderModuleData;
+        loadShaderModuleData->data = nullptr;
+        loadShaderModuleData->device = this->_device;
+        return _assetLoader->ReadFile(
+            path,
+            [](AssetLoader &loader, AssetManager::Handle handle)
+            {
+                AssetLoader::AssetBytes bytes = loader.GetBytes(handle);
+                LoadShaderModuleData *data = reinterpret_cast<LoadShaderModuleData *>(loader.GetRawData(handle));
+                data->data = std::make_unique<RHI::Shader>(RHI::Shader::Pipeline(data->device, bytes.data(), bytes.size()));
+            },
+            loadShaderModuleData);
+    }
+
+    std::unique_ptr<RHI::Shader> AssetManager::GetShaderModule(Handle handle)
+    {
+        LoadShaderModuleData *loadShaderModuleData = reinterpret_cast<LoadShaderModuleData *>(_assetLoader->GetRawData(handle));
+        return std::move(loadShaderModuleData->data);
     }
 
     std::string_view AssetManager::GetError(Handle handle)

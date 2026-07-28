@@ -4,6 +4,7 @@
 #include <string>
 #include <thread>
 #include <utility>
+#include <iostream>
 
 namespace Pretop::Asset
 {
@@ -50,7 +51,7 @@ namespace Pretop::Asset
 
     AssetLoader::Handle NativeAssetLoader::ReadFile(std::string_view path, AssetLoader::FinishCb finishCb, void *userData)
     {
-        return ReadFile(path, nullptr, finishCb, nullptr);
+        return ReadFile(path, nullptr, finishCb, userData);
     }
 
     struct ReadFileJobData
@@ -102,7 +103,10 @@ namespace Pretop::Asset
              {
                  ReadFileJobData *readFileData =
                      reinterpret_cast<ReadFileJobData *>(js.GetData(handle));
-                 readFileData->FinishCb(*readFileData->self, handle);
+                 if (readFileData->FinishCb != nullptr)
+                 {
+                     readFileData->FinishCb(*readFileData->self, handle);
+                 }
              }});
     };
 
@@ -118,7 +122,7 @@ namespace Pretop::Asset
 
     void *NativeAssetLoader::GetRawData(Handle handle)
     {
-        return std::move(reinterpret_cast<ReadFileJobData *>(_js->GetData(handle))->userData);
+        return reinterpret_cast<ReadFileJobData *>(_js->GetData(handle))->userData;
     }
 
     std::string NativeAssetLoader::GetError(Handle handle) const

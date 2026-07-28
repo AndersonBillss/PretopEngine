@@ -1,7 +1,7 @@
 #include <magic_enum/magic_enum.hpp>
+#include <iostream>
 #include "JobSystem.hpp"
 #include "Assert.hpp"
-#include <iostream>
 
 namespace Pretop::Core
 {
@@ -102,6 +102,8 @@ namespace Pretop::Core
 
         {
             std::lock_guard lock(_completionMutex);
+            if (!_completions.size())
+                return;
             std::swap(pending, _completions);
         }
 
@@ -245,7 +247,8 @@ namespace Pretop::Core
         }
         return handle.Generation != _jobStateGenerationInvalid &&
                _jobRecords[handle.Index].Generation == handle.Generation &&
-               _isValid(_jobRecords[handle.Index]); }
+               _isValid(_jobRecords[handle.Index]);
+    }
 
     Handle JobSystem::_createHandle(uint32_t handleIndex) const
     {
@@ -270,8 +273,11 @@ namespace Pretop::Core
         for (uint32_t i = 0; i < js._jobRecords.size(); i++)
         {
             const auto &record = js._jobRecords[i];
-            os << "  " << i << " - Generation: " << record.Generation
-               << ", Status: " << record.State->load() << "\n";
+            if (record.Generation != 0)
+            {
+                os << "  " << i << " - Generation: " << record.Generation
+                   << ", Status: " << record.State->load() << "\n";
+            }
         }
 
         os << "Queued jobs:\n";
