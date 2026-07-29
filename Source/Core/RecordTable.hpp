@@ -1,0 +1,112 @@
+#pragma once
+
+#include <vector>
+
+#include "Handle.hpp"
+#include "Assert.hpp"
+
+namespace Pretop::Core
+{
+    template <class T>
+    class RecordTable
+    {
+    private:
+        static constexpr uint32_t invalidGeneration = 0;
+        struct Record
+        {
+            T Data;
+            uint32_t Generation;
+        };
+
+    public:
+        RecordTable() : _records() {};
+
+        Handle Add(T &data)
+        {
+            return _addImpl(data);
+        }
+
+        Handle Add(T &&data)
+        {
+            return _addImpl(data);
+        }
+
+        inline T *operator[](Handle handle)
+        {
+            PRETOP_ASSERT(IsValid(handle), "Handle is invalid");
+            return &_records[handle.Index].Data;
+        }
+
+        inline const T *operator[](Handle handle) const
+        {
+            PRETOP_ASSERT(IsValid(handle), "Handle is invalid");
+            return &_records[handle.Index].Data;
+        }
+
+        bool IsValid(Handle handle) const
+        {
+            if (handle.Index >= _records.size())
+                return false;
+            if (_isStale(handle))
+                return false;
+            return handle.Generation != 0 && !IsValid(_records[handle.Index]);
+        }
+        void Release(Handle handle)
+        {
+            PRETOP_ASSERT(IsValid(handle), "Handle is invalid");
+            _records[handle.Index].Generation = 0;
+        }
+
+    private:
+        std::vector<Record> _records;
+
+        template <class U>
+        Handle _addImpl(U &&data)
+        {
+            const uint32_t generation = _getNextGeneration(invalidGeneration);
+            int nextAvailableSlot = _getAvailableSlot();
+
+            if (nextAvailableSlot < 0)
+            {
+                uint32_t index = static_cast<uint32_t>(_records.size());
+                _records.push_back(Record{std::forward<U>(data), generation});
+                return Handle{index, generation};
+            }
+
+            uint32_t index = static_cast<uint32_t>(nextAvailableSlot);
+            _records[index] = Record{std::forward<U>(data), generation};
+            return Handle{index, generation};
+        }
+
+        int _getAvailableSlot() const
+        {
+            for (uint32_t i = 0; i < _records.size(); i++)
+            {
+                if (_records[i].Generation == 0)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        uint32_t _getNextGeneration(uint32_t generation) const
+        {
+            uint32_t result = generation + 1;
+            if (result == 0)
+                result++;
+            return result;
+        }
+
+        bool _isStale(Handle Handle) const
+        {
+            if (Handle.Index >= _records.size())
+                return true;
+            return Handle.Generation != _records[Handle.Index].Generation;
+        }
+        bool _isValid(const Record &record) const
+        {
+            return record.Generation != invalidGeneration;
+        }
+    };
+}
