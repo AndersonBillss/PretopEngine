@@ -49,8 +49,9 @@ namespace Pretop::Core
                 return false;
             if (_isStale(handle))
                 return false;
-            return handle.Generation != 0 && !IsValid(_records[handle.Index]);
+            return handle.Generation != 0 && _isValid(_records[handle.Index]);
         }
+
         void Release(Handle handle)
         {
             PRETOP_ASSERT(IsValid(handle), "Handle is invalid");

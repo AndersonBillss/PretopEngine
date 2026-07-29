@@ -33,7 +33,7 @@ add_executable(pretop_engine ${PRETOP_ENGINE_MAIN})
 target_link_libraries(pretop_engine PRIVATE pretop_engine_core)
 
 target_compile_definitions(pretop_engine_core
-    PRIVATE
+    PUBLIC
         $<$<CONFIG:Debug>:PRETOP_DEBUG>
 )
 
