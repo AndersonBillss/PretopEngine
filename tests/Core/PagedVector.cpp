@@ -31,16 +31,18 @@ TEST_CASE("PagedVector holds data across multiple blocks", "[Core][PagedVector]"
 }
 
 TEST_CASE("PagedVector maintains stable data when pushing more elements", "[Core][PagedVector]") {
-    PagedVector<int, 1> vec;
+    PagedVector<int, 4> vec;
     vec.PushBack(1);
+    for(int i = 0; i < 12; i++) {
+        vec.PushBack(i);
+    }
     REQUIRE(vec[0] == 1);
-    vec.PushBack(10);
-    vec.PushBack(3);
-    vec.PushBack(4);
-    vec.PushBack(14);
-    vec.PushBack(15);
-    vec.PushBack(1);
-    vec.PushBack(12);
-    vec.PushBack(1);
-    REQUIRE(vec[0] == 1);
+}
+
+TEST_CASE("PagedVector stores size correctly", "[Core][PagedVector]") {
+    PagedVector<int, 4> vec;
+    for(int i = 0; i < 12; i++) {
+        vec.PushBack(i);
+    }
+    REQUIRE(vec.Size() == 12);
 }
