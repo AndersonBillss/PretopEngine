@@ -43,6 +43,7 @@ set(PRETOP_ENGINE_SOURCES_WEB
 )
 set(PRETOP_ENGINE_TEST_SOURCES
   tests/Core/JobSystem.cpp
+  tests/Core/PagedVector.cpp
   tests/Core/RecordTable.cpp
   tests/Math/Euler.cpp
   tests/Math/Linalg/Mat2x2.cpp
