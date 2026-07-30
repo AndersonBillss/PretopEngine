@@ -40,7 +40,7 @@ namespace Pretop::Core
             return _at(index);
         }
 
-        inline uint32_t Size()
+        inline uint32_t Size() const
         {
             return _size;
         }
@@ -64,7 +64,7 @@ namespace Pretop::Core
             _size++;
         }
 
-        inline uint32_t _capacity()
+        inline uint32_t _capacity() const
         {
             return _data.size() * PageSize;
         }
@@ -74,12 +74,12 @@ namespace Pretop::Core
             _data.push_back(std::make_unique<T[]>(PageSize));
         }
 
-        inline bool _isEmpty()
+        inline bool _isEmpty() const
         {
             return _data.size() == 0;
         }
 
-        inline DataLocation _toLocation(uint32_t index)
+        inline DataLocation _toLocation(uint32_t index) const
         {
             DataLocation loc;
             loc.Page = index / PageSize;

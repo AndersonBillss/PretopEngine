@@ -1,9 +1,8 @@
 #pragma once
 
-#include <vector>
-
 #include "Handle.hpp"
 #include "Assert.hpp"
+#include "PagedVector.hpp"
 
 namespace Pretop::Core
 {
@@ -45,7 +44,7 @@ namespace Pretop::Core
 
         bool IsValid(Handle handle) const
         {
-            if (handle.Index >= _records.size())
+            if (handle.Index >= _records.Size())
                 return false;
             if (_isStale(handle))
                 return false;
@@ -59,7 +58,7 @@ namespace Pretop::Core
         }
 
     private:
-        std::vector<Record> _records;
+        PagedVector<Record> _records;
 
         template <class U>
         Handle _addImpl(U &&data)
@@ -69,8 +68,8 @@ namespace Pretop::Core
 
             if (nextAvailableSlot < 0)
             {
-                uint32_t index = static_cast<uint32_t>(_records.size());
-                _records.push_back(Record{std::forward<U>(data), generation});
+                uint32_t index = static_cast<uint32_t>(_records.Size());
+                _records.PushBack(Record{std::forward<U>(data), generation});
                 return Handle{index, generation};
             }
 
@@ -81,7 +80,7 @@ namespace Pretop::Core
 
         int _getAvailableSlot() const
         {
-            for (uint32_t i = 0; i < _records.size(); i++)
+            for (uint32_t i = 0; i < _records.Size(); i++)
             {
                 if (_records[i].Generation == 0)
                 {
@@ -101,7 +100,7 @@ namespace Pretop::Core
 
         bool _isStale(Handle Handle) const
         {
-            if (Handle.Index >= _records.size())
+            if (Handle.Index >= _records.Size())
                 return true;
             return Handle.Generation != _records[Handle.Index].Generation;
         }
