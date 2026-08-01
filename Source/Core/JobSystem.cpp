@@ -39,15 +39,22 @@ namespace Pretop::Core
     Handle JobSystem::Submit(Job job)
     {
         Completion completion{nullptr};
-        Handle handle = _addJobRecord(job, completion);
-        std::atomic<Status> *jobState = _getRecord(handle)->State.get();
+        return Submit(job, completion);
+    }
+
+    Handle JobSystem::Submit(Job job, Completion completion)
+    {
+        JobRecord record;
+        record.Completion = completion;
+        record.State.store(Status::InProgress);
+        record.UserData = job.UserData;
+
+        Handle handle = _records.Add(std::move(record));
         {
             std::lock_guard lock(_workMutex);
             WorkEntry workEntry{
-                handle,
-                job,
-                completion,
-                jobState,
+                /* Handle */ handle,
+                /* Job */ job,
             };
             _work.push(workEntry);
         }
@@ -55,45 +62,19 @@ namespace Pretop::Core
         return handle;
     }
 
-    Handle JobSystem::Submit(Job job, Completion completion)
-    {
-        Handle handle = _addJobRecord(job, completion);
-        std::atomic<Status> *jobState = _getRecord(handle)->State.get();
-        {
-            std::lock_guard lock(_workMutex);
-            WorkEntry workEntry{
-                handle,
-                job,
-                completion,
-                jobState};
-            _work.push(workEntry);
-        }
-        _workAvailable.notify_one();
-        return handle;
-    }
-
-    void JobSystem::Dispatch(Job job)
-    {
-        {
-            std::lock_guard lock(_workMutex);
-            _work.push(WorkEntry{Handle{}, job, Completion{}, nullptr});
-        }
-        _workAvailable.notify_one();
-    }
-
     JobSystem::Status JobSystem::GetState(Handle handle) const
     {
-        return _getRecord(handle)->State->load();
+        return _records[handle]->State.load();
     }
 
     void *JobSystem::GetData(Handle handle) const
     {
-        return _getRecord(handle)->UserData;
+        return _records[handle]->UserData;
     }
 
     void JobSystem::Release(Handle handle)
     {
-        _releaseJobRecord(handle);
+        _records.Release(handle);
     }
 
     void JobSystem::PumpMainThreadCompletions()
@@ -112,13 +93,10 @@ namespace Pretop::Core
             CompletionEntry completion = pending.front();
             pending.pop();
 
-            JobRecord *record = _getRecord(completion.Handle);
-            if (completion.Completion.Done)
-            {
-                completion.Completion.Done(*this, completion.Handle);
-            }
+            JobRecord *record = _records[completion.Handle];
+            record->Completion.Done(*this, completion.Handle);
 
-            record->State->store(Status::Ready);
+            record->State.store(Status::Ready);
         }
     }
 
@@ -140,176 +118,21 @@ namespace Pretop::Core
                 _work.pop();
             }
 
+            JobRecord *record = _records[work.Handle];
             try
             {
                 work.Job.Fn(work.Job.UserData);
-                if (work.State)
-                {
-                    work.State->store(Status::Ready);
-                }
+                record->State.store(Status::Ready);
             }
             catch (...)
             {
-                if (work.State)
-                {
-                    work.State->store(Status::Error);
-                }
-            }
-
-            if (!work.Completion.Done)
-            {
-                continue;
+                record->State.store(Status::Error);
             }
 
             {
                 std::lock_guard lock(_completionMutex);
-                _completions.push(CompletionEntry{work.Handle, work.Completion});
+                _completions.push(CompletionEntry{work.Handle});
             }
         }
-    }
-
-    Handle JobSystem::_addJobRecord(const Job &job, const Completion &completion)
-    {
-        uint32_t kStartingGeneration = _jobStateGenerationInvalid + 1;
-
-        Handle handle{};
-        int staleHandleIndex = _findStaleHandle();
-
-        if (staleHandleIndex == -1)
-        {
-            handle.Index = static_cast<uint32_t>(_jobRecords.size());
-            handle.Generation = kStartingGeneration;
-
-            _jobRecords.emplace_back();
-            auto &record = _jobRecords.back();
-            record.State = std::make_unique<std::atomic<Status>>(Status::InProgress);
-            record.Generation = kStartingGeneration;
-            record.UserData = job.UserData;
-        }
-        else
-        {
-            auto &record = _jobRecords[staleHandleIndex];
-
-            uint32_t newGeneration = record.Generation + 1;
-            if (newGeneration == _jobStateGenerationInvalid)
-                newGeneration = kStartingGeneration;
-
-            record.State->store(Status::InProgress);
-            record.UserData = job.UserData;
-            record.Generation = newGeneration;
-
-            handle.Index = static_cast<uint32_t>(staleHandleIndex);
-            handle.Generation = newGeneration;
-        }
-
-        return handle;
-    }
-
-    const JobSystem::JobRecord *JobSystem::_getRecord(Handle handle) const
-    {
-        PRETOP_ASSERT(_isValid(handle), "JobSystem handle is invalid");
-        return &_jobRecords[handle.Index];
-    }
-
-    JobSystem::JobRecord *JobSystem::_getRecord(Handle handle)
-    {
-        PRETOP_ASSERT(_isValid(handle), "JobSystem handle is invalid");
-        return &_jobRecords[handle.Index];
-    }
-
-    void JobSystem::_releaseJobRecord(Handle handle)
-    {
-        _getRecord(handle)->Generation = _jobStateGenerationInvalid;
-    }
-
-    int JobSystem::_findStaleHandle() const
-    {
-        for (uint32_t i = 0; i < _jobRecords.size(); i++)
-        {
-            if (!_isValid(_jobRecords[i]))
-            {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    bool JobSystem::_isValid(const JobRecord &record) const
-    {
-        return record.Generation != _jobStateGenerationInvalid;
-    }
-
-    bool JobSystem::_isValid(Handle handle) const
-    {
-        if (handle.Index >= _jobRecords.size())
-        {
-            return false;
-        }
-        return handle.Generation != _jobStateGenerationInvalid &&
-               _jobRecords[handle.Index].Generation == handle.Generation &&
-               _isValid(_jobRecords[handle.Index]);
-    }
-
-    Handle JobSystem::_createHandle(uint32_t handleIndex) const
-    {
-        return Handle{handleIndex, _jobRecords[handleIndex].Generation};
-    }
-
-    std::ostream &operator<<(std::ostream &os, JobSystem &js)
-    {
-        std::queue<JobSystem::WorkEntry> workCopy;
-        {
-            std::lock_guard lock(js._workMutex);
-            workCopy = js._work;
-        }
-        std::queue<JobSystem::CompletionEntry> completionsCopy;
-        {
-            std::lock_guard lock(js._completionMutex);
-            completionsCopy = js._completions;
-        }
-
-        os << "Num Threads: " << js._threads.size() << "\n";
-        os << "Job Records:\n";
-        for (uint32_t i = 0; i < js._jobRecords.size(); i++)
-        {
-            const auto &record = js._jobRecords[i];
-            if (record.Generation != 0)
-            {
-                os << "  " << i << " - Generation: " << record.Generation
-                   << ", Status: " << record.State->load() << "\n";
-            }
-        }
-
-        os << "Queued jobs:\n";
-
-        uint32_t jobOrder = 0;
-        while (!workCopy.empty())
-        {
-            const auto &workItem = workCopy.front();
-            workCopy.pop();
-            os << "  " << jobOrder << " - Handle: " << workItem.Handle << "\n";
-            jobOrder++;
-        }
-        os << "Completions queued:\n";
-        uint32_t completionsOrder = 0;
-        while (!completionsCopy.empty())
-        {
-            const auto &completionsItem = completionsCopy.front();
-            completionsCopy.pop();
-            os << "  " << completionsOrder << " - Handle: " << completionsItem.Handle << "\n";
-            completionsOrder++;
-        }
-        return os;
-    }
-
-    std::ostream &operator<<(std::ostream &os, Pretop::Core::JobSystem::Status js)
-    {
-        os << magic_enum::enum_name(js);
-        return os;
-    }
-    std::ostream &operator<<(std::ostream &os, Pretop::Core::Handle handle)
-    {
-        os << "{ " << "Index: " << handle.Index << ", " << "Generation: " << handle.Generation << " }";
-        return os;
     }
 }

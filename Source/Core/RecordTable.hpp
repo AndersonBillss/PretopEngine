@@ -27,7 +27,7 @@ namespace Pretop::Core
 
         Handle Add(T &&data)
         {
-            return _addImpl(data);
+            return _addImpl(std::move(data));
         }
 
         inline T *operator[](Handle handle)

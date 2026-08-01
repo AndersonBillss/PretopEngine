@@ -27,7 +27,7 @@ namespace Pretop::Core
 
         void PushBack(T &&data)
         {
-            _pushBackImpl(data);
+            _pushBackImpl(std::move(data));
         }
 
         inline T &operator[](std::size_t index)
