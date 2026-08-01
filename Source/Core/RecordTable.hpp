@@ -54,7 +54,7 @@ namespace Pretop::Core
         void Release(Handle handle)
         {
             PRETOP_ASSERT(IsValid(handle), "Handle is invalid");
-            _records[handle.Index].Generation = 0;
+            _records[handle.Index].Generation++;
             _free.push_back(handle.Index);
         }
 
@@ -65,19 +65,19 @@ namespace Pretop::Core
         template <class U>
         Handle _addImpl(U &&data)
         {
-            const uint32_t generation = _getNextGeneration(invalidGeneration);
             int nextAvailableSlot = _reserveAvailableSlot();
 
             if (nextAvailableSlot < 0)
             {
                 uint32_t index = static_cast<uint32_t>(_records.Size());
+                uint32_t generation = _getNextGeneration(invalidGeneration);
                 _records.PushBack(Record{std::forward<U>(data), generation});
                 return Handle{index, generation};
             }
 
             uint32_t index = static_cast<uint32_t>(nextAvailableSlot);
-            _records[index] = Record{std::forward<U>(data), generation};
-            return Handle{index, generation};
+            _records[index].Data = std::forward<U>(data);
+            return Handle{index, _records[index].Generation};
         }
 
         int _reserveAvailableSlot()
