@@ -55,16 +55,18 @@ namespace Pretop::Core
         {
             PRETOP_ASSERT(IsValid(handle), "Handle is invalid");
             _records[handle.Index].Generation = 0;
+            _free.push_back(handle.Index);
         }
 
     private:
         PagedVector<Record> _records;
+        std::vector<uint32_t> _free;
 
         template <class U>
         Handle _addImpl(U &&data)
         {
             const uint32_t generation = _getNextGeneration(invalidGeneration);
-            int nextAvailableSlot = _getAvailableSlot();
+            int nextAvailableSlot = _reserveAvailableSlot();
 
             if (nextAvailableSlot < 0)
             {
@@ -78,14 +80,13 @@ namespace Pretop::Core
             return Handle{index, generation};
         }
 
-        int _getAvailableSlot() const
+        int _reserveAvailableSlot()
         {
-            for (uint32_t i = 0; i < _records.Size(); i++)
+            if (_free.size() > 0)
             {
-                if (_records[i].Generation == 0)
-                {
-                    return i;
-                }
+                int result = static_cast<int>(_free[_free.size() - 1]);
+                _free.pop_back();
+                return result;
             }
             return -1;
         }
