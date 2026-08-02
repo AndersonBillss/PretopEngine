@@ -1,5 +1,7 @@
 #include "AssetLoaderFactory.hpp"
-#ifdef __EMSCRIPTEN__
+#include "../Core/Platform.hpp"
+
+#ifdef PRETOP_PLATFORM_WEB
 #include "WEB_AssetLoader.hpp"
 #else
 #include "NATIVE_AssetLoader.hpp"
@@ -9,7 +11,7 @@ namespace Pretop::Asset
 {
     std::unique_ptr<AssetLoader> AssetLoaderFactory::CreateAssetLoader(Core::JobSystem *js)
     {
-#ifdef __EMSCRIPTEN__
+#ifdef PRETOP_PLATFORM_WEB
         return std::make_unique<WebAssetLoader>(js);
 #else
         return std::make_unique<NativeAssetLoader>(js);

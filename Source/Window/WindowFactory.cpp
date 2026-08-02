@@ -1,9 +1,11 @@
 #include "WindowFactory.hpp"
-#ifdef __EMSCRIPTEN__
+#include "../Core/Platform.hpp"
+
+#ifdef PRETOP_PLATFORM_WEB
 #include "WEB_CanvasWindow.hpp"
-#else // not __EMSCRIPTEN
+#else // not PRETOP_PLATFORM_WEB
 #include "NATIVE_GlfwWindow.hpp"
-#endif // not __EMSCRIPTEN
+#endif // not PRETOP_PLATFORM_WEB
 
 namespace Pretop::Window
 {
@@ -11,20 +13,20 @@ namespace Pretop::Window
         {
                 std::unique_ptr<Window> CreateWindow(int width, int height, std::string title)
                 {
-#ifdef __EMSCRIPTEN__
+#ifdef PRETOP_PLATFORM_WEB
                         return std::make_unique<CanvasWindow>(width, height, title);
-#else  // not __EMSCRIPTEN
+#else  // not PRETOP_PLATFORM_WEB
                         return std::make_unique<GlfwWindow>(width, height, title);
-#endif // not __EMSCRIPTEN
+#endif // not PRETOP_PLATFORM_WEB
                 }
 
                 std::unique_ptr<Window> CreateWindow(std::string title)
                 {
-#ifdef __EMSCRIPTEN__
+#ifdef PRETOP_PLATFORM_WEB
                         return std::make_unique<CanvasWindow>(title);
-#else  // not __EMSCRIPTEN
+#else  // not PRETOP_PLATFORM_WEB
                         return std::make_unique<GlfwWindow>(title);
-#endif // not __EMSCRIPTEN
+#endif // not PRETOP_PLATFORM_WEB
                 }
         }
 } // namespace Pretop::Window

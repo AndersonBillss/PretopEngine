@@ -1,17 +1,20 @@
-#include "NATIVE_GlfwWindow.hpp"
 #include <iostream>
 #include <chrono>
-#ifdef _WIN32
+
+#include "NATIVE_GlfwWindow.hpp"
+#include "../Core/Platform.hpp"
+
+#ifdef PRETOP_PLATFORM_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <glfw/glfw3native.h>
 #include <windows.h>
-#endif // _WIN32
+#endif // PRETOP_PLATFORM_WINDOWS
 
-#ifdef __linux__
+#ifdef PRETOP_PLATFORM_LINUX
 #define GLFW_EXPOSE_NATIVE_WAYLAND
 #include <GLFW/glfw3native.h>
-#endif // __linux__
+#endif // PRETOP_PLATFORM_LINUX
 
 namespace Pretop::Window
 {
@@ -65,7 +68,7 @@ namespace Pretop::Window
 
     WGPUSurface GlfwWindow::GetSurface(WGPUInstance instance)
     {
-#ifdef _WIN32
+#ifdef PRETOP_PLATFORM_WINDOWS
         HWND hwnd = glfwGetWin32Window(this->_window);
         HINSTANCE hinstance = GetModuleHandle(NULL);
 
@@ -80,8 +83,8 @@ namespace Pretop::Window
         surfaceDescriptor.label = WGPU_STRING_VIEW_INIT;
 
         return wgpuInstanceCreateSurface(instance, &surfaceDescriptor);
-#endif // _WIN32
-#ifdef __linux__
+#endif // PRETOP_PLATFORM_WINDOWS
+#ifdef PRETOP_PLATFORM_LINUX
         wl_surface *surface = glfwGetWaylandWindow(this->_window);
         wl_display *display = glfwGetWaylandDisplay();
 
@@ -96,6 +99,6 @@ namespace Pretop::Window
         surfaceDescriptor.label = WGPU_STRING_VIEW_INIT;
 
         return wgpuInstanceCreateSurface(instance, &surfaceDescriptor);
-#endif // __linux__
+#endif // PRETOP_PLATFORM_LINUX
     }
 } // namespace Pretop::Window

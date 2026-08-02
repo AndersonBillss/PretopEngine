@@ -2,6 +2,7 @@
 
 #include "../Core/Assert.hpp"
 #include "../Core/RecordTable.hpp"
+#include "../Core/Platform.hpp"
 
 #include <atomic>
 #include <cstring>
@@ -11,11 +12,7 @@
 #include <string>
 #include <utility>
 
-#if defined(__EMSCRIPTEN__)
 #include <emscripten/fetch.h>
-#else
-#error "WebAssetLoader should only be compiled for Emscripten builds."
-#endif
 
 namespace Pretop::Asset
 {

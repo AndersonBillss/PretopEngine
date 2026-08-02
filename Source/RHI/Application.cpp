@@ -1,6 +1,8 @@
 #include <iostream>
 #include <unordered_map>
+
 #include "../PrintStringView.hpp"
+#include "../Core/Platform.hpp"
 #include "Application.hpp"
 
 namespace Pretop::RHI
@@ -42,7 +44,7 @@ namespace Pretop::RHI
 
                                callback(dt, displayView);
                                wgpuTextureViewRelease(displayView);
-#ifndef __EMSCRIPTEN__
+#ifndef PRETOP_PLATFORM_WEB
                                wgpuSurfacePresent(this->_windowSurface);
 #endif
                            });

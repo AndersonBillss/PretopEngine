@@ -1,7 +1,9 @@
 #include "Adapter.hpp"
 #include <iostream>
 #include <unordered_map>
+
 #include "../PrintStringView.hpp"
+#include "../Core/Platform.hpp"
 
 namespace Pretop::RHI
 {
@@ -28,7 +30,7 @@ namespace Pretop::RHI
         {WGPUFeatureName_PrimitiveIndex, "WGPUFeatureName_PrimitiveIndex"},
         {WGPUFeatureName_Subgroups, "WGPUFeatureName_Subgroups"},
 
-#ifndef __EMSCRIPTEN__
+#ifndef PRETOP_PLATFORM_WEB
         // Native backend-specific features
         {WGPUFeatureName_TextureComponentSwizzle, "WGPUFeatureName_TextureComponentSwizzle"},
         {WGPUFeatureName_DawnInternalUsages, "WGPUFeatureName_DawnInternalUsages"},
@@ -90,7 +92,7 @@ namespace Pretop::RHI
         {WGPUFeatureName_SharedTextureMemoryD3D12Resource, "WGPUFeatureName_SharedTextureMemoryD3D12Resource"},
         {WGPUFeatureName_ChromiumExperimentalSamplingResourceTable, "WGPUFeatureName_ChromiumExperimentalSamplingResourceTable"},
         {WGPUFeatureName_Force32, "WGPUFeatureName_Force32"},
-#endif // not __EMSCRIPTEN__
+#endif // not PRETOP_PLATFORM_WEB
     };
 
     Adapter::Adapter(WGPUAdapter adapter)
@@ -125,11 +127,9 @@ namespace Pretop::RHI
             }
         };
         WGPURequestAdapterOptions adapterOpts = WGPU_REQUEST_ADAPTER_OPTIONS_INIT;
-#ifndef WEBGPU_BACKEND_EMSCRIPTEN
-#ifdef _WIN32
+#ifdef PRETOP_PLATFORM_WINDOWS
         adapterOpts.backendType = WGPUBackendType_D3D12;
-#endif // _WIN32
-#endif // !WEBGPU_BACKEND_EMSCRIPTEN
+#endif // PRETOP_PLATFORM_WINDOWS
         auto *userData = new AdapterRequestUserData{callback};
         WGPURequestAdapterCallbackInfo info = {
             /* nextInChain */ nullptr,
