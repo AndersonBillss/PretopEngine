@@ -54,7 +54,8 @@ namespace Pretop::Core
         void Release(Handle handle)
         {
             PRETOP_ASSERT(IsValid(handle), "Handle is invalid");
-            _records[handle.Index].Generation++;
+            Record &record = _records[handle.Index];
+            record.Generation = _getNextGeneration(record.Generation);
             _free.push_back(handle.Index);
         }
 
