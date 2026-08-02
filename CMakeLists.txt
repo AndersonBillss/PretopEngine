@@ -61,7 +61,6 @@ if(EMSCRIPTEN)
     "--closure=1"
     "-sASSERTIONS=1"
     "-sALLOW_MEMORY_GROWTH=1"
-    "-sASYNCIFY"
     "-sFETCH"
     "-sNO_DISABLE_EXCEPTION_CATCHING"
     "-pthread"
