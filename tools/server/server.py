@@ -1,5 +1,5 @@
 import http.server
-import socketserver
+import errno
 import threading
 import webbrowser
 import sys
@@ -29,24 +29,46 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
 
-def run_server():
+def run_server(port=PORT, input_stream=None):
+    if input_stream is None:
+        input_stream = sys.stdin
+
+    try:
+        httpd = http.server.ThreadingHTTPServer(("", port), Handler)
+    except OSError as error:
+        if error.errno == errno.EADDRINUSE:
+            raise SystemExit(
+                f"Cannot start web server: port {port} is already in use. "
+                "Stop the process using that port and try again."
+            ) from None
+        raise
+
     print("Enter 'o' to open engine in browser, enter 'q' to quit")
-    threading.Thread(target=server, daemon=True).start()
-    key_listener()
+    server_thread = threading.Thread(target=httpd.serve_forever)
+    server_thread.start()
+
+    try:
+        key_listener(httpd.server_address[1], input_stream)
+    finally:
+        httpd.shutdown()
+        server_thread.join()
+        httpd.server_close()
 
 
-def server():
-    with socketserver.TCPServer(("", PORT), Handler) as httpd:
-        httpd.serve_forever()
+def key_listener(port=PORT, input_stream=None):
+    if input_stream is None:
+        input_stream = sys.stdin
 
-
-def key_listener():
     while True:
-        key = sys.stdin.read(1)
+        key = input_stream.read(1)
+
+        if key == "":
+            print("Exiting.")
+            return
 
         if key.lower() == "o":
-            webbrowser.open(f"http://localhost:{PORT}/{ENGINE_NAME}.html")
+            webbrowser.open(f"http://localhost:{port}/{ENGINE_NAME}.html")
 
         elif key.lower() == "q":
             print("Exiting.")
-            sys.exit(0)
+            return
