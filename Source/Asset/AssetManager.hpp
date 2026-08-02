@@ -7,6 +7,7 @@
 #include "../RHI/Shader.hpp"
 
 #include <memory>
+#include <string>
 #include <string_view>
 
 namespace Pretop::Asset
@@ -35,7 +36,7 @@ namespace Pretop::Asset
         std::unique_ptr<RHI::Shader> GetShaderModule(Handle handle);
 
         Status GetState(Handle handle);
-        std::string_view GetError(Handle handle);
+        std::string GetError(Handle handle);
         void Release(Handle handle);
 
     private:

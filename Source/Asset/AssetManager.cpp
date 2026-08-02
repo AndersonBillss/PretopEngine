@@ -10,6 +10,11 @@
 
 namespace Pretop::Asset
 {
+    struct AssetManagerData
+    {
+        virtual ~AssetManagerData() = default;
+    };
+
     AssetManager::AssetManager(
         std::unique_ptr<AssetLoader> assetLoader,
         RHI::Device *device)
@@ -19,7 +24,7 @@ namespace Pretop::Asset
 
     AssetManager::~AssetManager() = default;
 
-    struct LoadModelData
+    struct LoadModelData : AssetManagerData
     {
         std::unique_ptr<ParsedData> data;
     };
@@ -49,7 +54,7 @@ namespace Pretop::Asset
         return std::move(loadModelData->data);
     }
 
-    struct LoadShaderModuleData
+    struct LoadShaderModuleData : AssetManagerData
     {
         std::unique_ptr<RHI::Shader> data;
         RHI::Device *device;
@@ -76,13 +81,13 @@ namespace Pretop::Asset
         return std::move(loadShaderModuleData->data);
     }
 
-    std::string_view AssetManager::GetError(Handle handle)
+    std::string AssetManager::GetError(Handle handle)
     {
         return _assetLoader->GetError(handle);
     }
     void AssetManager::Release(Handle handle)
     {
-        delete static_cast<LoadModelData *>(_assetLoader->GetRawData(handle));
+        delete static_cast<AssetManagerData *>(_assetLoader->GetRawData(handle));
         return _assetLoader->Release(handle);
     }
 } // namespace Pretop::Asset

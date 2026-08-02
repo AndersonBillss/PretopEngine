@@ -10,7 +10,7 @@ namespace Pretop::Asset
     std::unique_ptr<AssetLoader> AssetLoaderFactory::CreateAssetLoader(Core::JobSystem *js)
     {
 #ifdef __EMSCRIPTEN__
-        return std::make_unique<WebAssetLoader>();
+        return std::make_unique<WebAssetLoader>(js);
 #else
         return std::make_unique<NativeAssetLoader>(js);
 #endif
