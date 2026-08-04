@@ -1,7 +1,21 @@
+#include <array>
+
+#include "Texture.hpp"
 #include "../RHI/Application.hpp"
 #include "../Asset/AssetManagerFactory.hpp"
 #include "../Asset/AssetLoaderFactory.hpp"
 #include "../Window/WindowFactory.hpp"
+#include "../Math/Linalg/Mat4x4.hpp"
+
+struct MyUniforms
+{
+    Pretop::Math::Mat4x4 ProjectionMatrix;
+    Pretop::Math::Mat4x4 ViewMatrix;
+    Pretop::Math::Mat4x4 ModelMatrix;
+    float Color;
+    float Time;
+    float Pad[2];
+};
 
 struct TextureDemoData
 {
@@ -86,6 +100,51 @@ void Start(Pretop::RHI::Application &application)
     dataLayout.rowsPerImage = size.height;
 
     wgpuQueueWriteTexture(application.WgpuQueue, &destination, pixels.data(), pixels.size(), &dataLayout, &size);
+
+    std::array<WGPUBindGroupLayoutEntry, 2> bindingLayoutEntries;
+    WGPUBindGroupLayoutEntry &bindingLayout = bindingLayoutEntries[0];
+    bindingLayout.binding = 0;
+    bindingLayout.visibility = WGPUShaderStage_Vertex | WGPUShaderStage_Fragment;
+    bindingLayout.buffer.type = WGPUBufferBindingType_Uniform;
+    bindingLayout.buffer.minBindingSize = sizeof(MyUniforms);
+
+    WGPUBindGroupLayoutEntry &textureBindingLayout = bindingLayoutEntries[1];
+    textureBindingLayout.binding = 1;
+    textureBindingLayout.visibility = WGPUShaderStage_Fragment;
+    textureBindingLayout.texture.sampleType = WGPUTextureSampleType_Float;
+    textureBindingLayout.texture.viewDimension = WGPUTextureViewDimension_2D;
+
+    WGPUBindGroupLayoutDescriptor bindGroupLayoutDesc{};
+    bindGroupLayoutDesc.nextInChain = nullptr;
+    bindGroupLayoutDesc.entryCount = (uint32_t)bindingLayoutEntries.size();
+    bindGroupLayoutDesc.entries = bindingLayoutEntries.data();
+    WGPUBindGroupLayout bindGroupLayout = wgpuDeviceCreateBindGroupLayout(application.Device->WgpuDevice, &bindGroupLayoutDesc);
+
+    std::array<WGPUBindGroupEntry, 2> bindings;
+    bindings[0].binding = 0;
+    bindings[0].buffer = uniformBuffer;
+    bindings[0].offset = 0;
+    bindings[0].size = sizeof(MyUniforms);
+
+    WGPUTextureViewDescriptor textureViewDesc;
+    textureViewDesc.aspect = WGPUTextureAspect_All;
+    textureViewDesc.baseArrayLayer = 0;
+    textureViewDesc.arrayLayerCount = 1;
+    textureViewDesc.baseMipLevel = 0;
+    textureViewDesc.mipLevelCount = 1;
+    textureViewDesc.dimension = WGPUTextureViewDimension_2D;
+    textureViewDesc.format = textureDesc.format;
+    WGPUTextureView textureView = wgpuTextureCreateView(texture, &textureViewDesc);
+
+    bindings[1].binding = 1;
+    bindings[1].textureView = textureView;
+
+    WGPUBindGroupDescriptor bindGroupDesc{};
+    bindGroupDesc.nextInChain = nullptr;
+    bindGroupDesc.layout = bindGroupLayout;
+    bindGroupDesc.entryCount = (uint32_t)bindings.size();
+    bindGroupDesc.entries = bindings.data();
+    WGPUBindGroup bindGroup = wgpuDeviceCreateBindGroup(device, bindGroupDesc);
 
     application.Run(
         [&state, &application](
