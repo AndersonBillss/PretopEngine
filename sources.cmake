@@ -9,6 +9,7 @@ set(PRETOP_ENGINE_SOURCES
   Source/Asset/LoadGlb.cpp
   Source/Core/JobSystem.cpp
   Source/Demos/LoadModel.cpp
+  Source/Demos/Texture.cpp
   Source/Math/CeilToBufferOffset.cpp
   Source/Math/Euler.cpp
   Source/Math/Linalg/Mat2x2.cpp

@@ -96,7 +96,10 @@ namespace Pretop::Core
             JobRecord *record = _records[completion.Handle];
             record->Completion.Done(*this, completion.Handle);
 
-            record->State.store(Status::Ready);
+            if (record->State == Status::InProgress)
+            {
+                record->State.store(Status::Ready);
+            }
         }
     }
 
