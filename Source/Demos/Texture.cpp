@@ -74,6 +74,18 @@ void Start(Pretop::RHI::Application &application)
     textureDesc.viewFormats = nullptr;
 
     WGPUTexture texture = wgpuDeviceCreateTexture(application.Device->WgpuDevice, &textureDesc);
+    WGPUTexelCopyTextureInfo destination = WGPU_TEXEL_COPY_TEXTURE_INFO_INIT;
+    destination.texture = texture;
+    destination.mipLevel = 0;
+    destination.origin = {/*.width=*/0, /*.height=*/0, /*.depthOrArrayLayers=*/0};
+    destination.aspect = WGPUTextureAspect_All;
+
+    WGPUTexelCopyBufferLayout dataLayout = WGPU_TEXEL_COPY_BUFFER_LAYOUT_INIT;
+    dataLayout.offset = 0;
+    dataLayout.bytesPerRow = 4 * size.width;
+    dataLayout.rowsPerImage = size.height;
+
+    wgpuQueueWriteTexture(application.WgpuQueue, &destination, pixels.data(), pixels.size(), &dataLayout, &size);
 
     application.Run(
         [&state, &application](

@@ -53,7 +53,7 @@ namespace Pretop::RHI
 
     void Application::SubmitCommandBuffer(CommandBuffer &buf)
     {
-        wgpuQueueSubmit(this->_queue, 1, &buf.WgpuBuffer);
+        wgpuQueueSubmit(this->WgpuQueue, 1, &buf.WgpuBuffer);
     }
 
     void Application::SetWindow(std::unique_ptr<Pretop::Window::Window> win)
@@ -83,7 +83,7 @@ namespace Pretop::RHI
         _window->SetOnExit([this]()
                            {
             wgpuSurfaceUnconfigure(this->_windowSurface);
-            wgpuQueueRelease(this->_queue);
+            wgpuQueueRelease(this->WgpuQueue);
             wgpuSurfaceRelease(this->_windowSurface);
             wgpuDeviceRelease(this->Device->WgpuDevice);
             wgpuAdapterRelease(this->_adapter->WgpuAdapter);
@@ -92,7 +92,7 @@ namespace Pretop::RHI
 
     void Application::CreateQueue()
     {
-        this->_queue = wgpuDeviceGetQueue(this->Device->WgpuDevice);
+        this->WgpuQueue = wgpuDeviceGetQueue(this->Device->WgpuDevice);
 
         WGPUQueueWorkDoneCallback onQueueWorkDone = [](WGPUQueueWorkDoneStatus status, WGPUStringView message, void *data, void *)
         {
@@ -121,7 +121,7 @@ namespace Pretop::RHI
             /* callback */ onQueueWorkDone,
             /* userdata1 */ this,
             /* userdata2 */ nullptr};
-        wgpuQueueOnSubmittedWorkDone(this->_queue, workQueueWorkDoneCb);
+        wgpuQueueOnSubmittedWorkDone(this->WgpuQueue, workQueueWorkDoneCb);
     }
 
     void Application::LogQueueCommands()

@@ -26,7 +26,7 @@ namespace Pretop::RHI
         {
             std::vector<uint8_t> data = buf.ZeroBuffer();
             wgpuQueueWriteBuffer(
-                this->_queue,
+                this->WgpuQueue,
                 buf.WgpuBuffer,
                 0,
                 data.data(),
@@ -35,7 +35,7 @@ namespace Pretop::RHI
         void WriteBuf(const Buffer &buf, void *data, size_t numBytes)
         {
             wgpuQueueWriteBuffer(
-                this->_queue,
+                this->WgpuQueue,
                 buf.WgpuBuffer,
                 0,
                 data,
@@ -46,7 +46,7 @@ namespace Pretop::RHI
         void WriteBuf(const Buffer &buf, T &data)
         {
             wgpuQueueWriteBuffer(
-                this->_queue,
+                this->WgpuQueue,
                 buf.WgpuBuffer,
                 0,
                 &data,
@@ -57,7 +57,7 @@ namespace Pretop::RHI
         void WriteVec(const Buffer &buf, std::vector<T> &vec)
         {
             wgpuQueueWriteBuffer(
-                this->_queue,
+                this->WgpuQueue,
                 buf.WgpuBuffer,
                 0,
                 vec.data(),
@@ -69,6 +69,7 @@ namespace Pretop::RHI
         void LogQueueCommands();
         WGPUTextureView GetNextSurfaceTextureView();
         WGPUTextureFormat WindowFormat;
+        WGPUQueue WgpuQueue;
 
         Application *InspectInstance();
         Application *InspectDevice();
@@ -84,7 +85,6 @@ namespace Pretop::RHI
         bool _logQueueCommands;
         StartupCallback _startupCallback;
         std::unique_ptr<Adapter> _adapter;
-        WGPUQueue _queue;
         WGPUSurface _windowSurface;
         std::unique_ptr<Pretop::Window::Window> _window;
 
