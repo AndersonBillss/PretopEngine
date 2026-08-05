@@ -256,13 +256,13 @@ void Start(Pretop::RHI::Application &application)
     bindGroupLayoutDesc.entries = bindingLayoutEntries.data();
     state.bindGroupLayout = wgpuDeviceCreateBindGroupLayout(application.Device->WgpuDevice, &bindGroupLayoutDesc);
 
-    std::array<WGPUBindGroupEntry, 2> bindings;
+    std::array<WGPUBindGroupEntry, 2> bindings = {WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT};
     bindings[0].binding = 0;
     bindings[0].buffer = uniformBuffer;
     bindings[0].offset = 0;
     bindings[0].size = sizeof(MyUniforms);
 
-    WGPUTextureViewDescriptor textureViewDesc;
+    WGPUTextureViewDescriptor textureViewDesc = WGPU_TEXTURE_VIEW_DESCRIPTOR_INIT;
     textureViewDesc.aspect = WGPUTextureAspect_All;
     textureViewDesc.baseArrayLayer = 0;
     textureViewDesc.arrayLayerCount = 1;
