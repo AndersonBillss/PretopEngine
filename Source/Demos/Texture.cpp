@@ -26,6 +26,7 @@ struct TextureDemoData
     Pretop::Asset::AssetManager::Handle ShaderHandle;
     std::unique_ptr<Pretop::RHI::Shader> Shader;
     WGPUBindGroupLayout bindGroupLayout;
+    WGPURenderPipeline pipeline;
     bool ShaderLoaded = false;
 };
 
@@ -69,7 +70,73 @@ void LoadShader(TextureDemoData *state)
         /*.bindGroupLayouts=*/&state->bindGroupLayout,
         /*.immediateSize=*/0};
     WGPUPipelineLayout pipelineLayout = wgpuDeviceCreatePipelineLayout(state->app->Device->WgpuDevice, &pipelineLayoutDesc);
-
+    std::string vsEntryPoint = "vs_main";
+    WGPUVertexAttribute positionAttribute = {
+        /*.nextInChain=*/nullptr,
+        /*.format=*/WGPUVertexFormat_Float32x2,
+        /*.offset=*/0,
+        /*.shaderLocation=*/0,
+    };
+    WGPUVertexBufferLayout vertexBufferLayout = {
+        /*.nextInChain=*/nullptr,
+        /*.stepMode=*/WGPUVertexStepMode_Vertex,
+        /*.arrayStride=*/sizeof(float) * 2,
+        /*.attributeCount=*/1,
+        /*.attributes=*/&positionAttribute,
+    };
+    std::string fsEntryPoint = "fs_main";
+    WGPUColorTargetState colorTargetState = {
+        /*.nextInChain=*/nullptr,
+        /*.format=*/WGPUTextureFormat_Undefined,
+        /*.blend=*/nullptr,
+        /*.writeMask=*/WGPUColorWriteMask_All,
+    };
+    WGPUFragmentState fragmentState = {
+        /*.nextInChain=*/nullptr,
+        /*.module=*/state->Shader->WgpuShader,
+        /*.entryPoint=*/{
+            /*.data=*/fsEntryPoint.data(),
+            /*.length=*/fsEntryPoint.size(),
+        },
+        /*.constantCount=*/0,
+        /*.constants=*/nullptr,
+        /*.targetCount=*/1,
+        /*.targets=*/&colorTargetState,
+    };
+    WGPURenderPipelineDescriptor pipelineDesc = {
+        /*.nextInChain=*/nullptr,
+        /*.label=*/WGPU_STRING_VIEW_INIT,
+        /*.layout=*/pipelineLayout,
+        /*.vertex=*/{
+            /*.nextInChain=*/nullptr,
+            /*.module=*/state->Shader->WgpuShader,
+            /*.entryPoint=*/{
+                /*.data=*/vsEntryPoint.data(),
+                /*.length=*/vsEntryPoint.size(),
+            },
+            /*.constantCount=*/0,
+            /*.constants=*/nullptr,
+            /*.bufferCount=*/1,
+            /*.buffers=*/&vertexBufferLayout,
+        },
+        /*.primitive=*/{
+            /*.nextInChain=*/nullptr,
+            /*.topology=*/WGPUPrimitiveTopology_TriangleList,
+            /*.stripIndexFormat=*/WGPUIndexFormat_Uint16,
+            /*.frontFace=*/WGPUFrontFace_CCW,
+            /*.cullMode=*/WGPUCullMode_None,
+            /*.unclippedDepth=*/false,
+        },
+        /*.depthStencil=*/nullptr,
+        /*.multisample=*/{
+            /*.nextInChain=*/nullptr,
+            /*.count=*/1,
+            /*.mask=*/0xFFFFFFFF,
+            /*.alphaToCoverageEnabled=*/false,
+        },
+        /*.fragment=*/&fragmentState,
+    };
+    state->pipeline = wgpuDeviceCreateRenderPipeline(state->app->Device->WgpuDevice, &pipelineDesc);
     std::cout << "Succesfully loaded ShaderModule" << std::endl;
     state->ShaderLoaded = true;
 }
