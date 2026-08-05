@@ -237,7 +237,7 @@ void Start(Pretop::RHI::Application &application)
 
     wgpuQueueWriteTexture(application.WgpuQueue, &destination, pixels.data(), pixels.size(), &dataLayout, &size);
 
-    std::array<WGPUBindGroupLayoutEntry, 2> bindingLayoutEntries;
+    std::array<WGPUBindGroupLayoutEntry, 2> bindingLayoutEntries = {WGPU_BIND_GROUP_LAYOUT_ENTRY_INIT, WGPU_BIND_GROUP_LAYOUT_ENTRY_INIT};
     WGPUBindGroupLayoutEntry &bindingLayout = bindingLayoutEntries[0];
     bindingLayout.binding = 0;
     bindingLayout.visibility = WGPUShaderStage_Vertex | WGPUShaderStage_Fragment;
