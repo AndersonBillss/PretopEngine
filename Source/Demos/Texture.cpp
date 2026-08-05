@@ -19,11 +19,13 @@ struct MyUniforms
 
 struct TextureDemoData
 {
+    Pretop::RHI::Application *app;
     Pretop::Core::JobSystem jobs;
     std::unique_ptr<Pretop::Asset::AssetManager> Assets;
 
     Pretop::Asset::AssetManager::Handle ShaderHandle;
     std::unique_ptr<Pretop::RHI::Shader> Shader;
+    WGPUBindGroupLayout bindGroupLayout;
     bool ShaderLoaded = false;
 };
 
@@ -56,6 +58,18 @@ void LoadShader(TextureDemoData *state)
         exit(1);
     }
     state->Shader = std::move(state->Assets->GetShaderModule(state->ShaderHandle));
+    std::string pipelineLayoutLabel = "Pipeline layout";
+    WGPUPipelineLayoutDescriptor pipelineLayoutDesc = {
+        /*.nextInChain=*/nullptr,
+        /*.label=*/{
+            /*.data=*/pipelineLayoutLabel.data(),
+            /*.length=*/pipelineLayoutLabel.size(),
+        },
+        /*.bindGroupLayoutCount=*/1,
+        /*.bindGroupLayouts=*/&state->bindGroupLayout,
+        /*.immediateSize=*/0};
+    WGPUPipelineLayout pipelineLayout = wgpuDeviceCreatePipelineLayout(state->app->Device->WgpuDevice, &pipelineLayoutDesc);
+
     std::cout << "Succesfully loaded ShaderModule" << std::endl;
     state->ShaderLoaded = true;
 }
@@ -63,6 +77,7 @@ void LoadShader(TextureDemoData *state)
 void Start(Pretop::RHI::Application &application)
 {
     TextureDemoData state;
+    state.app = &application;
     state.Assets = std::move(
         Pretop::Asset::AssetManagerFactory::CreateAssetManager(
             std::move(Pretop::Asset::AssetLoaderFactory::CreateAssetLoader(&state.jobs)),
@@ -72,6 +87,60 @@ void Start(Pretop::RHI::Application &application)
     application.SetWindow(std::move(window));
 
     state.ShaderHandle = state.Assets->LoadShaderModule("Does-not-exist");
+
+    std::vector<float> vertices = {
+        -1.0f, -1.0f,
+        1.0f, -1.0f,
+        -1.0f, 1.0f,
+        1.0f, 1.0f};
+
+    std::string vertexBufferLabel = "Vertex buffer";
+    WGPUBufferDescriptor vertexBufferDesc = {
+        /*.nextInChain=*/nullptr,
+        /*.label=*/{
+            /*.data=*/vertexBufferLabel.data(),
+            /*.length=*/vertexBufferLabel.size(),
+        },
+        /*.usage=*/WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex,
+        /*.size=*/vertices.size() * sizeof(float),
+        /*.mappedAtCreation=*/false,
+    };
+    WGPUBuffer vertexBuffer = wgpuDeviceCreateBuffer(application.Device->WgpuDevice, &vertexBufferDesc);
+    wgpuQueueWriteBuffer(application.WgpuQueue, vertexBuffer, 0, vertices.data(), vertices.size() * sizeof(float));
+
+    std::vector<uint16_t> indices = {
+        0, 1, 2,
+        1, 3, 2};
+
+    std::string indexBufferLabel = "Index buffer";
+    WGPUBufferDescriptor indexBufferDesc = {
+        /*.nextInChain=*/nullptr,
+        /*.label=*/{
+            /*.data=*/indexBufferLabel.data(),
+            /*.length=*/indexBufferLabel.size(),
+        },
+        /*.usage=*/WGPUBufferUsage_CopyDst | WGPUBufferUsage_Index,
+        /*.size=*/indices.size() * sizeof(uint16_t),
+        /*.mappedAtCreation=*/false,
+    };
+    WGPUBuffer indexBuffer = wgpuDeviceCreateBuffer(application.Device->WgpuDevice, &indexBufferDesc);
+    wgpuQueueWriteBuffer(application.WgpuQueue, indexBuffer, 0, indices.data(), indices.size() * sizeof(uint16_t));
+
+    std::string uniformBufferLabel = "Uniform buffer";
+    WGPUBufferDescriptor uniformBufferDesc = {
+        /*.nextInChain=*/nullptr,
+        /*.label=*/{
+            /*.data=*/uniformBufferLabel.data(),
+            /*.length=*/uniformBufferLabel.size(),
+        },
+        /*.usage=*/WGPUBufferUsage_CopyDst | WGPUBufferUsage_Uniform,
+        /*.size=*/sizeof(MyUniforms),
+        /*.mappedAtCreation=*/false,
+    };
+
+    WGPUBuffer uniformBuffer = wgpuDeviceCreateBuffer(application.Device->WgpuDevice, &uniformBufferDesc);
+    MyUniforms initialUniforms = {0};
+    wgpuQueueWriteBuffer(application.WgpuQueue, uniformBuffer, 0, &initialUniforms, sizeof(MyUniforms));
 
     std::vector<uint8_t> pixels;
     WGPUExtent3D size{/*.width=*/256, /*.height=*/256, /*.depthOrArrayLayers=*/1};
@@ -118,7 +187,7 @@ void Start(Pretop::RHI::Application &application)
     bindGroupLayoutDesc.nextInChain = nullptr;
     bindGroupLayoutDesc.entryCount = (uint32_t)bindingLayoutEntries.size();
     bindGroupLayoutDesc.entries = bindingLayoutEntries.data();
-    WGPUBindGroupLayout bindGroupLayout = wgpuDeviceCreateBindGroupLayout(application.Device->WgpuDevice, &bindGroupLayoutDesc);
+    state.bindGroupLayout = wgpuDeviceCreateBindGroupLayout(application.Device->WgpuDevice, &bindGroupLayoutDesc);
 
     std::array<WGPUBindGroupEntry, 2> bindings;
     bindings[0].binding = 0;
@@ -141,10 +210,10 @@ void Start(Pretop::RHI::Application &application)
 
     WGPUBindGroupDescriptor bindGroupDesc{};
     bindGroupDesc.nextInChain = nullptr;
-    bindGroupDesc.layout = bindGroupLayout;
+    bindGroupDesc.layout = state.bindGroupLayout;
     bindGroupDesc.entryCount = (uint32_t)bindings.size();
     bindGroupDesc.entries = bindings.data();
-    WGPUBindGroup bindGroup = wgpuDeviceCreateBindGroup(device, bindGroupDesc);
+    WGPUBindGroup bindGroup = wgpuDeviceCreateBindGroup(application.Device->WgpuDevice, &bindGroupDesc);
 
     application.Run(
         [&state, &application](
@@ -157,6 +226,9 @@ void Start(Pretop::RHI::Application &application)
                 LoadShader(&state);
             }
         });
+
+    wgpuBufferDestroy(uniformBuffer);
+    wgpuBufferRelease(uniformBuffer);
 
     wgpuTextureDestroy(texture);
     wgpuTextureRelease(texture);
