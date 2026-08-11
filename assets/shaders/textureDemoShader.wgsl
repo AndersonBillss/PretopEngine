@@ -1,10 +1,11 @@
 struct VertexInput {
     @location(0) position: vec2f,
+    @location(1) uv: vec2f,
 };
 
 struct VertexOutput {
     @builtin(position) position: vec4f,
-    @location(0) textureCoords: vec2f,
+    @location(0) uv: vec2f,
 };
 
 struct MyUniforms {
@@ -28,13 +29,13 @@ fn vs_main(in: VertexInput) -> VertexOutput {
     position = uMyUniforms.projectionMatrix * position;
     
     out.position = position;
-    out.textureCoords = in.position * 128;
+    out.uv = in.uv;
 
     return out;
 }
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4f {
-    let color = textureLoad(myTexture, vec2i(in.textureCoords.xy), 0).rgba;
+    let color = textureLoad(myTexture, vec2i(in.uv.xy * 128), 0);
     return color;
 }

@@ -82,18 +82,25 @@ void LoadShader(TextureDemoData *state)
         /*.immediateSize=*/0};
     WGPUPipelineLayout pipelineLayout = wgpuDeviceCreatePipelineLayout(state->app->Device->WgpuDevice, &pipelineLayoutDesc);
     std::string vsEntryPoint = "vs_main";
-    WGPUVertexAttribute positionAttribute = {
+    WGPUVertexAttribute vertexAttributes[2];
+    vertexAttributes[0] = {
         /*.nextInChain=*/nullptr,
         /*.format=*/WGPUVertexFormat_Float32x2,
         /*.offset=*/0,
         /*.shaderLocation=*/0,
     };
+    vertexAttributes[1] = {
+        /*.nextInChain=*/nullptr,
+        /*.format=*/WGPUVertexFormat_Float32x2,
+        /*.offset=*/sizeof(float) * 2,
+        /*.shaderLocation=*/1,
+    };
     WGPUVertexBufferLayout vertexBufferLayout = {
         /*.nextInChain=*/nullptr,
         /*.stepMode=*/WGPUVertexStepMode_Vertex,
-        /*.arrayStride=*/sizeof(float) * 2,
-        /*.attributeCount=*/1,
-        /*.attributes=*/&positionAttribute,
+        /*.arrayStride=*/sizeof(float) * 4,
+        /*.attributeCount=*/2,
+        /*.attributes=*/vertexAttributes,
     };
     std::string fsEntryPoint = "fs_main";
     WGPUColorTargetState colorTargetState = {
@@ -168,10 +175,10 @@ void Start(Pretop::RHI::Application &application)
     state.ShaderHandle = state.Assets->LoadShaderModule("assets/shaders/textureDemoShader.wgsl");
 
     std::vector<float> vertices = {
-        -1.0f, -1.0f,
-        1.0f, -1.0f,
-        -1.0f, 1.0f,
-        1.0f, 1.0f};
+        -1.0f, -1.0f, 0.0f, 0.0f,
+        1.0f, -1.0f, 1.0f, 0.0f,
+        -1.0f, 1.0f, 0.0f, 1.0f,
+        1.0f, 1.0f, 1.0f, 1.0f};
 
     WGPUBufferDescriptor vertexBufferDesc = {
         /*.nextInChain=*/nullptr,
