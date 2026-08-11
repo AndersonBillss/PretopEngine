@@ -175,10 +175,14 @@ void Start(Pretop::RHI::Application &application)
     state.ShaderHandle = state.Assets->LoadShaderModule("assets/shaders/textureDemoShader.wgsl");
 
     std::vector<float> vertices = {
-        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-        1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-        -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-        1.0f, 1.0f, 0.0f, 1.0f, 1.0f};
+        -1.0f, -1.0f, -1.0f, 0.0f, 0.0f,
+        1.0f, -1.0f, -1.0f, 1.0f, 0.0f,
+        -1.0f, 1.0f, -1.0f, 0.0f, 1.0f,
+        1.0f, 1.0f, -1.0f, 1.0f, 1.0f,
+        -1.0f, -1.0f, 1.0f, 0.0f, 0.0f,
+        1.0f, -1.0f, 1.0f, 1.0f, 0.0f,
+        -1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+        1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
 
     WGPUBufferDescriptor vertexBufferDesc = {
         /*.nextInChain=*/nullptr,
@@ -191,8 +195,23 @@ void Start(Pretop::RHI::Application &application)
     wgpuQueueWriteBuffer(application.WgpuQueue, vertexBuffer, 0, vertices.data(), vertices.size() * sizeof(float));
 
     std::vector<uint16_t> indices = {
-        0, 1, 2,
-        1, 3, 2};
+        0, 2, 1,
+        1, 2, 3,
+
+        2, 0, 6,
+        0, 4, 6,
+
+        2, 6, 7,
+        3, 6, 7,
+
+        3, 5, 1,
+        3, 5, 7,
+
+        0, 5, 4,
+        0, 1, 5,
+
+        4, 5, 6,
+        5, 7, 6};
 
     WGPUBufferDescriptor indexBufferDesc = {
         /*.nextInChain=*/nullptr,
