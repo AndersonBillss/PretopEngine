@@ -35,5 +35,6 @@ fn vs_main(in: VertexInput) -> VertexOutput {
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4f {
-    return vec4f((in.positionColor.x + 1) / 2, (in.positionColor.y + 1) / 2, 0.5f, 1.0f);
+    let color = textureLoad(myTexture, vec2i(in.position.xy), 0).rgba;
+    return color;
 }

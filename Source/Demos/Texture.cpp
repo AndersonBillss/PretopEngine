@@ -47,10 +47,10 @@ void CreateImage(std::vector<uint8_t> &pixels, WGPUExtent3D &size)
         for (uint32_t j = 0; j < size.height; ++j)
         {
             uint8_t *p = &pixels[4 * (j * size.width + i)];
-            p[0] = (uint8_t)i; // r
-            p[1] = (uint8_t)j; // g
-            p[2] = 128;        // b
-            p[3] = 255;        // a
+            p[0] = (i / 16) % 2 == (j / 16) % 2 ? 255 : 0; // r
+            p[1] = ((i - j) / 16) % 2 == 0 ? 255 : 0;      // g
+            p[2] = ((i + j) / 16) % 2 == 0 ? 255 : 0;      // b
+            p[3] = 255;                                    // a
         }
     }
 }
@@ -314,7 +314,7 @@ void Start(Pretop::RHI::Application &application)
                 /*.resolveTarget=*/nullptr,
                 /*.loadOp=*/WGPULoadOp_Clear,
                 /*.storeOp=*/WGPUStoreOp_Store,
-                /*.clearValue=*/WGPUColor{0.2, 0.2, 0.2, 1.0},
+                /*.clearValue=*/WGPUColor{0.0, 0.0, 0.0, 1.0},
             };
             WGPURenderPassDescriptor renderPassDescriptor = {
                 /*.nextInChain=*/nullptr,
