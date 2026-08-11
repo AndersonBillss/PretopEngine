@@ -65,11 +65,10 @@ namespace Pretop::RHI
         WGPUSurfaceTexture surfaceTexture = WGPU_SURFACE_TEXTURE_INIT;
         WGPUSurfaceCapabilities surfaceCapabilities = WGPU_SURFACE_CAPABILITIES_INIT;
         wgpuSurfaceGetCapabilities(this->_windowSurface, this->_adapter->WgpuAdapter, &surfaceCapabilities);
+        WGPUTextureFormat preferredFormat = WGPUTextureFormat_BGRA8UnormSrgb;
 
-        // The first format in the list is the preffered format.
-        // see https://webgpu-native.github.io/webgpu-headers/Surfaces.html#Surface-Creation
-        surfaceConfig.format = surfaceCapabilities.formats[0];
-        this->WindowFormat = surfaceCapabilities.formats[0];
+        surfaceConfig.format = preferredFormat;
+        this->WindowFormat = preferredFormat;
         wgpuSurfaceCapabilitiesFreeMembers(surfaceCapabilities);
         surfaceConfig.viewFormatCount = 0;
         surfaceConfig.usage = WGPUTextureUsage_RenderAttachment;

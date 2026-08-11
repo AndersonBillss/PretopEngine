@@ -96,7 +96,7 @@ void LoadShader(TextureDemoData *state)
     std::string fsEntryPoint = "fs_main";
     WGPUColorTargetState colorTargetState = {
         /*.nextInChain=*/nullptr,
-        /*.format=*/WGPUTextureFormat_BGRA8UnormSrgb,
+        /*.format=*/state->app->WindowFormat,
         /*.blend=*/nullptr,
         /*.writeMask=*/WGPUColorWriteMask_All,
     };
