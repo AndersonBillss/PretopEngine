@@ -7,6 +7,15 @@
 #include "../Window/WindowFactory.hpp"
 #include "../Math/Linalg/Mat4x4.hpp"
 
+WGPUStringView wgpuStr(const char *data)
+{
+    size_t len = strlen(data);
+    return {
+        /*.data=*/data,
+        /*.length=*/len,
+    };
+}
+
 struct MyUniforms
 {
     Pretop::Math::Mat4x4 ProjectionMatrix;
@@ -87,7 +96,7 @@ void LoadShader(TextureDemoData *state)
     std::string fsEntryPoint = "fs_main";
     WGPUColorTargetState colorTargetState = {
         /*.nextInChain=*/nullptr,
-        /*.format=*/WGPUTextureFormat_Undefined,
+        /*.format=*/WGPUTextureFormat_BGRA8UnormSrgb,
         /*.blend=*/nullptr,
         /*.writeMask=*/WGPUColorWriteMask_All,
     };
@@ -122,7 +131,7 @@ void LoadShader(TextureDemoData *state)
         /*.primitive=*/{
             /*.nextInChain=*/nullptr,
             /*.topology=*/WGPUPrimitiveTopology_TriangleList,
-            /*.stripIndexFormat=*/WGPUIndexFormat_Uint16,
+            /*.stripIndexFormat=*/WGPUIndexFormat_Undefined,
             /*.frontFace=*/WGPUFrontFace_CCW,
             /*.cullMode=*/WGPUCullMode_None,
             /*.unclippedDepth=*/false,
@@ -153,7 +162,7 @@ void Start(Pretop::RHI::Application &application)
     std::unique_ptr<Pretop::Window::Window> window = Pretop::Window::WindowFactory::CreateWindow("Texture");
     application.SetWindow(std::move(window));
 
-    state.ShaderHandle = state.Assets->LoadShaderModule("Does-not-exist");
+    state.ShaderHandle = state.Assets->LoadShaderModule("assets/shaders/textureDemoShader.wgsl");
 
     std::vector<float> vertices = {
         -1.0f, -1.0f,
@@ -161,13 +170,9 @@ void Start(Pretop::RHI::Application &application)
         -1.0f, 1.0f,
         1.0f, 1.0f};
 
-    std::string vertexBufferLabel = "Vertex buffer";
     WGPUBufferDescriptor vertexBufferDesc = {
         /*.nextInChain=*/nullptr,
-        /*.label=*/{
-            /*.data=*/vertexBufferLabel.data(),
-            /*.length=*/vertexBufferLabel.size(),
-        },
+        /*.label=*/wgpuStr("Vertex buffer"),
         /*.usage=*/WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex,
         /*.size=*/vertices.size() * sizeof(float),
         /*.mappedAtCreation=*/false,
@@ -179,13 +184,9 @@ void Start(Pretop::RHI::Application &application)
         0, 1, 2,
         1, 3, 2};
 
-    std::string indexBufferLabel = "Index buffer";
     WGPUBufferDescriptor indexBufferDesc = {
         /*.nextInChain=*/nullptr,
-        /*.label=*/{
-            /*.data=*/indexBufferLabel.data(),
-            /*.length=*/indexBufferLabel.size(),
-        },
+        /*.label=*/wgpuStr("Index buffer"),
         /*.usage=*/WGPUBufferUsage_CopyDst | WGPUBufferUsage_Index,
         /*.size=*/indices.size() * sizeof(uint16_t),
         /*.mappedAtCreation=*/false,
@@ -193,20 +194,21 @@ void Start(Pretop::RHI::Application &application)
     WGPUBuffer indexBuffer = wgpuDeviceCreateBuffer(application.Device->WgpuDevice, &indexBufferDesc);
     wgpuQueueWriteBuffer(application.WgpuQueue, indexBuffer, 0, indices.data(), indices.size() * sizeof(uint16_t));
 
-    std::string uniformBufferLabel = "Uniform buffer";
     WGPUBufferDescriptor uniformBufferDesc = {
         /*.nextInChain=*/nullptr,
-        /*.label=*/{
-            /*.data=*/uniformBufferLabel.data(),
-            /*.length=*/uniformBufferLabel.size(),
-        },
+        /*.label=*/wgpuStr("Uniform Buffer"),
         /*.usage=*/WGPUBufferUsage_CopyDst | WGPUBufferUsage_Uniform,
         /*.size=*/sizeof(MyUniforms),
         /*.mappedAtCreation=*/false,
     };
 
     WGPUBuffer uniformBuffer = wgpuDeviceCreateBuffer(application.Device->WgpuDevice, &uniformBufferDesc);
-    MyUniforms initialUniforms = {0};
+    MyUniforms initialUniforms;
+    initialUniforms.ModelMatrix = Pretop::Math::Mat4x4::Identity();
+    initialUniforms.ViewMatrix = Pretop::Math::Mat4x4::Identity();
+    initialUniforms.ProjectionMatrix = Pretop::Math::Mat4x4::Identity();
+    initialUniforms.Color = 0.0f;
+    initialUniforms.Time = 0.0f;
     wgpuQueueWriteBuffer(application.WgpuQueue, uniformBuffer, 0, &initialUniforms, sizeof(MyUniforms));
 
     std::vector<uint8_t> pixels;
@@ -282,8 +284,15 @@ void Start(Pretop::RHI::Application &application)
     bindGroupDesc.entries = bindings.data();
     WGPUBindGroup bindGroup = wgpuDeviceCreateBindGroup(application.Device->WgpuDevice, &bindGroupDesc);
 
+    MyUniforms uniforms;
+    uniforms.ModelMatrix = Pretop::Math::Mat4x4::Identity();
+    uniforms.ViewMatrix = Pretop::Math::Mat4x4::Identity();
+    uniforms.ProjectionMatrix = Pretop::Math::Mat4x4::Identity();
+    uniforms.Color = 0.0f;
+    uniforms.Time = 0.0f;
+
     application.Run(
-        [&state, &application](
+        [&](
             double dt,
             WGPUTextureView targetView)
         {
@@ -292,6 +301,49 @@ void Start(Pretop::RHI::Application &application)
             {
                 LoadShader(&state);
             }
+            WGPUCommandEncoderDescriptor encoderDescriptor = {
+                /*.nextInChain=*/nullptr,
+                /*.label=*/wgpuStr("Texture command encoder"),
+            };
+            WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(application.Device->WgpuDevice, &encoderDescriptor);
+
+            WGPURenderPassColorAttachment renderPassColorAttachment = {
+                /*.nextInChain=*/nullptr,
+                /*.view=*/targetView,
+                /*.depthSlice=*/WGPU_DEPTH_SLICE_UNDEFINED,
+                /*.resolveTarget=*/nullptr,
+                /*.loadOp=*/WGPULoadOp_Clear,
+                /*.storeOp=*/WGPUStoreOp_Store,
+                /*.clearValue=*/WGPUColor{0.2, 0.2, 0.2, 1.0},
+            };
+            WGPURenderPassDescriptor renderPassDescriptor = {
+                /*.nextInChain=*/nullptr,
+                /*.label=*/wgpuStr("Texture render pass"),
+                /*.colorAttachmentCount=*/1,
+                /*.colorAttachments=*/&renderPassColorAttachment,
+                /*.depthStencilAttachment=*/nullptr,
+                /*.occlusionQuerySet=*/nullptr,
+                /*.timestampWrites=*/nullptr,
+            };
+            WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(encoder, &renderPassDescriptor);
+
+            wgpuRenderPassEncoderSetPipeline(renderPass, state.pipeline);
+            wgpuRenderPassEncoderSetVertexBuffer(renderPass, 0, vertexBuffer, 0, wgpuBufferGetSize(vertexBuffer));
+            wgpuRenderPassEncoderSetIndexBuffer(renderPass, indexBuffer, WGPUIndexFormat_Uint16, 0, wgpuBufferGetSize(indexBuffer));
+            wgpuRenderPassEncoderSetBindGroup(renderPass, 0, bindGroup, 0, nullptr);
+            wgpuRenderPassEncoderDrawIndexed(renderPass, indices.size(), 1, 0, 0, 0);
+            wgpuRenderPassEncoderEnd(renderPass);
+            wgpuRenderPassEncoderRelease(renderPass);
+
+            WGPUCommandBufferDescriptor cmdBufferDescriptor = {
+                /*.nextInChain=*/nullptr,
+                /*.label=*/wgpuStr("Texture command buffer"),
+            };
+            WGPUCommandBuffer commandBuffer = wgpuCommandEncoderFinish(encoder, &cmdBufferDescriptor);
+
+            wgpuQueueSubmit(application.WgpuQueue, 1, &commandBuffer);
+
+            wgpuCommandEncoderRelease(encoder);
         });
 
     wgpuBufferDestroy(uniformBuffer);
