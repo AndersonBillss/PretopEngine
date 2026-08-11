@@ -6,6 +6,8 @@
 #include "../Asset/AssetLoaderFactory.hpp"
 #include "../Window/WindowFactory.hpp"
 #include "../Math/Linalg/Mat4x4.hpp"
+#include "../Math/Euler.hpp"
+#include "../Math/Constants.hpp"
 
 WGPUStringView wgpuStr(const char *data)
 {
@@ -150,6 +152,7 @@ void LoadShader(TextureDemoData *state)
     state->ShaderLoaded = true;
 }
 
+const float ModelScale = 1.3f;
 void Start(Pretop::RHI::Application &application)
 {
     TextureDemoData state;
@@ -291,6 +294,8 @@ void Start(Pretop::RHI::Application &application)
     uniforms.Color = 0.0f;
     uniforms.Time = 0.0f;
 
+    float seconds = 0.0f;
+
     application.Run(
         [&](
             double dt,
@@ -301,6 +306,30 @@ void Start(Pretop::RHI::Application &application)
             {
                 LoadShader(&state);
             }
+
+            seconds += dt;
+            MyUniforms u;
+            u.Color = (sin(seconds * 2.32325) + 1) / 2;
+            u.Time = seconds;
+
+            Pretop::Math::Mat4x4 r1 = (Pretop::Math::Euler{0, 0, seconds}).ToMatrix();
+            Pretop::Math::Mat4x4 s = Pretop::Math::Mat4x4::Scale(ModelScale);
+            u.ModelMatrix = r1 * s;
+
+            Pretop::Math::Mat4x4 r2 = (Pretop::Math::Euler{-45.0f * (float)Pretop::Math::Deg2Rad, 0, 0}).ToMatrix();
+            Pretop::Math::Mat4x4 t2 = Pretop::Math::Mat4x4::Transform(0.0f, 0.0f, -4.0f);
+            u.ViewMatrix = t2 * r2;
+
+            float near = 0.01f;
+            float far = 100.0f;
+            u.ProjectionMatrix = Pretop::Math::Mat4x4::Perspective(near, far, 60.0f * Pretop::Math::Deg2Rad, 640.0 / 480.0);
+            wgpuQueueWriteBuffer(
+                application.WgpuQueue,
+                uniformBuffer,
+                0,
+                &u,
+                sizeof(MyUniforms));
+
             WGPUCommandEncoderDescriptor encoderDescriptor = {
                 /*.nextInChain=*/nullptr,
                 /*.label=*/wgpuStr("Texture command encoder"),
@@ -314,7 +343,7 @@ void Start(Pretop::RHI::Application &application)
                 /*.resolveTarget=*/nullptr,
                 /*.loadOp=*/WGPULoadOp_Clear,
                 /*.storeOp=*/WGPUStoreOp_Store,
-                /*.clearValue=*/WGPUColor{0.0, 0.0, 0.0, 1.0},
+                /*.clearValue=*/WGPUColor{0.2, 0.2, 0.2, 1.0},
             };
             WGPURenderPassDescriptor renderPassDescriptor = {
                 /*.nextInChain=*/nullptr,
