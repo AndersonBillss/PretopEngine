@@ -1,5 +1,5 @@
 struct VertexInput {
-    @location(0) position: vec2f,
+    @location(0) position: vec3f,
     @location(1) uv: vec2f,
 };
 
@@ -22,7 +22,7 @@ struct MyUniforms {
 @vertex
 fn vs_main(in: VertexInput) -> VertexOutput {
     var out: VertexOutput;
-    var position = vec4f(in.position.x, in.position.y, 0.5, 1.0);
+    var position = vec4f(in.position.x, in.position.y, in.position.z, 1.0);
 
     position = uMyUniforms.modelMatrix * position;
     position = uMyUniforms.viewMatrix * position;

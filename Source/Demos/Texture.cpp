@@ -85,20 +85,20 @@ void LoadShader(TextureDemoData *state)
     WGPUVertexAttribute vertexAttributes[2];
     vertexAttributes[0] = {
         /*.nextInChain=*/nullptr,
-        /*.format=*/WGPUVertexFormat_Float32x2,
+        /*.format=*/WGPUVertexFormat_Float32x3,
         /*.offset=*/0,
         /*.shaderLocation=*/0,
     };
     vertexAttributes[1] = {
         /*.nextInChain=*/nullptr,
         /*.format=*/WGPUVertexFormat_Float32x2,
-        /*.offset=*/sizeof(float) * 2,
+        /*.offset=*/sizeof(float) * 3,
         /*.shaderLocation=*/1,
     };
     WGPUVertexBufferLayout vertexBufferLayout = {
         /*.nextInChain=*/nullptr,
         /*.stepMode=*/WGPUVertexStepMode_Vertex,
-        /*.arrayStride=*/sizeof(float) * 4,
+        /*.arrayStride=*/sizeof(float) * 5,
         /*.attributeCount=*/2,
         /*.attributes=*/vertexAttributes,
     };
@@ -175,10 +175,10 @@ void Start(Pretop::RHI::Application &application)
     state.ShaderHandle = state.Assets->LoadShaderModule("assets/shaders/textureDemoShader.wgsl");
 
     std::vector<float> vertices = {
-        -1.0f, -1.0f, 0.0f, 0.0f,
-        1.0f, -1.0f, 1.0f, 0.0f,
-        -1.0f, 1.0f, 0.0f, 1.0f,
-        1.0f, 1.0f, 1.0f, 1.0f};
+        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+        1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+        1.0f, 1.0f, 0.0f, 1.0f, 1.0f};
 
     WGPUBufferDescriptor vertexBufferDesc = {
         /*.nextInChain=*/nullptr,
