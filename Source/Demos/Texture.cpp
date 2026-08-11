@@ -142,7 +142,7 @@ void LoadShader(TextureDemoData *state)
             /*.topology=*/WGPUPrimitiveTopology_TriangleList,
             /*.stripIndexFormat=*/WGPUIndexFormat_Undefined,
             /*.frontFace=*/WGPUFrontFace_CCW,
-            /*.cullMode=*/WGPUCullMode_None,
+            /*.cullMode=*/WGPUCullMode_Back,
             /*.unclippedDepth=*/false,
         },
         /*.depthStencil=*/nullptr,
@@ -202,10 +202,10 @@ void Start(Pretop::RHI::Application &application)
         0, 4, 6,
 
         2, 6, 7,
-        3, 6, 7,
+        3, 2, 7,
 
         3, 5, 1,
-        3, 5, 7,
+        3, 7, 5,
 
         0, 5, 4,
         0, 1, 5,
