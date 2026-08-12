@@ -71,18 +71,13 @@ void LoadShader(TextureDemoData *state)
         exit(1);
     }
     state->Shader = std::move(state->Assets->GetShaderModule(state->ShaderHandle));
-    std::string pipelineLayoutLabel = "Pipeline layout";
     WGPUPipelineLayoutDescriptor pipelineLayoutDesc = {
         /*.nextInChain=*/nullptr,
-        /*.label=*/{
-            /*.data=*/pipelineLayoutLabel.data(),
-            /*.length=*/pipelineLayoutLabel.size(),
-        },
+        /*.label=*/wgpuStr("Pipeline layout"),
         /*.bindGroupLayoutCount=*/1,
         /*.bindGroupLayouts=*/&state->bindGroupLayout,
         /*.immediateSize=*/0};
     WGPUPipelineLayout pipelineLayout = wgpuDeviceCreatePipelineLayout(state->app->Device->WgpuDevice, &pipelineLayoutDesc);
-    std::string vsEntryPoint = "vs_main";
     WGPUVertexAttribute vertexAttributes[2];
     vertexAttributes[0] = {
         /*.nextInChain=*/nullptr,
@@ -103,7 +98,6 @@ void LoadShader(TextureDemoData *state)
         /*.attributeCount=*/2,
         /*.attributes=*/vertexAttributes,
     };
-    std::string fsEntryPoint = "fs_main";
     WGPUColorTargetState colorTargetState = {
         /*.nextInChain=*/nullptr,
         /*.format=*/state->app->WindowFormat,
@@ -113,59 +107,68 @@ void LoadShader(TextureDemoData *state)
     WGPUFragmentState fragmentState = {
         /*.nextInChain=*/nullptr,
         /*.module=*/state->Shader->WgpuShader,
-        /*.entryPoint=*/{
-            /*.data=*/fsEntryPoint.data(),
-            /*.length=*/fsEntryPoint.size(),
-        },
+        /*.entryPoint=*/wgpuStr("fs_main"),
         /*.constantCount=*/0,
         /*.constants=*/nullptr,
         /*.targetCount=*/1,
         /*.targets=*/&colorTargetState,
     };
 
-    WGPUDepthStencilState depthStencilState = WGPU_DEPTH_STENCIL_STATE_INIT;
-    depthStencilState.format = WGPUTextureFormat_Undefined;
-    depthStencilState.depthWriteEnabled = WGPUOptionalBool_False;
-    depthStencilState.depthCompare = WGPUCompareFunction_Always;
-    depthStencilState.stencilReadMask = 0xFFFFFFFF;
-    depthStencilState.stencilWriteMask = 0xFFFFFFFF;
-    depthStencilState.depthBias = 0;
-    depthStencilState.depthBiasSlopeScale = 0;
-    depthStencilState.depthBiasClamp = 0;
-    depthStencilState.depthCompare = WGPUCompareFunction_Less;
-    depthStencilState.depthWriteEnabled = WGPUOptionalBool_True;
     WGPUTextureFormat depthTextureFormat = WGPUTextureFormat_Depth24Plus;
-    depthStencilState.format = depthTextureFormat;
-    depthStencilState.stencilReadMask = 0;
-    depthStencilState.stencilWriteMask = 0;
+    WGPUDepthStencilState depthStencilState = {
+        /*.nextInChain=*/nullptr,
+        /*.format=*/depthTextureFormat,
+        /*.depthWriteEnabled=*/WGPUOptionalBool_False,
+        /*.depthCompare=*/WGPUCompareFunction_Less,
+        /*.stencilFront=*/WGPU_STENCIL_FACE_STATE_INIT,
+        /*.stencilBack=*/WGPU_STENCIL_FACE_STATE_INIT,
+        /*.stencilReadMask=*/0,
+        /*.stencilWriteMask=*/0,
+        /*.depthBias=*/0,
+        /*.depthBiasSlopeScale=*/0.f,
+        /*.depthBiasClamp=*/0.f,
+    };
 
-    WGPUTextureDescriptor depthTextureDesc = WGPU_TEXTURE_DESCRIPTOR_INIT;
-    depthTextureDesc.dimension = WGPUTextureDimension_2D;
-    depthTextureDesc.format = depthTextureFormat;
-    depthTextureDesc.mipLevelCount = 1;
-    depthTextureDesc.sampleCount = 1;
-    depthTextureDesc.size = {800, 600, 1};
-    depthTextureDesc.usage = WGPUTextureUsage_RenderAttachment;
-    depthTextureDesc.viewFormatCount = 1;
-    depthTextureDesc.viewFormats = &depthTextureFormat;
+    WGPUTextureDescriptor depthTextureDesc = {
+        /*.nextInChain=*/nullptr,
+        /*.label=*/wgpuStr("Depth texture"),
+        /*.usage=*/WGPUTextureUsage_RenderAttachment,
+        /*.dimension=*/WGPUTextureDimension_2D,
+        /*.size=*/{800, 600, 1},
+        /*.format=*/depthTextureFormat,
+        /*.mipLevelCount=*/1,
+        /*.sampleCount=*/1,
+        /*.viewFormatCount=*/1,
+        /*.viewFormats=*/&depthTextureFormat,
+    };
     WGPUTexture depthTexture = wgpuDeviceCreateTexture(state->app->Device->WgpuDevice, &depthTextureDesc);
 
-    WGPUTextureViewDescriptor depthTextureViewDesc = WGPU_TEXTURE_VIEW_DESCRIPTOR_INIT;
-    depthTextureViewDesc.aspect = WGPUTextureAspect_DepthOnly;
-    depthTextureViewDesc.baseArrayLayer = 0;
-    depthTextureViewDesc.arrayLayerCount = 1;
-    depthTextureViewDesc.baseMipLevel = 0;
-    depthTextureViewDesc.mipLevelCount = 1;
-    depthTextureViewDesc.dimension = WGPUTextureViewDimension_2D;
-    depthTextureViewDesc.format = depthTextureFormat;
+    WGPUTextureViewDescriptor depthTextureViewDesc = {
+        /*.nextInChain=*/nullptr,
+        /*.label=*/wgpuStr("Depth texture view"),
+        /*.format=*/depthTextureFormat,
+        /*.dimension=*/WGPUTextureViewDimension_2D,
+        /*.baseMipLevel=*/0,
+        /*.mipLevelCount=*/1,
+        /*.baseArrayLayer=*/0,
+        /*.arrayLayerCount=*/1,
+        /*.aspect=*/WGPUTextureAspect_DepthOnly,
+        /*.usage=*/WGPUTextureUsage_RenderAttachment,
+    };
     WGPUTextureView depthTextureView = wgpuTextureCreateView(depthTexture, &depthTextureViewDesc);
 
-    state->DepthStencilAttachment = WGPU_RENDER_PASS_DEPTH_STENCIL_ATTACHMENT_INIT;
-    state->DepthStencilAttachment.view = depthTextureView;
-    state->DepthStencilAttachment.depthClearValue = 1.0f;
-    state->DepthStencilAttachment.depthLoadOp = WGPULoadOp_Clear;
-    state->DepthStencilAttachment.depthStoreOp = WGPUStoreOp_Store;
-    state->DepthStencilAttachment.depthReadOnly = false;
+    state->DepthStencilAttachment = {
+        /*.nextInChain=*/nullptr,
+        /*.view=*/depthTextureView,
+        /*.depthLoadOp=*/WGPULoadOp_Clear,
+        /*.depthStoreOp=*/WGPUStoreOp_Store,
+        /*.depthClearValue=*/1.0f,
+        /*.depthReadOnly=*/false,
+        /*.stencilLoadOp=*/WGPULoadOp_Undefined,
+        /*.stencilStoreOp=*/WGPUStoreOp_Undefined,
+        /*.stencilClearValue=*/0,
+        /*.stencilReadOnly=*/false,
+    };
 
     WGPURenderPipelineDescriptor pipelineDesc = {
         /*.nextInChain=*/nullptr,
@@ -174,10 +177,7 @@ void LoadShader(TextureDemoData *state)
         /*.vertex=*/{
             /*.nextInChain=*/nullptr,
             /*.module=*/state->Shader->WgpuShader,
-            /*.entryPoint=*/{
-                /*.data=*/vsEntryPoint.data(),
-                /*.length=*/vsEntryPoint.size(),
-            },
+            /*.entryPoint=*/wgpuStr("vs_main"),
             /*.constantCount=*/0,
             /*.constants=*/nullptr,
             /*.bufferCount=*/1,
