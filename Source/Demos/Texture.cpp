@@ -220,15 +220,16 @@ void Start(Pretop::RHI::Application &application)
 
     state.ShaderHandle = state.Assets->LoadShaderModule("assets/shaders/textureDemoShader.wgsl");
 
+    float textureScale = 8.0f;
+    float padding = (textureScale - 1) / 2;
+    float minSample = 0 - padding;
+    float maxSample = 1 + padding;
+
     std::vector<float> vertices = {
-        -1.0f, -1.0f, -1.0f, 0.0f, 0.0f,
-        1.0f, -1.0f, -1.0f, 1.0f, 0.0f,
-        -1.0f, 1.0f, -1.0f, 0.0f, 1.0f,
-        1.0f, 1.0f, -1.0f, 1.0f, 1.0f,
-        -1.0f, -1.0f, 1.0f, 0.0f, 0.0f,
-        1.0f, -1.0f, 1.0f, 1.0f, 0.0f,
-        -1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-        1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+        -1.0f, -1.0f, 0.0f, minSample, minSample,
+        1.0f, -1.0f, 0.0f, maxSample, minSample,
+        -1.0f, 1.0f, 0.0f, minSample, maxSample,
+        1.0f, 1.0f, 0.0f, maxSample, maxSample};
 
     WGPUBufferDescriptor vertexBufferDesc = {
         /*.nextInChain=*/nullptr,
@@ -241,23 +242,8 @@ void Start(Pretop::RHI::Application &application)
     wgpuQueueWriteBuffer(application.WgpuQueue, vertexBuffer, 0, vertices.data(), vertices.size() * sizeof(float));
 
     std::vector<uint16_t> indices = {
-        0, 2, 1,
-        1, 2, 3,
-
-        2, 0, 6,
-        0, 4, 6,
-
-        2, 6, 7,
-        3, 2, 7,
-
-        3, 5, 1,
-        3, 7, 5,
-
-        0, 5, 4,
-        0, 1, 5,
-
-        4, 5, 6,
-        5, 7, 6};
+        0, 1, 2,
+        1, 3, 2};
 
     WGPUBufferDescriptor indexBufferDesc = {
         /*.nextInChain=*/nullptr,
@@ -314,9 +300,9 @@ void Start(Pretop::RHI::Application &application)
 
     wgpuQueueWriteTexture(application.WgpuQueue, &destination, pixels.data(), pixels.size(), &dataLayout, &size);
 
-    WGPUSamplerDescriptor samplerDesc;
-    samplerDesc.addressModeU = WGPUAddressMode_ClampToEdge;
-    samplerDesc.addressModeV = WGPUAddressMode_ClampToEdge;
+    WGPUSamplerDescriptor samplerDesc = WGPU_SAMPLER_DESCRIPTOR_INIT;
+    samplerDesc.addressModeU = WGPUAddressMode_Repeat;
+    samplerDesc.addressModeV = WGPUAddressMode_Repeat;
     samplerDesc.addressModeW = WGPUAddressMode_ClampToEdge;
     samplerDesc.magFilter = WGPUFilterMode_Linear;
     samplerDesc.minFilter = WGPUFilterMode_Linear;
@@ -414,12 +400,17 @@ void Start(Pretop::RHI::Application &application)
             u.Color = (sin(seconds * 2.32325) + 1) / 2;
             u.Time = seconds;
 
-            Pretop::Math::Mat4x4 r1 = (Pretop::Math::Euler{0, 0, seconds}).ToMatrix();
+            Pretop::Math::Mat4x4 r1 = (Pretop::Math::Euler{0, 0, -5}).ToMatrix();
             Pretop::Math::Mat4x4 s = Pretop::Math::Mat4x4::Scale(ModelScale);
             u.ModelMatrix = r1 * s;
 
-            Pretop::Math::Mat4x4 r2 = (Pretop::Math::Euler{-45.0f * (float)Pretop::Math::Deg2Rad, 0, 0}).ToMatrix();
-            Pretop::Math::Mat4x4 t2 = Pretop::Math::Mat4x4::Transform(0.0f, 0.0f, -4.0f);
+            float minTilt = -75.0f;
+            float maxTilt = -60.0f;
+            float difference = maxTilt - minTilt;
+            float tiltFactor = (sin(seconds * 2) + 1) / 2;
+            float tilt = minTilt + difference * tiltFactor;
+            Pretop::Math::Mat4x4 r2 = (Pretop::Math::Euler{tilt * (float)Pretop::Math::Deg2Rad, 0, 0}).ToMatrix();
+            Pretop::Math::Mat4x4 t2 = Pretop::Math::Mat4x4::Transform(0.0f, 0.2f, -1.5f);
             u.ViewMatrix = t2 * r2;
 
             float near = 0.01f;
