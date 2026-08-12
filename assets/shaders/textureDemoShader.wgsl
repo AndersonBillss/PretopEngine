@@ -18,6 +18,7 @@ struct MyUniforms {
 
 @group(0) @binding(0) var<uniform> uMyUniforms: MyUniforms;
 @group(0) @binding(1) var myTexture: texture_2d<f32>;
+@group(0) @binding(2) var textureSampler: sampler;
 
 @vertex
 fn vs_main(in: VertexInput) -> VertexOutput {
@@ -27,7 +28,7 @@ fn vs_main(in: VertexInput) -> VertexOutput {
     position = uMyUniforms.modelMatrix * position;
     position = uMyUniforms.viewMatrix * position;
     position = uMyUniforms.projectionMatrix * position;
-    
+
     out.position = position;
     out.uv = in.uv;
 
@@ -36,6 +37,6 @@ fn vs_main(in: VertexInput) -> VertexOutput {
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4f {
-    let color = textureLoad(myTexture, vec2i(in.uv.xy * 128), 0);
+    let color = textureSample(myTexture, textureSampler, in.uv);
     return color;
 }

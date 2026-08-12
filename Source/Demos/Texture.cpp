@@ -314,7 +314,23 @@ void Start(Pretop::RHI::Application &application)
 
     wgpuQueueWriteTexture(application.WgpuQueue, &destination, pixels.data(), pixels.size(), &dataLayout, &size);
 
-    std::array<WGPUBindGroupLayoutEntry, 2> bindingLayoutEntries = {WGPU_BIND_GROUP_LAYOUT_ENTRY_INIT, WGPU_BIND_GROUP_LAYOUT_ENTRY_INIT};
+    WGPUSamplerDescriptor samplerDesc;
+    samplerDesc.addressModeU = WGPUAddressMode_ClampToEdge;
+    samplerDesc.addressModeV = WGPUAddressMode_ClampToEdge;
+    samplerDesc.addressModeW = WGPUAddressMode_ClampToEdge;
+    samplerDesc.magFilter = WGPUFilterMode_Linear;
+    samplerDesc.minFilter = WGPUFilterMode_Linear;
+    samplerDesc.mipmapFilter = WGPUMipmapFilterMode_Linear;
+    samplerDesc.lodMinClamp = 0.0f;
+    samplerDesc.lodMaxClamp = 1.0f;
+    samplerDesc.compare = WGPUCompareFunction_Undefined;
+    samplerDesc.maxAnisotropy = 1;
+    WGPUSampler sampler = wgpuDeviceCreateSampler(application.Device->WgpuDevice, &samplerDesc);
+
+    std::array<WGPUBindGroupLayoutEntry, 3> bindingLayoutEntries = {
+        WGPU_BIND_GROUP_LAYOUT_ENTRY_INIT,
+        WGPU_BIND_GROUP_LAYOUT_ENTRY_INIT,
+        WGPU_BIND_GROUP_LAYOUT_ENTRY_INIT};
     WGPUBindGroupLayoutEntry &bindingLayout = bindingLayoutEntries[0];
     bindingLayout.binding = 0;
     bindingLayout.visibility = WGPUShaderStage_Vertex | WGPUShaderStage_Fragment;
@@ -327,13 +343,24 @@ void Start(Pretop::RHI::Application &application)
     textureBindingLayout.texture.sampleType = WGPUTextureSampleType_Float;
     textureBindingLayout.texture.viewDimension = WGPUTextureViewDimension_2D;
 
+    WGPUBindGroupLayoutEntry &samplerBindingLayout = bindingLayoutEntries[2];
+    samplerBindingLayout.binding = 2;
+    samplerBindingLayout.visibility = WGPUShaderStage_Fragment;
+    samplerBindingLayout.sampler = {
+        /*.nextInChain=*/nullptr,
+        /*.type=*/WGPUSamplerBindingType_Filtering,
+    };
+
     WGPUBindGroupLayoutDescriptor bindGroupLayoutDesc{};
     bindGroupLayoutDesc.nextInChain = nullptr;
     bindGroupLayoutDesc.entryCount = (uint32_t)bindingLayoutEntries.size();
     bindGroupLayoutDesc.entries = bindingLayoutEntries.data();
     state.bindGroupLayout = wgpuDeviceCreateBindGroupLayout(application.Device->WgpuDevice, &bindGroupLayoutDesc);
 
-    std::array<WGPUBindGroupEntry, 2> bindings = {WGPU_BIND_GROUP_ENTRY_INIT, WGPU_BIND_GROUP_ENTRY_INIT};
+    std::array<WGPUBindGroupEntry, 3> bindings = {
+        WGPU_BIND_GROUP_ENTRY_INIT,
+        WGPU_BIND_GROUP_ENTRY_INIT,
+        WGPU_BIND_GROUP_ENTRY_INIT};
     bindings[0].binding = 0;
     bindings[0].buffer = uniformBuffer;
     bindings[0].offset = 0;
@@ -351,6 +378,9 @@ void Start(Pretop::RHI::Application &application)
 
     bindings[1].binding = 1;
     bindings[1].textureView = textureView;
+
+    bindings[2].binding = 2;
+    bindings[2].sampler = sampler;
 
     WGPUBindGroupDescriptor bindGroupDesc{};
     bindGroupDesc.nextInChain = nullptr;
