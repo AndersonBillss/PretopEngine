@@ -9,6 +9,19 @@
 #include "../Math/Euler.hpp"
 #include "../Math/Constants.hpp"
 
+uint32_t bitWidth(uint32_t m)
+{
+    if (m == 0)
+        return 0;
+    else
+    {
+        uint32_t w = 0;
+        while (m >>= 1)
+            ++w;
+        return w;
+    }
+}
+
 WGPUStringView wgpuStr(const char *data)
 {
     size_t len = strlen(data);
@@ -42,20 +55,53 @@ struct TextureDemoData
     bool ShaderLoaded = false;
 };
 
-void CreateImage(std::vector<uint8_t> &pixels, WGPUExtent3D &size)
+void CreateImage(std::vector<uint8_t> &pixels, WGPUExtent3D &size, uint32_t level)
 {
-    pixels.resize(4 * size.width * size.height);
     for (uint32_t i = 0; i < size.width; ++i)
     {
         for (uint32_t j = 0; j < size.height; ++j)
         {
             uint8_t *p = &pixels[4 * (j * size.width + i)];
-            p[0] = (i / 16) % 2 == (j / 16) % 2 ? 255 : 0; // r
-            p[1] = ((i - j) / 16) % 2 == 0 ? 255 : 0;      // g
-            p[2] = ((i + j) / 16) % 2 == 0 ? 255 : 0;      // b
-            p[3] = 255;                                    // a
+            if (level == 0)
+            {
+                // Our initial texture formula
+                p[0] = (i / 16) % 2 == (j / 16) % 2 ? 255 : 0; // r
+                p[1] = ((i - j) / 16) % 2 == 0 ? 255 : 0;      // g
+                p[2] = ((i + j) / 16) % 2 == 0 ? 255 : 0;      // b
+            }
+            else
+            {
+                // Some debug value for visualizing mip levels
+                p[0] = level % 2 == 0 ? 255 : 0;
+                p[1] = (level / 2) % 2 == 0 ? 255 : 0;
+                p[2] = (level / 4) % 2 == 0 ? 255 : 0;
+            }
+            p[3] = 255; // a
         }
     }
+}
+
+std::vector<uint8_t> createMip(std::vector<uint8_t> &previousLevelPixels, WGPUExtent3D &prevSize)
+{
+    WGPUExtent3D mipLevelSize = {prevSize.width / 2, prevSize.height / 2};
+    std::vector<uint8_t> pixels;
+    pixels.resize(mipLevelSize.width * mipLevelSize.height * 4);
+    for (uint32_t i = 0; i < mipLevelSize.width; ++i)
+    {
+        for (uint32_t j = 0; j < mipLevelSize.height; ++j)
+        {
+            uint8_t *p = &pixels[4 * (j * mipLevelSize.width + i)];
+            uint8_t *p00 = &previousLevelPixels[4 * ((2 * j + 0) * (2 * mipLevelSize.width) + (2 * i + 0))];
+            uint8_t *p01 = &previousLevelPixels[4 * ((2 * j + 0) * (2 * mipLevelSize.width) + (2 * i + 1))];
+            uint8_t *p10 = &previousLevelPixels[4 * ((2 * j + 1) * (2 * mipLevelSize.width) + (2 * i + 0))];
+            uint8_t *p11 = &previousLevelPixels[4 * ((2 * j + 1) * (2 * mipLevelSize.width) + (2 * i + 1))];
+            // Average
+            p[0] = (p00[0] + p01[0] + p10[0] + p11[0]) / 4;
+            p[1] = (p00[1] + p01[1] + p10[1] + p11[1]) / 4;
+            p[2] = (p00[2] + p01[2] + p10[2] + p11[2]) / 4;
+        }
+    }
+    return pixels;
 }
 
 void LoadShader(TextureDemoData *state)
@@ -272,33 +318,42 @@ void Start(Pretop::RHI::Application &application)
     initialUniforms.Time = 0.0f;
     wgpuQueueWriteBuffer(application.WgpuQueue, uniformBuffer, 0, &initialUniforms, sizeof(MyUniforms));
 
-    std::vector<uint8_t> pixels;
     WGPUExtent3D size{/*.width=*/256, /*.height=*/256, /*.depthOrArrayLayers=*/1};
-    CreateImage(pixels, size);
 
+    uint32_t maxMipLevelCount = bitWidth(std::max(size.width, size.height));
     WGPUTextureDescriptor textureDesc = WGPU_TEXTURE_DESCRIPTOR_INIT;
     textureDesc.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
     textureDesc.dimension = WGPUTextureDimension_2D;
     textureDesc.size = size;
-    textureDesc.mipLevelCount = 1;
+    textureDesc.mipLevelCount = maxMipLevelCount;
     textureDesc.sampleCount = 1;
     textureDesc.format = WGPUTextureFormat_RGBA8Unorm;
     textureDesc.viewFormatCount = 0;
     textureDesc.viewFormats = nullptr;
 
     WGPUTexture texture = wgpuDeviceCreateTexture(application.Device->WgpuDevice, &textureDesc);
-    WGPUTexelCopyTextureInfo destination = WGPU_TEXEL_COPY_TEXTURE_INFO_INIT;
-    destination.texture = texture;
-    destination.mipLevel = 0;
-    destination.origin = {/*.width=*/0, /*.height=*/0, /*.depthOrArrayLayers=*/0};
-    destination.aspect = WGPUTextureAspect_All;
 
-    WGPUTexelCopyBufferLayout dataLayout = WGPU_TEXEL_COPY_BUFFER_LAYOUT_INIT;
-    dataLayout.offset = 0;
-    dataLayout.bytesPerRow = 4 * size.width;
-    dataLayout.rowsPerImage = size.height;
+    std::vector<uint8_t> pixels;
+    pixels.resize(size.width * size.height * 4);
+    CreateImage(pixels, size, 0);
+    std::vector<uint8_t> currMip = pixels;
+    for (uint32_t level = 0; level < textureDesc.mipLevelCount; ++level)
+    {
+        WGPUTexelCopyTextureInfo destination = WGPU_TEXEL_COPY_TEXTURE_INFO_INIT;
+        destination.texture = texture;
+        destination.mipLevel = level;
+        destination.origin = {/*.width=*/0, /*.height=*/0, /*.depthOrArrayLayers=*/0};
+        destination.aspect = WGPUTextureAspect_All;
 
-    wgpuQueueWriteTexture(application.WgpuQueue, &destination, pixels.data(), pixels.size(), &dataLayout, &size);
+        WGPUTexelCopyBufferLayout dataLayout = WGPU_TEXEL_COPY_BUFFER_LAYOUT_INIT;
+        dataLayout.offset = 0;
+        dataLayout.bytesPerRow = 4 * size.width;
+        dataLayout.rowsPerImage = size.height;
+        wgpuQueueWriteTexture(application.WgpuQueue, &destination, currMip.data(), currMip.size(), &dataLayout, &size);
+        currMip = createMip(currMip, size);
+        size.width /= 2;
+        size.height /= 2;
+    }
 
     WGPUSamplerDescriptor samplerDesc = WGPU_SAMPLER_DESCRIPTOR_INIT;
     samplerDesc.addressModeU = WGPUAddressMode_Repeat;
@@ -308,7 +363,7 @@ void Start(Pretop::RHI::Application &application)
     samplerDesc.minFilter = WGPUFilterMode_Linear;
     samplerDesc.mipmapFilter = WGPUMipmapFilterMode_Linear;
     samplerDesc.lodMinClamp = 0.0f;
-    samplerDesc.lodMaxClamp = 1.0f;
+    samplerDesc.lodMaxClamp = 8.0f;
     samplerDesc.compare = WGPUCompareFunction_Undefined;
     samplerDesc.maxAnisotropy = 1;
     WGPUSampler sampler = wgpuDeviceCreateSampler(application.Device->WgpuDevice, &samplerDesc);
@@ -357,7 +412,7 @@ void Start(Pretop::RHI::Application &application)
     textureViewDesc.baseArrayLayer = 0;
     textureViewDesc.arrayLayerCount = 1;
     textureViewDesc.baseMipLevel = 0;
-    textureViewDesc.mipLevelCount = 1;
+    textureViewDesc.mipLevelCount = textureDesc.mipLevelCount;
     textureViewDesc.dimension = WGPUTextureViewDimension_2D;
     textureViewDesc.format = textureDesc.format;
     WGPUTextureView textureView = wgpuTextureCreateView(texture, &textureViewDesc);
