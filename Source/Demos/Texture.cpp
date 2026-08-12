@@ -36,6 +36,7 @@ struct TextureDemoData
 
     Pretop::Asset::AssetManager::Handle ShaderHandle;
     std::unique_ptr<Pretop::RHI::Shader> Shader;
+    WGPURenderPassDepthStencilAttachment DepthStencilAttachment;
     WGPUBindGroupLayout bindGroupLayout;
     WGPURenderPipeline pipeline;
     bool ShaderLoaded = false;
@@ -121,6 +122,51 @@ void LoadShader(TextureDemoData *state)
         /*.targetCount=*/1,
         /*.targets=*/&colorTargetState,
     };
+
+    WGPUDepthStencilState depthStencilState = WGPU_DEPTH_STENCIL_STATE_INIT;
+    depthStencilState.format = WGPUTextureFormat_Undefined;
+    depthStencilState.depthWriteEnabled = WGPUOptionalBool_False;
+    depthStencilState.depthCompare = WGPUCompareFunction_Always;
+    depthStencilState.stencilReadMask = 0xFFFFFFFF;
+    depthStencilState.stencilWriteMask = 0xFFFFFFFF;
+    depthStencilState.depthBias = 0;
+    depthStencilState.depthBiasSlopeScale = 0;
+    depthStencilState.depthBiasClamp = 0;
+    depthStencilState.depthCompare = WGPUCompareFunction_Less;
+    depthStencilState.depthWriteEnabled = WGPUOptionalBool_True;
+    WGPUTextureFormat depthTextureFormat = WGPUTextureFormat_Depth24Plus;
+    depthStencilState.format = depthTextureFormat;
+    depthStencilState.stencilReadMask = 0;
+    depthStencilState.stencilWriteMask = 0;
+
+    WGPUTextureDescriptor depthTextureDesc = WGPU_TEXTURE_DESCRIPTOR_INIT;
+    depthTextureDesc.dimension = WGPUTextureDimension_2D;
+    depthTextureDesc.format = depthTextureFormat;
+    depthTextureDesc.mipLevelCount = 1;
+    depthTextureDesc.sampleCount = 1;
+    depthTextureDesc.size = {800, 600, 1};
+    depthTextureDesc.usage = WGPUTextureUsage_RenderAttachment;
+    depthTextureDesc.viewFormatCount = 1;
+    depthTextureDesc.viewFormats = &depthTextureFormat;
+    WGPUTexture depthTexture = wgpuDeviceCreateTexture(state->app->Device->WgpuDevice, &depthTextureDesc);
+
+    WGPUTextureViewDescriptor depthTextureViewDesc = WGPU_TEXTURE_VIEW_DESCRIPTOR_INIT;
+    depthTextureViewDesc.aspect = WGPUTextureAspect_DepthOnly;
+    depthTextureViewDesc.baseArrayLayer = 0;
+    depthTextureViewDesc.arrayLayerCount = 1;
+    depthTextureViewDesc.baseMipLevel = 0;
+    depthTextureViewDesc.mipLevelCount = 1;
+    depthTextureViewDesc.dimension = WGPUTextureViewDimension_2D;
+    depthTextureViewDesc.format = depthTextureFormat;
+    WGPUTextureView depthTextureView = wgpuTextureCreateView(depthTexture, &depthTextureViewDesc);
+
+    state->DepthStencilAttachment = WGPU_RENDER_PASS_DEPTH_STENCIL_ATTACHMENT_INIT;
+    state->DepthStencilAttachment.view = depthTextureView;
+    state->DepthStencilAttachment.depthClearValue = 1.0f;
+    state->DepthStencilAttachment.depthLoadOp = WGPULoadOp_Clear;
+    state->DepthStencilAttachment.depthStoreOp = WGPUStoreOp_Store;
+    state->DepthStencilAttachment.depthReadOnly = false;
+
     WGPURenderPipelineDescriptor pipelineDesc = {
         /*.nextInChain=*/nullptr,
         /*.label=*/WGPU_STRING_VIEW_INIT,
@@ -145,7 +191,7 @@ void LoadShader(TextureDemoData *state)
             /*.cullMode=*/WGPUCullMode_Back,
             /*.unclippedDepth=*/false,
         },
-        /*.depthStencil=*/nullptr,
+        /*.depthStencil=*/&depthStencilState,
         /*.multisample=*/{
             /*.nextInChain=*/nullptr,
             /*.count=*/1,
@@ -159,7 +205,7 @@ void LoadShader(TextureDemoData *state)
     state->ShaderLoaded = true;
 }
 
-const float ModelScale = 1.3f;
+const float ModelScale = 1.0f;
 void Start(Pretop::RHI::Application &application)
 {
     TextureDemoData state;
@@ -376,7 +422,7 @@ void Start(Pretop::RHI::Application &application)
                 /*.label=*/wgpuStr("Texture render pass"),
                 /*.colorAttachmentCount=*/1,
                 /*.colorAttachments=*/&renderPassColorAttachment,
-                /*.depthStencilAttachment=*/nullptr,
+                /*.depthStencilAttachment=*/&state.DepthStencilAttachment,
                 /*.occlusionQuerySet=*/nullptr,
                 /*.timestampWrites=*/nullptr,
             };
