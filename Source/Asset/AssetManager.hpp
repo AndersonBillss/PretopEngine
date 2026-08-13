@@ -12,6 +12,19 @@
 
 namespace Pretop::Asset
 {
+    struct GPUTexture
+    {
+        WGPUTexture texture;
+        GPUTexture(WGPUTexture texture)
+        {
+            this->texture = texture;
+        }
+        ~GPUTexture()
+        {
+            wgpuTextureDestroy(texture);
+        }
+    };
+
     class AssetManager
     {
         enum class AssetType
@@ -34,6 +47,9 @@ namespace Pretop::Asset
 
         Handle LoadShaderModule(std::string_view path);
         std::unique_ptr<RHI::Shader> GetShaderModule(Handle handle);
+
+        Handle LoadTexture(std::string_view path);
+        std::unique_ptr<GPUTexture> GetTexture(Handle handle);
 
         Status GetState(Handle handle);
         std::string GetError(Handle handle);

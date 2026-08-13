@@ -3,6 +3,8 @@
 #include "AssetLoader.hpp"
 #include "../Core/JobSystem.hpp"
 
+#include <stb_image.h>
+
 #include <exception>
 #include <memory>
 #include <string>
@@ -79,6 +81,60 @@ namespace Pretop::Asset
     {
         LoadShaderModuleData *loadShaderModuleData = reinterpret_cast<LoadShaderModuleData *>(_assetLoader->GetRawData(handle));
         return std::move(loadShaderModuleData->data);
+    }
+
+    struct LoadTextureData
+    {
+        int width;
+        int height;
+        int channels;
+        unsigned char *pixelData;
+        std::unique_ptr<GPUTexture> texture;
+        RHI::Device *device;
+    };
+    AssetManager::Handle AssetManager::LoadTexture(std::string_view path)
+    {
+        LoadTextureData *loadTextureData = new LoadTextureData;
+        loadTextureData->device = this->_device;
+        return _assetLoader->ReadFile(
+            path,
+            [](const AssetBytes &bytes, void *userData)
+            {
+                LoadTextureData *data = reinterpret_cast<LoadTextureData *>(userData);
+                data->pixelData = stbi_load_from_memory(
+                    reinterpret_cast<const unsigned char *>(bytes.data()),
+                    bytes.size(),
+                    &data->width,
+                    &data->height,
+                    &data->channels,
+                    4);
+            },
+            [](AssetLoader &loader, AssetManager::Handle handle)
+            {
+                LoadTextureData *data = reinterpret_cast<LoadTextureData *>(loader.GetRawData(handle));
+
+                WGPUTextureDescriptor textureDesc = WGPU_TEXTURE_DESCRIPTOR_INIT;
+                textureDesc.nextInChain = nullptr;
+                textureDesc.dimension = WGPUTextureDimension_2D;
+                textureDesc.format = WGPUTextureFormat_RGBA8Unorm; // by convention for bmp, png and jpg file. Be careful with other formats.
+                textureDesc.mipLevelCount = 1;
+                textureDesc.sampleCount = 1;
+                textureDesc.size = {(unsigned int)data->width, (unsigned int)data->height, 1};
+                textureDesc.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
+                textureDesc.viewFormatCount = 0;
+                textureDesc.viewFormats = nullptr;
+                WGPUTexture texture = wgpuDeviceCreateTexture(data->device->WgpuDevice, &textureDesc);
+
+                stbi_image_free(data->pixelData);
+
+                return texture;
+            },
+            loadTextureData);
+    }
+
+    std::unique_ptr<GPUTexture> AssetManager::GetTexture(Handle handle)
+    {
+        return std::unique_ptr<GPUTexture>();
     }
 
     std::string AssetManager::GetError(Handle handle)

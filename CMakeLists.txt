@@ -9,113 +9,159 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include(FetchContent)
 
 FetchContent_Declare(
-  nlohmann_json
-  GIT_REPOSITORY https://github.com/nlohmann/json.git
-  GIT_TAG v3.12.0
+    nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.12.0
 )
 
 FetchContent_Declare(
-  magic_enum
-  GIT_REPOSITORY https://github.com/Neargye/magic_enum.git
-  GIT_TAG master
+    magic_enum
+    GIT_REPOSITORY https://github.com/Neargye/magic_enum.git
+    GIT_TAG master
 )
 
-FetchContent_MakeAvailable(nlohmann_json magic_enum)
+FetchContent_Declare(
+    stb
+    GIT_REPOSITORY https://github.com/nothings/stb.git
+    GIT_TAG master
+)
+
+FetchContent_MakeAvailable(
+    nlohmann_json
+    magic_enum
+    stb
+)
+
+add_library(stb_image INTERFACE)
+
+target_include_directories(stb_image INTERFACE
+    ${stb_SOURCE_DIR}
+)
 
 add_library(pretop_engine_core STATIC ${PRETOP_ENGINE_SOURCES})
-target_include_directories(pretop_engine_core PUBLIC include)
+
+target_include_directories(pretop_engine_core PUBLIC
+    include
+)
+
 target_link_libraries(pretop_engine_core PUBLIC
-  nlohmann_json::nlohmann_json
-  magic_enum::magic_enum
+    nlohmann_json::nlohmann_json
+    magic_enum::magic_enum
+    stb_image
 )
 
 add_executable(pretop_engine ${PRETOP_ENGINE_MAIN})
-target_link_libraries(pretop_engine PRIVATE pretop_engine_core)
+
+target_link_libraries(pretop_engine PRIVATE
+    pretop_engine_core
+)
 
 target_compile_definitions(pretop_engine_core
     PUBLIC
-        $<$<CONFIG:Debug>:PRETOP_DEBUG>
+    $<$<CONFIG:Debug>:PRETOP_DEBUG>
 )
 
 if(EMSCRIPTEN)
-  target_sources(pretop_engine PRIVATE
-    ${PRETOP_ENGINE_SOURCES_WEB}
-  )
 
-  set_target_properties(pretop_engine PROPERTIES SUFFIX ".html")
+    target_sources(pretop_engine PRIVATE
+        ${PRETOP_ENGINE_SOURCES_WEB}
+    )
 
-  target_compile_definitions(pretop_engine_core PRIVATE WEBGPU_BACKEND_EMDAWNWEBGPU=1)
-  target_compile_options(pretop_engine_core PRIVATE
-    "--use-port=emdawnwebgpu"
-    "-pthread"
-  )
-  target_compile_options(pretop_engine PRIVATE
-    "--use-port=emdawnwebgpu"
-    "-pthread"
-  )
+    set_target_properties(pretop_engine PROPERTIES
+        SUFFIX ".html"
+    )
 
-  target_link_options(pretop_engine PRIVATE
-    "--shell-file" "../../web/shell.html"
-    "--use-port=emdawnwebgpu"
-    "--preload-file" "${CMAKE_SOURCE_DIR}/assets/shaders@/assets/shaders"
-    "--closure=1"
-    "-sASSERTIONS=1"
-    "-sALLOW_MEMORY_GROWTH=1"
-    "-sFETCH"
-    "-sNO_DISABLE_EXCEPTION_CATCHING"
-    "-pthread"
-    "-sPTHREAD_POOL_SIZE=navigator.hardwareConcurrency"
-  )
+    target_compile_definitions(pretop_engine_core PRIVATE
+        WEBGPU_BACKEND_EMDAWNWEBGPU=1
+    )
+
+    target_compile_options(pretop_engine_core PRIVATE
+        "--use-port=emdawnwebgpu"
+        "-pthread"
+    )
+
+    target_compile_options(pretop_engine PRIVATE
+        "--use-port=emdawnwebgpu"
+        "-pthread"
+    )
+
+    target_link_options(pretop_engine PRIVATE
+        "--shell-file" "../../web/shell.html"
+        "--use-port=emdawnwebgpu"
+        "--preload-file" "${CMAKE_SOURCE_DIR}/assets/shaders@/assets/shaders"
+        "--closure=1"
+        "-sASSERTIONS=1"
+        "-sALLOW_MEMORY_GROWTH=1"
+        "-sFETCH"
+        "-sNO_DISABLE_EXCEPTION_CATCHING"
+        "-pthread"
+        "-sPTHREAD_POOL_SIZE=navigator.hardwareConcurrency"
+    )
+
 else()
-  target_compile_definitions(pretop_engine PRIVATE pretop_ENGINE_USE_GLFW=1)
-  target_sources(pretop_engine PRIVATE
-    ${PRETOP_ENGINE_SOURCES_NATIVE}
-  )
 
-  add_subdirectory(third_party/dawn/third_party/glfw)
+    target_compile_definitions(pretop_engine PRIVATE
+        pretop_ENGINE_USE_GLFW=1
+    )
 
-  list(PREPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/build/_install/dawn/debug")
-  find_package(Dawn CONFIG REQUIRED)
-  find_package(Threads REQUIRED)
+    target_sources(pretop_engine PRIVATE
+        ${PRETOP_ENGINE_SOURCES_NATIVE}
+    )
 
-  target_link_libraries(pretop_engine_core PUBLIC
-    dawn::webgpu_dawn
-    glfw
-  )
+    add_subdirectory(third_party/dawn/third_party/glfw)
 
-  target_link_libraries(pretop_engine PRIVATE
-    dawn::webgpu_dawn
-    glfw
-  )
+    list(PREPEND CMAKE_PREFIX_PATH
+        "${CMAKE_SOURCE_DIR}/build/_install/dawn/debug"
+    )
 
-  target_link_options(pretop_engine PRIVATE
-    "-pthread"
-  )
+    find_package(Dawn CONFIG REQUIRED)
+    find_package(Threads REQUIRED)
+
+    target_link_libraries(pretop_engine_core PUBLIC
+        dawn::webgpu_dawn
+        glfw
+    )
+
+    target_link_libraries(pretop_engine PRIVATE
+        dawn::webgpu_dawn
+        glfw
+    )
+
+    target_link_options(pretop_engine PRIVATE
+        "-pthread"
+    )
+
 endif()
 
 option(BUILD_TESTING "Build tests" ON)
 
 if(BUILD_TESTING AND NOT EMSCRIPTEN)
-  FetchContent_Declare(
-    Catch2
-    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-    GIT_TAG v3.8.0
-  )
-  FetchContent_MakeAvailable(Catch2)
 
-  enable_testing()
+    FetchContent_Declare(
+        Catch2
+        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+        GIT_TAG v3.8.0
+    )
 
-  add_executable(pretop_engine_tests
-    ${PRETOP_ENGINE_TEST_SOURCES}
-    ${PRETOP_ENGINE_SOURCES_NATIVE}
-  )
+    FetchContent_MakeAvailable(Catch2)
 
-  target_link_libraries(pretop_engine_tests PRIVATE
-    pretop_engine_core
-    Catch2::Catch2WithMain
-  )
+    enable_testing()
 
-  list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
-  include(Catch)
-  catch_discover_tests(pretop_engine_tests)
+    add_executable(pretop_engine_tests
+        ${PRETOP_ENGINE_TEST_SOURCES}
+        ${PRETOP_ENGINE_SOURCES_NATIVE}
+    )
+
+    target_link_libraries(pretop_engine_tests PRIVATE
+        pretop_engine_core
+        Catch2::Catch2WithMain
+    )
+
+    list(APPEND CMAKE_MODULE_PATH
+        ${catch2_SOURCE_DIR}/extras
+    )
+
+    include(Catch)
+    catch_discover_tests(pretop_engine_tests)
+
 endif()
