@@ -12,5 +12,5 @@ namespace Pretop::Core
 namespace Pretop::Asset::AssetManagerFactory
 {
     std::unique_ptr<AssetManager> CreateAssetManager(std::unique_ptr<AssetLoader> assetLoader,
-                                                     RHI::Device *device);
+                                                     RHI::Application *application);
 } // namespace Pretop::Asset::AssetManagerFactory

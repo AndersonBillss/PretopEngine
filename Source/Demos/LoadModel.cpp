@@ -182,7 +182,7 @@ namespace Pretop::Demos
         state->Jobs = std::make_unique<Core::JobSystem>();
         state->Assets = AssetManagerFactory::CreateAssetManager(
             AssetLoaderFactory::CreateAssetLoader(state->Jobs.get()),
-            application.Device.get());
+            &application);
 
         state->ModelHandle = state->Assets->LoadModel("assets/models/woolly-mammoth-100k-4096_std.glb");
         state->ShaderHandle = state->Assets->LoadShaderModule("assets/shaders/shader.wgsl");

@@ -4,8 +4,8 @@
 namespace Pretop::Asset::AssetManagerFactory
 {
     std::unique_ptr<AssetManager> CreateAssetManager(std::unique_ptr<AssetLoader> assetLoader,
-                                                     RHI::Device *device)
+                                                     RHI::Application *app)
     {
-        return std::make_unique<AssetManager>(std::move(assetLoader), device);
+        return std::make_unique<AssetManager>(std::move(assetLoader), app);
     }
 } // namespace Pretop::Asset::AssetManagerFactory

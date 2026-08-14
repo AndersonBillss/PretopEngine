@@ -259,7 +259,7 @@ void Start(Pretop::RHI::Application &application)
     state.Assets = std::move(
         Pretop::Asset::AssetManagerFactory::CreateAssetManager(
             std::move(Pretop::Asset::AssetLoaderFactory::CreateAssetLoader(&state.jobs)),
-            application.Device.get()));
+            &application));
 
     std::unique_ptr<Pretop::Window::Window> window = Pretop::Window::WindowFactory::CreateWindow("Texture");
     application.SetWindow(std::move(window));
