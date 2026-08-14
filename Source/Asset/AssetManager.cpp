@@ -19,8 +19,8 @@ namespace Pretop::Asset
 
     AssetManager::AssetManager(
         std::unique_ptr<AssetLoader> assetLoader,
-        RHI::Device *device)
-        : _assetLoader(std::move(assetLoader)), _device(device)
+        RHI::Application *application)
+        : _assetLoader(std::move(assetLoader)), _application(application)
     {
     }
 
@@ -41,7 +41,7 @@ namespace Pretop::Asset
                 LoadModelData *data = reinterpret_cast<LoadModelData *>(userData);
                 data->data = std::make_unique<ParsedData>(LoadGlb(bytes));
             },
-            [](AssetLoader &loader, AssetManager::Handle handle) {},
+            [](AssetLoader &loader, AssetLoader::Handle handle) {},
             loadModelData);
     }
 
@@ -65,7 +65,7 @@ namespace Pretop::Asset
     {
         LoadShaderModuleData *loadShaderModuleData = new LoadShaderModuleData;
         loadShaderModuleData->data = nullptr;
-        loadShaderModuleData->device = this->_device;
+        loadShaderModuleData->device = this->_application->Device.get();
         return _assetLoader->ReadFile(
             path,
             [](AssetLoader &loader, AssetManager::Handle handle)
@@ -90,15 +90,15 @@ namespace Pretop::Asset
         int channels;
         unsigned char *pixelData;
         std::unique_ptr<GPUTexture> texture;
-        RHI::Device *device;
+        RHI::Application *application;
     };
     AssetManager::Handle AssetManager::LoadTexture(std::string_view path)
     {
         LoadTextureData *loadTextureData = new LoadTextureData;
-        loadTextureData->device = this->_device;
+        loadTextureData->application = this->_application;
         return _assetLoader->ReadFile(
             path,
-            [](const AssetBytes &bytes, void *userData)
+            [](const AssetLoader::AssetBytes &bytes, void *userData)
             {
                 LoadTextureData *data = reinterpret_cast<LoadTextureData *>(userData);
                 data->pixelData = stbi_load_from_memory(
@@ -109,7 +109,7 @@ namespace Pretop::Asset
                     &data->channels,
                     4);
             },
-            [](AssetLoader &loader, AssetManager::Handle handle)
+            [](AssetLoader &loader, AssetLoader::Handle handle)
             {
                 LoadTextureData *data = reinterpret_cast<LoadTextureData *>(loader.GetRawData(handle));
 
@@ -123,11 +123,32 @@ namespace Pretop::Asset
                 textureDesc.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
                 textureDesc.viewFormatCount = 0;
                 textureDesc.viewFormats = nullptr;
-                WGPUTexture texture = wgpuDeviceCreateTexture(data->device->WgpuDevice, &textureDesc);
+                WGPUTexture texture = wgpuDeviceCreateTexture(data->application->Device->WgpuDevice, &textureDesc);
+
+                WGPUTexelCopyTextureInfo destination = WGPU_TEXEL_COPY_TEXTURE_INFO_INIT;
+                destination.texture = texture;
+                destination.mipLevel = 0;
+                destination.origin = {/*.width=*/0, /*.height=*/0, /*.depthOrArrayLayers=*/0};
+                destination.aspect = WGPUTextureAspect_All;
+
+                WGPUTexelCopyBufferLayout dataLayout = WGPU_TEXEL_COPY_BUFFER_LAYOUT_INIT;
+                dataLayout.offset = 0;
+                dataLayout.bytesPerRow = 4 * data->width;
+                dataLayout.rowsPerImage = data->height;
+
+                WGPUExtent3D size{/*.width=*/data->width, /*.height=*/data->height, /*.depthOrArrayLayers=*/1};
+
+                wgpuQueueWriteTexture(
+                    data->application->WgpuQueue,
+                    &destination,
+                    data->pixelData,
+                    4 * data->width * data->height,
+                    &dataLayout,
+                    &size);
 
                 stbi_image_free(data->pixelData);
 
-                return texture;
+                data->texture->texture = texture;
             },
             loadTextureData);
     }
