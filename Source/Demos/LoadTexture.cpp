@@ -53,33 +53,16 @@ struct TextureDemoData
     WGPUBindGroupLayout bindGroupLayout;
     WGPURenderPipeline pipeline;
     bool ShaderLoaded = false;
-};
 
-void CreateImage(std::vector<uint8_t> &pixels, WGPUExtent3D &size, uint32_t level)
-{
-    for (uint32_t i = 0; i < size.width; ++i)
-    {
-        for (uint32_t j = 0; j < size.height; ++j)
-        {
-            uint8_t *p = &pixels[4 * (j * size.width + i)];
-            if (level == 0)
-            {
-                // Our initial texture formula
-                p[0] = (i / 16) % 2 == (j / 16) % 2 ? 255 : 0; // r
-                p[1] = ((i - j) / 16) % 2 == 0 ? 255 : 0;      // g
-                p[2] = ((i + j) / 16) % 2 == 0 ? 255 : 0;      // b
-            }
-            else
-            {
-                // Some debug value for visualizing mip levels
-                p[0] = level % 2 == 0 ? 255 : 0;
-                p[1] = (level / 2) % 2 == 0 ? 255 : 0;
-                p[2] = (level / 4) % 2 == 0 ? 255 : 0;
-            }
-            p[3] = 255; // a
-        }
-    }
-}
+    Pretop::Asset::AssetManager::Handle TextureHandle;
+    std::unique_ptr<Pretop::Asset::GPUTexture> Texture;
+    bool TextureLoaded = false;
+
+    WGPUBuffer uniformBuffer;
+    WGPUBuffer indexBuffer;
+    WGPUBuffer vertexBuffer;
+    WGPUBindGroup bindGroup;
+};
 
 std::vector<uint8_t> createMip(std::vector<uint8_t> &previousLevelPixels, WGPUExtent3D &prevSize)
 {
@@ -104,10 +87,10 @@ std::vector<uint8_t> createMip(std::vector<uint8_t> &previousLevelPixels, WGPUEx
     return pixels;
 }
 
-void LoadShader(TextureDemoData *state)
+void LoadShaderStage(TextureDemoData *state)
 {
     Pretop::Asset::AssetManager::Status shaderLoadStatus = state->Assets->GetState(state->ShaderHandle);
-    if (shaderLoadStatus == Pretop::Asset::AssetManager::Status::InProgress)
+    if (state->ShaderLoaded || shaderLoadStatus == Pretop::Asset::AssetManager::Status::InProgress)
     {
         return;
     }
@@ -247,25 +230,11 @@ void LoadShader(TextureDemoData *state)
         /*.fragment=*/&fragmentState,
     };
     state->pipeline = wgpuDeviceCreateRenderPipeline(state->app->Device->WgpuDevice, &pipelineDesc);
-    std::cout << "Succesfully loaded ShaderModule" << std::endl;
     state->ShaderLoaded = true;
 }
 
-const float ModelScale = 1.0f;
-void Start(Pretop::RHI::Application &application)
+void InitializeBindGroupStage(TextureDemoData *state)
 {
-    TextureDemoData state;
-    state.app = &application;
-    state.Assets = std::move(
-        Pretop::Asset::AssetManagerFactory::CreateAssetManager(
-            std::move(Pretop::Asset::AssetLoaderFactory::CreateAssetLoader(&state.jobs)),
-            &application));
-
-    std::unique_ptr<Pretop::Window::Window> window = Pretop::Window::WindowFactory::CreateWindow("Texture");
-    application.SetWindow(std::move(window));
-
-    state.ShaderHandle = state.Assets->LoadShaderModule("assets/shaders/textureDemoShader.wgsl");
-
     float textureScale = 8.0f;
     float padding = (textureScale - 1) / 2;
     float minSample = 0 - padding;
@@ -284,8 +253,8 @@ void Start(Pretop::RHI::Application &application)
         /*.size=*/vertices.size() * sizeof(float),
         /*.mappedAtCreation=*/false,
     };
-    WGPUBuffer vertexBuffer = wgpuDeviceCreateBuffer(application.Device->WgpuDevice, &vertexBufferDesc);
-    wgpuQueueWriteBuffer(application.WgpuQueue, vertexBuffer, 0, vertices.data(), vertices.size() * sizeof(float));
+    state->vertexBuffer = wgpuDeviceCreateBuffer(state->app->Device->WgpuDevice, &vertexBufferDesc);
+    wgpuQueueWriteBuffer(state->app->WgpuQueue, state->vertexBuffer, 0, vertices.data(), vertices.size() * sizeof(float));
 
     std::vector<uint16_t> indices = {
         0, 1, 2,
@@ -298,8 +267,8 @@ void Start(Pretop::RHI::Application &application)
         /*.size=*/indices.size() * sizeof(uint16_t),
         /*.mappedAtCreation=*/false,
     };
-    WGPUBuffer indexBuffer = wgpuDeviceCreateBuffer(application.Device->WgpuDevice, &indexBufferDesc);
-    wgpuQueueWriteBuffer(application.WgpuQueue, indexBuffer, 0, indices.data(), indices.size() * sizeof(uint16_t));
+    state->indexBuffer = wgpuDeviceCreateBuffer(state->app->Device->WgpuDevice, &indexBufferDesc);
+    wgpuQueueWriteBuffer(state->app->WgpuQueue, state->indexBuffer, 0, indices.data(), indices.size() * sizeof(uint16_t));
 
     WGPUBufferDescriptor uniformBufferDesc = {
         /*.nextInChain=*/nullptr,
@@ -309,51 +278,14 @@ void Start(Pretop::RHI::Application &application)
         /*.mappedAtCreation=*/false,
     };
 
-    WGPUBuffer uniformBuffer = wgpuDeviceCreateBuffer(application.Device->WgpuDevice, &uniformBufferDesc);
+    state->uniformBuffer = wgpuDeviceCreateBuffer(state->app->Device->WgpuDevice, &uniformBufferDesc);
     MyUniforms initialUniforms;
     initialUniforms.ModelMatrix = Pretop::Math::Mat4x4::Identity();
     initialUniforms.ViewMatrix = Pretop::Math::Mat4x4::Identity();
     initialUniforms.ProjectionMatrix = Pretop::Math::Mat4x4::Identity();
     initialUniforms.Color = 0.0f;
     initialUniforms.Time = 0.0f;
-    wgpuQueueWriteBuffer(application.WgpuQueue, uniformBuffer, 0, &initialUniforms, sizeof(MyUniforms));
-
-    WGPUExtent3D size{/*.width=*/256, /*.height=*/256, /*.depthOrArrayLayers=*/1};
-
-    uint32_t maxMipLevelCount = bitWidth(std::max(size.width, size.height));
-    WGPUTextureDescriptor textureDesc = WGPU_TEXTURE_DESCRIPTOR_INIT;
-    textureDesc.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
-    textureDesc.dimension = WGPUTextureDimension_2D;
-    textureDesc.size = size;
-    textureDesc.mipLevelCount = maxMipLevelCount;
-    textureDesc.sampleCount = 1;
-    textureDesc.format = WGPUTextureFormat_RGBA8Unorm;
-    textureDesc.viewFormatCount = 0;
-    textureDesc.viewFormats = nullptr;
-
-    WGPUTexture texture = wgpuDeviceCreateTexture(application.Device->WgpuDevice, &textureDesc);
-
-    std::vector<uint8_t> pixels;
-    pixels.resize(size.width * size.height * 4);
-    CreateImage(pixels, size, 0);
-    std::vector<uint8_t> currMip = pixels;
-    for (uint32_t level = 0; level < textureDesc.mipLevelCount; ++level)
-    {
-        WGPUTexelCopyTextureInfo destination = WGPU_TEXEL_COPY_TEXTURE_INFO_INIT;
-        destination.texture = texture;
-        destination.mipLevel = level;
-        destination.origin = {/*.width=*/0, /*.height=*/0, /*.depthOrArrayLayers=*/0};
-        destination.aspect = WGPUTextureAspect_All;
-
-        WGPUTexelCopyBufferLayout dataLayout = WGPU_TEXEL_COPY_BUFFER_LAYOUT_INIT;
-        dataLayout.offset = 0;
-        dataLayout.bytesPerRow = 4 * size.width;
-        dataLayout.rowsPerImage = size.height;
-        wgpuQueueWriteTexture(application.WgpuQueue, &destination, currMip.data(), currMip.size(), &dataLayout, &size);
-        currMip = createMip(currMip, size);
-        size.width /= 2;
-        size.height /= 2;
-    }
+    wgpuQueueWriteBuffer(state->app->WgpuQueue, state->uniformBuffer, 0, &initialUniforms, sizeof(MyUniforms));
 
     WGPUSamplerDescriptor samplerDesc = WGPU_SAMPLER_DESCRIPTOR_INIT;
     samplerDesc.addressModeU = WGPUAddressMode_Repeat;
@@ -363,10 +295,76 @@ void Start(Pretop::RHI::Application &application)
     samplerDesc.minFilter = WGPUFilterMode_Linear;
     samplerDesc.mipmapFilter = WGPUMipmapFilterMode_Linear;
     samplerDesc.lodMinClamp = 0.0f;
-    samplerDesc.lodMaxClamp = 8.0f;
+    samplerDesc.lodMaxClamp = 0.0f;
     samplerDesc.compare = WGPUCompareFunction_Undefined;
     samplerDesc.maxAnisotropy = 1;
-    WGPUSampler sampler = wgpuDeviceCreateSampler(application.Device->WgpuDevice, &samplerDesc);
+    WGPUSampler sampler = wgpuDeviceCreateSampler(state->app->Device->WgpuDevice, &samplerDesc);
+    std::array<WGPUBindGroupEntry, 3> bindings = {
+        WGPU_BIND_GROUP_ENTRY_INIT,
+        WGPU_BIND_GROUP_ENTRY_INIT,
+        WGPU_BIND_GROUP_ENTRY_INIT};
+    bindings[0].binding = 0;
+    bindings[0].buffer = state->uniformBuffer;
+    bindings[0].offset = 0;
+    bindings[0].size = sizeof(MyUniforms);
+
+    WGPUTextureViewDescriptor textureViewDesc = WGPU_TEXTURE_VIEW_DESCRIPTOR_INIT;
+    textureViewDesc.aspect = WGPUTextureAspect_All;
+    textureViewDesc.baseArrayLayer = 0;
+    textureViewDesc.arrayLayerCount = 1;
+    textureViewDesc.baseMipLevel = 0;
+    textureViewDesc.mipLevelCount = 1;
+    textureViewDesc.dimension = WGPUTextureViewDimension_2D;
+    textureViewDesc.format = WGPUTextureFormat_RGBA8Unorm;
+    WGPUTextureView textureView = wgpuTextureCreateView(state->Texture->texture, &textureViewDesc);
+
+    bindings[1].binding = 1;
+    bindings[1].textureView = textureView;
+
+    bindings[2].binding = 2;
+    bindings[2].sampler = sampler;
+
+    WGPUBindGroupDescriptor bindGroupDesc{};
+    bindGroupDesc.nextInChain = nullptr;
+    bindGroupDesc.layout = state->bindGroupLayout;
+    bindGroupDesc.entryCount = (uint32_t)bindings.size();
+    bindGroupDesc.entries = bindings.data();
+    state->bindGroup = wgpuDeviceCreateBindGroup(state->app->Device->WgpuDevice, &bindGroupDesc);
+}
+
+void LoadTextureStage(TextureDemoData *state)
+{
+    Pretop::Asset::AssetManager::Status textureLoadStatus = state->Assets->GetState(state->TextureHandle);
+    if (state->TextureLoaded || textureLoadStatus == Pretop::Asset::AssetManager::Status::InProgress)
+    {
+        return;
+    }
+    if (textureLoadStatus == Pretop::Asset::AssetManager::Status::Error)
+    {
+        std::cout << "ERROR" << state->Assets->GetError(state->TextureHandle) << std::endl;
+        exit(1);
+    }
+
+    state->Texture = std::move(state->Assets->GetTexture(state->TextureHandle));
+    InitializeBindGroupStage(state);
+    state->TextureLoaded = true;
+}
+
+const float ModelScale = 1.0f;
+void Start(Pretop::RHI::Application &application)
+{
+    TextureDemoData state;
+    state.app = &application;
+    state.Assets = std::move(
+        Pretop::Asset::AssetManagerFactory::CreateAssetManager(
+            std::move(Pretop::Asset::AssetLoaderFactory::CreateAssetLoader(&state.jobs)),
+            &application));
+
+    std::unique_ptr<Pretop::Window::Window> window = Pretop::Window::WindowFactory::CreateWindow("Texture");
+    application.SetWindow(std::move(window));
+
+    state.ShaderHandle = state.Assets->LoadShaderModule("assets/shaders/textureDemoShader.wgsl");
+    state.TextureHandle = state.Assets->LoadTexture("assets/textures/cobblestoneFloor.png");
 
     std::array<WGPUBindGroupLayoutEntry, 3> bindingLayoutEntries = {
         WGPU_BIND_GROUP_LAYOUT_ENTRY_INIT,
@@ -398,38 +396,6 @@ void Start(Pretop::RHI::Application &application)
     bindGroupLayoutDesc.entries = bindingLayoutEntries.data();
     state.bindGroupLayout = wgpuDeviceCreateBindGroupLayout(application.Device->WgpuDevice, &bindGroupLayoutDesc);
 
-    std::array<WGPUBindGroupEntry, 3> bindings = {
-        WGPU_BIND_GROUP_ENTRY_INIT,
-        WGPU_BIND_GROUP_ENTRY_INIT,
-        WGPU_BIND_GROUP_ENTRY_INIT};
-    bindings[0].binding = 0;
-    bindings[0].buffer = uniformBuffer;
-    bindings[0].offset = 0;
-    bindings[0].size = sizeof(MyUniforms);
-
-    WGPUTextureViewDescriptor textureViewDesc = WGPU_TEXTURE_VIEW_DESCRIPTOR_INIT;
-    textureViewDesc.aspect = WGPUTextureAspect_All;
-    textureViewDesc.baseArrayLayer = 0;
-    textureViewDesc.arrayLayerCount = 1;
-    textureViewDesc.baseMipLevel = 0;
-    textureViewDesc.mipLevelCount = textureDesc.mipLevelCount;
-    textureViewDesc.dimension = WGPUTextureViewDimension_2D;
-    textureViewDesc.format = textureDesc.format;
-    WGPUTextureView textureView = wgpuTextureCreateView(texture, &textureViewDesc);
-
-    bindings[1].binding = 1;
-    bindings[1].textureView = textureView;
-
-    bindings[2].binding = 2;
-    bindings[2].sampler = sampler;
-
-    WGPUBindGroupDescriptor bindGroupDesc{};
-    bindGroupDesc.nextInChain = nullptr;
-    bindGroupDesc.layout = state.bindGroupLayout;
-    bindGroupDesc.entryCount = (uint32_t)bindings.size();
-    bindGroupDesc.entries = bindings.data();
-    WGPUBindGroup bindGroup = wgpuDeviceCreateBindGroup(application.Device->WgpuDevice, &bindGroupDesc);
-
     MyUniforms uniforms;
     uniforms.ModelMatrix = Pretop::Math::Mat4x4::Identity();
     uniforms.ViewMatrix = Pretop::Math::Mat4x4::Identity();
@@ -447,7 +413,15 @@ void Start(Pretop::RHI::Application &application)
             state.jobs.PumpMainThreadCompletions();
             if (!state.ShaderLoaded)
             {
-                LoadShader(&state);
+                LoadShaderStage(&state);
+            }
+            if (!state.TextureLoaded)
+            {
+                LoadTextureStage(&state);
+            }
+            if (!state.TextureLoaded || !state.ShaderLoaded)
+            {
+                return;
             }
 
             seconds += dt;
@@ -473,7 +447,7 @@ void Start(Pretop::RHI::Application &application)
             u.ProjectionMatrix = Pretop::Math::Mat4x4::Perspective(near, far, 60.0f * Pretop::Math::Deg2Rad, 640.0 / 480.0);
             wgpuQueueWriteBuffer(
                 application.WgpuQueue,
-                uniformBuffer,
+                state.uniformBuffer,
                 0,
                 &u,
                 sizeof(MyUniforms));
@@ -505,10 +479,13 @@ void Start(Pretop::RHI::Application &application)
             WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(encoder, &renderPassDescriptor);
 
             wgpuRenderPassEncoderSetPipeline(renderPass, state.pipeline);
-            wgpuRenderPassEncoderSetVertexBuffer(renderPass, 0, vertexBuffer, 0, wgpuBufferGetSize(vertexBuffer));
-            wgpuRenderPassEncoderSetIndexBuffer(renderPass, indexBuffer, WGPUIndexFormat_Uint16, 0, wgpuBufferGetSize(indexBuffer));
-            wgpuRenderPassEncoderSetBindGroup(renderPass, 0, bindGroup, 0, nullptr);
-            wgpuRenderPassEncoderDrawIndexed(renderPass, indices.size(), 1, 0, 0, 0);
+            wgpuRenderPassEncoderSetVertexBuffer(
+                renderPass, 0, state.vertexBuffer, 0, wgpuBufferGetSize(state.vertexBuffer));
+            wgpuRenderPassEncoderSetIndexBuffer(
+                renderPass, state.indexBuffer, WGPUIndexFormat_Uint16, 0, wgpuBufferGetSize(state.indexBuffer));
+            wgpuRenderPassEncoderSetBindGroup(renderPass, 0, state.bindGroup, 0, nullptr);
+            wgpuRenderPassEncoderDrawIndexed(
+                renderPass, wgpuBufferGetSize(state.indexBuffer) / sizeof(uint16_t), 1, 0, 0, 0);
             wgpuRenderPassEncoderEnd(renderPass);
             wgpuRenderPassEncoderRelease(renderPass);
 
@@ -523,11 +500,8 @@ void Start(Pretop::RHI::Application &application)
             wgpuCommandEncoderRelease(encoder);
         });
 
-    wgpuBufferDestroy(uniformBuffer);
-    wgpuBufferRelease(uniformBuffer);
-
-    wgpuTextureDestroy(texture);
-    wgpuTextureRelease(texture);
+    wgpuBufferDestroy(state.uniformBuffer);
+    wgpuBufferRelease(state.uniformBuffer);
 }
 
 namespace Pretop::Demos

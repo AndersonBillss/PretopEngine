@@ -104,7 +104,7 @@ std::vector<uint8_t> createMip(std::vector<uint8_t> &previousLevelPixels, WGPUEx
     return pixels;
 }
 
-void LoadShader(TextureDemoData *state)
+void LoadShaderStage(TextureDemoData *state)
 {
     Pretop::Asset::AssetManager::Status shaderLoadStatus = state->Assets->GetState(state->ShaderHandle);
     if (shaderLoadStatus == Pretop::Asset::AssetManager::Status::InProgress)
@@ -447,7 +447,7 @@ void Start(Pretop::RHI::Application &application)
             state.jobs.PumpMainThreadCompletions();
             if (!state.ShaderLoaded)
             {
-                LoadShader(&state);
+                LoadShaderStage(&state);
             }
 
             seconds += dt;

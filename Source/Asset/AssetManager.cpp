@@ -89,7 +89,7 @@ namespace Pretop::Asset
         int height;
         int channels;
         unsigned char *pixelData;
-        std::unique_ptr<GPUTexture> texture;
+        WGPUTexture texture;
         RHI::Application *application;
     };
     AssetManager::Handle AssetManager::LoadTexture(std::string_view path)
@@ -148,14 +148,16 @@ namespace Pretop::Asset
 
                 stbi_image_free(data->pixelData);
 
-                data->texture->texture = texture;
+                data->texture = texture;
             },
             loadTextureData);
     }
 
     std::unique_ptr<GPUTexture> AssetManager::GetTexture(Handle handle)
     {
-        return std::unique_ptr<GPUTexture>();
+        LoadTextureData *data = reinterpret_cast<LoadTextureData *>(this->_assetLoader->GetRawData(handle));
+        std::unique_ptr<GPUTexture> texture = std::make_unique<GPUTexture>(data->texture);
+        return std::move(texture);
     }
 
     std::string AssetManager::GetError(Handle handle)

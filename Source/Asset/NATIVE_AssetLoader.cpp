@@ -101,6 +101,10 @@ namespace Pretop::Asset
              data},
             {[](Core::JobSystem &js, Handle handle)
              {
+                 if (js.GetState(handle) == Core::JobSystem::Status::Error)
+                 {
+                     return;
+                 }
                  ReadFileJobData *readFileData =
                      reinterpret_cast<ReadFileJobData *>(js.GetData(handle));
                  if (readFileData->FinishCb != nullptr)
