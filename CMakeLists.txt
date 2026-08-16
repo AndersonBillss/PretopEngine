@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
+
 project(PretopEngine LANGUAGES C CXX)
 
 include(sources.cmake)
@@ -7,6 +8,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
+
+# ---------------------------------------------------------------------------
+# General dependencies
+# ---------------------------------------------------------------------------
 
 FetchContent_Declare(
     nlohmann_json
@@ -26,10 +31,33 @@ FetchContent_Declare(
     GIT_TAG master
 )
 
+FetchContent_Declare(
+    glfw
+    GIT_REPOSITORY https://github.com/glfw/glfw.git
+    GIT_TAG 3.4
+)
+
+# Avoid building GLFW extras that PretopEngine does not need.
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL
+    "Build GLFW examples"
+    FORCE
+)
+
+set(GLFW_BUILD_TESTS OFF CACHE BOOL
+    "Build GLFW tests"
+    FORCE
+)
+
+set(GLFW_BUILD_DOCS OFF CACHE BOOL
+    "Build GLFW documentation"
+    FORCE
+)
+
 FetchContent_MakeAvailable(
     nlohmann_json
     magic_enum
     stb
+    glfw
 )
 
 add_library(stb_image INTERFACE)
@@ -38,7 +66,13 @@ target_include_directories(stb_image INTERFACE
     ${stb_SOURCE_DIR}
 )
 
-add_library(pretop_engine_core STATIC ${PRETOP_ENGINE_SOURCES})
+# ---------------------------------------------------------------------------
+# Core library
+# ---------------------------------------------------------------------------
+
+add_library(pretop_engine_core STATIC
+    ${PRETOP_ENGINE_SOURCES}
+)
 
 target_include_directories(pretop_engine_core PUBLIC
     include
@@ -50,16 +84,26 @@ target_link_libraries(pretop_engine_core PUBLIC
     stb_image
 )
 
-add_executable(pretop_engine ${PRETOP_ENGINE_MAIN})
+target_compile_definitions(pretop_engine_core
+    PUBLIC
+        $<$<CONFIG:Debug>:PRETOP_DEBUG>
+)
+
+# ---------------------------------------------------------------------------
+# Main executable
+# ---------------------------------------------------------------------------
+
+add_executable(pretop_engine
+    ${PRETOP_ENGINE_MAIN}
+)
 
 target_link_libraries(pretop_engine PRIVATE
     pretop_engine_core
 )
 
-target_compile_definitions(pretop_engine_core
-    PUBLIC
-    $<$<CONFIG:Debug>:PRETOP_DEBUG>
-)
+# ---------------------------------------------------------------------------
+# Platform-specific setup
+# ---------------------------------------------------------------------------
 
 if(EMSCRIPTEN)
 
@@ -100,21 +144,59 @@ if(EMSCRIPTEN)
 
 else()
 
+    # -----------------------------------------------------------------------
+    # Dawn
+    # -----------------------------------------------------------------------
+
+    set(DAWN_FETCH_DEPENDENCIES ON CACHE BOOL
+        "Fetch Dawn's dependencies automatically"
+        FORCE
+    )
+
+    set(DAWN_FORCE_SYSTEM_COMPONENT_LOAD ON CACHE BOOL
+        "Allow Dawn to load system components"
+        FORCE
+    )
+
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        set(DAWN_USE_WAYLAND ON CACHE BOOL
+            "Enable Wayland support in Dawn"
+            FORCE
+        )
+    endif()
+
+    set(DAWN_BUILD_SAMPLES OFF CACHE BOOL
+        "Build Dawn samples"
+        FORCE
+    )
+
+    set(DAWN_BUILD_TESTS OFF CACHE BOOL
+        "Build Dawn tests"
+        FORCE
+    )
+
+    FetchContent_Declare(
+        dawn
+        GIT_REPOSITORY https://dawn.googlesource.com/dawn
+        GIT_TAG a8db5510cc0e32e289f4d977a3a32c2526708bc6
+        GIT_SHALLOW TRUE
+        GIT_SUBMODULES ""
+    )
+
+    FetchContent_MakeAvailable(dawn)
+
+    # -----------------------------------------------------------------------
+    # Native platform sources
+    # -----------------------------------------------------------------------
+
     target_compile_definitions(pretop_engine PRIVATE
-        pretop_ENGINE_USE_GLFW=1
+        PRETOP_ENGINE_USE_GLFW=1
     )
 
     target_sources(pretop_engine PRIVATE
         ${PRETOP_ENGINE_SOURCES_NATIVE}
     )
 
-    add_subdirectory(third_party/dawn/third_party/glfw)
-
-    list(PREPEND CMAKE_PREFIX_PATH
-        "${CMAKE_SOURCE_DIR}/build/_install/dawn/debug"
-    )
-
-    find_package(Dawn CONFIG REQUIRED)
     find_package(Threads REQUIRED)
 
     target_link_libraries(pretop_engine_core PUBLIC
@@ -132,6 +214,10 @@ else()
     )
 
 endif()
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
 
 option(BUILD_TESTING "Build tests" ON)
 
@@ -162,6 +248,7 @@ if(BUILD_TESTING AND NOT EMSCRIPTEN)
     )
 
     include(Catch)
+
     catch_discover_tests(pretop_engine_tests)
 
 endif()

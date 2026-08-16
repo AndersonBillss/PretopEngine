@@ -3,8 +3,7 @@ from enum import Enum
 import sys
 
 from codegen.gen_sources import gen_sources
-from build_scripts.dawn import dawn_debug_setup
-from build_scripts.native import build_native_debug, run_native_debug, run_tests
+from build_scripts.native import build_native_debug, configure_native_debug, run_native_debug, run_tests
 from build_scripts.web import build_web_debug, run_web_debug
 
 
@@ -67,7 +66,7 @@ def help():
 
 
 COMMANDS = {
-    "setup": Command(dawn_debug_setup, "Initial setup for engine"),
+    "setup": Command(configure_native_debug, "Initial setup for engine"),
     "help": Command(help, "Show help"),
     "build": {
         "native": Command(build_native_debug, "Build engine for native"),
