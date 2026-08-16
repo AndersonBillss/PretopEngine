@@ -3,7 +3,7 @@ from shared.constants import SOURCE_DIR
 
 import os
 
-OUT_FILE = "sources.cmake"
+OUT_FILE = "cmake/Sources.cmake"
 STARTING_COMMENT = "# Auto-generated code, do not edit"
 MAIN_RULE_PREFIX = "PRETOP_ENGINE_MAIN"
 RULE_PREFIX = "PRETOP_ENGINE_SOURCES"
