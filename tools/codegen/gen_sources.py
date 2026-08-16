@@ -37,13 +37,21 @@ class SourceTracker:
         else:
             self.src_targets[target] = [filepath]
 
-def save_rules(rules: list[str]):
+def get_current_file_contents():
+    with open(OUT_FILE, "r", encoding="utf-8") as file:
+        return file.read()
+
+def save_rules(file_contents: str):
+    if get_current_file_contents() == file_contents:
+        return
+    with open(OUT_FILE, "w") as output:
+        output.write(file_contents)
+
+def generate_file_contents(rules: list[str]):
     file_content = STARTING_COMMENT + "\n"
     for rule in rules:
         file_content += f"{rule}\n"
-
-    with open(OUT_FILE, "w") as output:
-        output.write(file_content)
+    return file_content
 
 def generate_rule(sources: list[str], label) -> str:
     sources.sort()
@@ -82,4 +90,5 @@ def gen_sources():
         target_files_rules += [generate_rule(tracker.src_targets[key], f"{RULE_PREFIX}_" + key)]
         
     target_files_rules.sort()
-    save_rules(target_files_rules)
+    file_contents = generate_file_contents(target_files_rules)
+    save_rules(file_contents)
