@@ -1,6 +1,6 @@
 import platform
 BUILD_DIR = "build"
-SOURCE_DIR = "Source"
+SOURCE_DIR = "source"
 COMPILER_C = "cl"
 COMPILER_CPP = "cl"
 ENGINE_NAME = "pretop_engine"

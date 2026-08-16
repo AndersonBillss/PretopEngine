@@ -34,6 +34,7 @@ def build_native_debug(target="pretop_engine"):
 
 
 def run_native_debug():
+    gen_sources()
     build_native_debug()
     return cmd([f"build/engine/pretop_engine{EXE_SUFFIX}"])
 

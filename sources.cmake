@@ -1,47 +1,47 @@
 # Auto-generated code, do not edit
 set(PRETOP_ENGINE_MAIN
-  Source/main.cpp
+  source/main.cpp
 )
 set(PRETOP_ENGINE_SOURCES
-  Source/Asset/AssetLoaderFactory.cpp
-  Source/Asset/AssetManager.cpp
-  Source/Asset/AssetManagerFactory.cpp
-  Source/Asset/LoadGlb.cpp
-  Source/Core/JobSystem.cpp
-  Source/Demos/LoadModel.cpp
-  Source/Demos/LoadTexture.cpp
-  Source/Demos/Texture.cpp
-  Source/Math/CeilToBufferOffset.cpp
-  Source/Math/Euler.cpp
-  Source/Math/Linalg/Mat2x2.cpp
-  Source/Math/Linalg/Mat3x3.cpp
-  Source/Math/Linalg/Mat4x4.cpp
-  Source/Math/Linalg/Vec2.cpp
-  Source/Math/Linalg/Vec3.cpp
-  Source/Math/Linalg/Vec4.cpp
-  Source/PrintStringView.cpp
-  Source/RHI/Adapter.cpp
-  Source/RHI/Application.cpp
-  Source/RHI/BindGroup.cpp
-  Source/RHI/BindingLayout.cpp
-  Source/RHI/CommandBuffer.cpp
-  Source/RHI/Device.cpp
-  Source/RHI/Instance.cpp
-  Source/RHI/Pipeline.cpp
-  Source/RHI/RenderPassCommand.cpp
-  Source/RHI/RenderPassEncoder.cpp
-  Source/RHI/Shader.cpp
-  Source/RHI/VertexBufferLayout.cpp
-  Source/RHI/VertexLayout.cpp
-  Source/Window/WindowFactory.cpp
+  source/Asset/AssetLoaderFactory.cpp
+  source/Asset/AssetManager.cpp
+  source/Asset/AssetManagerFactory.cpp
+  source/Asset/LoadGlb.cpp
+  source/Core/JobSystem.cpp
+  source/Demos/LoadModel.cpp
+  source/Demos/LoadTexture.cpp
+  source/Demos/Texture.cpp
+  source/Math/CeilToBufferOffset.cpp
+  source/Math/Euler.cpp
+  source/Math/Linalg/Mat2x2.cpp
+  source/Math/Linalg/Mat3x3.cpp
+  source/Math/Linalg/Mat4x4.cpp
+  source/Math/Linalg/Vec2.cpp
+  source/Math/Linalg/Vec3.cpp
+  source/Math/Linalg/Vec4.cpp
+  source/PrintStringView.cpp
+  source/RHI/Adapter.cpp
+  source/RHI/Application.cpp
+  source/RHI/BindGroup.cpp
+  source/RHI/BindingLayout.cpp
+  source/RHI/CommandBuffer.cpp
+  source/RHI/Device.cpp
+  source/RHI/Instance.cpp
+  source/RHI/Pipeline.cpp
+  source/RHI/RenderPassCommand.cpp
+  source/RHI/RenderPassEncoder.cpp
+  source/RHI/Shader.cpp
+  source/RHI/VertexBufferLayout.cpp
+  source/RHI/VertexLayout.cpp
+  source/Window/WindowFactory.cpp
 )
 set(PRETOP_ENGINE_SOURCES_NATIVE
-  Source/Asset/NATIVE_AssetLoader.cpp
-  Source/Window/NATIVE_GlfwWindow.cpp
+  source/Asset/NATIVE_AssetLoader.cpp
+  source/Window/NATIVE_GlfwWindow.cpp
 )
 set(PRETOP_ENGINE_SOURCES_WEB
-  Source/Asset/WEB_AssetLoader.cpp
-  Source/Window/WEB_CanvasWindow.cpp
+  source/Asset/WEB_AssetLoader.cpp
+  source/Window/WEB_CanvasWindow.cpp
 )
 set(PRETOP_ENGINE_TEST_SOURCES
   tests/Core/JobSystem.cpp
