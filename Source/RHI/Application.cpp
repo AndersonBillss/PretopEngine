@@ -65,7 +65,7 @@ namespace Pretop::RHI
         WGPUSurfaceTexture surfaceTexture = WGPU_SURFACE_TEXTURE_INIT;
         WGPUSurfaceCapabilities surfaceCapabilities = WGPU_SURFACE_CAPABILITIES_INIT;
         wgpuSurfaceGetCapabilities(this->_windowSurface, this->_adapter->WgpuAdapter, &surfaceCapabilities);
-        WGPUTextureFormat preferredFormat = WGPUTextureFormat_BGRA8UnormSrgb;
+        WGPUTextureFormat preferredFormat = surfaceCapabilities.formats[0];
 
         surfaceConfig.format = preferredFormat;
         this->WindowFormat = preferredFormat;

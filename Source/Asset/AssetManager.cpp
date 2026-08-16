@@ -136,7 +136,9 @@ namespace Pretop::Asset
                 dataLayout.bytesPerRow = 4 * data->width;
                 dataLayout.rowsPerImage = data->height;
 
-                WGPUExtent3D size{/*.width=*/data->width, /*.height=*/data->height, /*.depthOrArrayLayers=*/1};
+                WGPUExtent3D size{/*.width=*/static_cast<uint32_t>(data->width),
+                                  /*.height=*/static_cast<uint32_t>(data->height),
+                                  /*.depthOrArrayLayers=*/1};
 
                 wgpuQueueWriteTexture(
                     data->application->WgpuQueue,
