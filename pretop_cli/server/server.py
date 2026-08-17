@@ -5,7 +5,7 @@ import webbrowser
 import sys
 import os
 
-from shared.constants import ENGINE_NAME
+from pretop_cli.shared.constants import ENGINE_NAME
 
 PORT = 8000
 BUILD_DIRECTORY = "build/web-engine"

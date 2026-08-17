@@ -2,9 +2,10 @@ from subprocess import SubprocessError
 from enum import Enum
 import sys
 
-from codegen.gen_sources import gen_sources
-from build_scripts.native import build_native_debug, configure_native_debug, run_native_debug, run_tests
-from build_scripts.web import build_web_debug, run_web_debug
+from pretop_cli.assets.importer import import_assets
+from pretop_cli.codegen.gen_sources import gen_sources
+from pretop_cli.build_scripts.native import build_native_debug, configure_native_debug, run_native_debug, run_tests
+from pretop_cli.build_scripts.web import build_web_debug, run_web_debug
 
 
 class ArgType(Enum):
@@ -80,6 +81,7 @@ COMMANDS = {
     "gen": {
         "sources": Command(gen_sources, "Generate CMake sources"),
     },
+    "import": Command(import_assets, "Import assets")
 }
 
 
