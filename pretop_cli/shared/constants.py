@@ -1,3 +1,4 @@
+from pathlib import Path
 import platform
 
 ENGINE_NAME = "pretop_engine"
@@ -5,6 +6,7 @@ BUILD_DIR = "build"
 ENGINE_DIR = ".pretop"
 ASSET_DIR = "assets"
 SOURCE_DIR = "source"
+GEN_DIR = Path(SOURCE_DIR) / "Gen"
 COMPILER_C = "cl"
 COMPILER_CPP = "cl"
 if platform.system() == "Linux":
