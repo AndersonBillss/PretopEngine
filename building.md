@@ -46,13 +46,13 @@ If you are using a different version of Visual Studio:
 2. Run the setup build:
 
    ```
-   python tools/cli.py setup
+   python cli.py setup
    ```
 
 3. Run the engine:
 
    ```
-   python tools/cli.py run native
+   python cli.py run native
    ```
 
 # Building the Engine for Linux 
@@ -82,13 +82,13 @@ Install the following dependencies:
 1. Run the setup build:
 
    ```
-   python tools/cli.py setup
+   python cli.py setup
    ```
 
 2. Run the engine:
 
    ```
-   python tools/cli.py run native
+   python cli.py run native
    ```
 
 # Building the Engine for Web
@@ -109,6 +109,6 @@ Unlike native builds, the web target does **not** require the Dawn setup step.
 
 Build and run the web target with:
 
-```sh
-python tools/cli.py run web
+```
+python cli.py run web
 ```
