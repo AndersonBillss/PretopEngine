@@ -72,11 +72,20 @@ else()
         dawn
         GIT_REPOSITORY https://dawn.googlesource.com/dawn
         GIT_TAG a8db5510cc0e32e289f4d977a3a32c2526708bc6
-        GIT_SHALLOW TRUE
         GIT_SUBMODULES ""
     )
 
     FetchContent_MakeAvailable(dawn)
+
+    # Dawn is a pinned third-party dependency that is not maintained as part of
+    # this project. Suppress its warnings so engine warnings remain visible.
+    if(TARGET dawn_warnings_config)
+        if(MSVC)
+            target_compile_options(dawn_warnings_config INTERFACE /w)
+        else()
+            target_compile_options(dawn_warnings_config INTERFACE -w)
+        endif()
+    endif()
 
     # -----------------------------------------------------------------------
     # Native platform sources
