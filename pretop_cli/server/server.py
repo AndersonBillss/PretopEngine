@@ -5,18 +5,17 @@ import webbrowser
 import sys
 import os
 
-from pretop_cli.shared.constants import ENGINE_NAME
+from pretop_cli.shared.constants import ENGINE_DIR, ASSET_DIR, ENGINE_NAME
 
 PORT = 8000
 BUILD_DIRECTORY = "build/web-engine"
-ASSET_DIRECTORY = "assets"
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def translate_path(self, path):
         if path.startswith("/assets/"):
             relative_path = path[len("/assets/"):]
-            return os.path.join(os.getcwd(), ASSET_DIRECTORY, relative_path)
+            return os.path.join(os.getcwd(), ENGINE_DIR / ASSET_DIR, relative_path)
 
         return super().translate_path(path)
 

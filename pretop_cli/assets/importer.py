@@ -2,10 +2,9 @@ from pathlib import Path
 import shutil
 from typing import Iterator
 
-from pretop_cli.shared.constants import ENGINE_DIR
+from pretop_cli.shared.constants import ENGINE_DIR, ASSET_DIR
 from pretop_cli.utils import load_module
 
-ASSET_DIR = "assets"
 ASSET_IMPORT_DIR = Path(ENGINE_DIR) / ASSET_DIR
 
 class FileImport:
