@@ -1,4 +1,6 @@
 #include "NATIVE_AssetLoader.hpp"
+#include "../Gen/AssetBase.hpp"
+
 #include <fstream>
 #include <stdexcept>
 #include <string>
@@ -10,7 +12,8 @@ namespace Pretop::Asset
 {
     AssetLoader::AssetBytes ReadBinaryFile(const std::string &path)
     {
-        std::ifstream file(path, std::ios::binary | std::ios::ate);
+        std::string assetPath = std::string(AssetBase) + std::string("/") + path;
+        std::ifstream file(assetPath, std::ios::binary | std::ios::ate);
         if (!file)
         {
             throw std::runtime_error("Failed to open binary asset: " + path);

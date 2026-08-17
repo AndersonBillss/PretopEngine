@@ -184,8 +184,8 @@ namespace Pretop::Demos
             AssetLoaderFactory::CreateAssetLoader(state->Jobs.get()),
             &application);
 
-        state->ModelHandle = state->Assets->LoadModel("assets/models/woolly-mammoth-100k-4096_std.glb");
-        state->ShaderHandle = state->Assets->LoadShaderModule("assets/shaders/shader.wgsl");
+        state->ModelHandle = state->Assets->LoadModel("models/woolly-mammoth-100k-4096_std.glb");
+        state->ShaderHandle = state->Assets->LoadShaderModule("shaders/shader.wgsl");
 
         application.LogQueueCommands();
         application.SetWindow(WindowFactory::CreateWindow("My Window"));

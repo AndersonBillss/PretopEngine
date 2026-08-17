@@ -363,8 +363,8 @@ void Start(Pretop::RHI::Application &application)
     std::unique_ptr<Pretop::Window::Window> window = Pretop::Window::WindowFactory::CreateWindow("Texture");
     application.SetWindow(std::move(window));
 
-    state.ShaderHandle = state.Assets->LoadShaderModule("assets/shaders/textureDemoShader.wgsl");
-    state.TextureHandle = state.Assets->LoadTexture("assets/textures/cobblestoneFloor.png");
+    state.ShaderHandle = state.Assets->LoadShaderModule("shaders/textureDemoShader.wgsl");
+    state.TextureHandle = state.Assets->LoadTexture("textures/cobblestoneFloor.png");
 
     std::array<WGPUBindGroupLayoutEntry, 3> bindingLayoutEntries = {
         WGPU_BIND_GROUP_LAYOUT_ENTRY_INIT,

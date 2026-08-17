@@ -264,7 +264,7 @@ void Start(Pretop::RHI::Application &application)
     std::unique_ptr<Pretop::Window::Window> window = Pretop::Window::WindowFactory::CreateWindow("Texture");
     application.SetWindow(std::move(window));
 
-    state.ShaderHandle = state.Assets->LoadShaderModule("assets/shaders/textureDemoShader.wgsl");
+    state.ShaderHandle = state.Assets->LoadShaderModule("shaders/textureDemoShader.wgsl");
 
     float textureScale = 8.0f;
     float padding = (textureScale - 1) / 2;
