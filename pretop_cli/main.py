@@ -125,18 +125,19 @@ def validate_command(command: Command, cmd_name: list[str], args: list[str]):
         exit(0)
 
 
-cmd: list[str] = sys.argv[1:]
-if len(cmd) == 0:
-    help()
-    exit(0)
-result = get_command(cmd)
-cmd_str = " ".join(cmd)
-if result is None:
-    print(f"unknown command: {cmd_str}")
-    exit(0)
-(command, cmd_split_index) = result
-cmd_name = cmd[:cmd_split_index]
-cmd_args = cmd[cmd_split_index:]
-print(cmd_str)
-validate_command(command, cmd_name, cmd_args)
-handle_command(command, cmd_args)
+def pretop_cli():
+    cmd: list[str] = sys.argv[1:]
+    if len(cmd) == 0:
+        help()
+        exit(0)
+    result = get_command(cmd)
+    cmd_str = " ".join(cmd)
+    if result is None:
+        print(f"unknown command: {cmd_str}")
+        exit(0)
+    (command, cmd_split_index) = result
+    cmd_name = cmd[:cmd_split_index]
+    cmd_args = cmd[cmd_split_index:]
+    print(cmd_str)
+    validate_command(command, cmd_name, cmd_args)
+    handle_command(command, cmd_args)
