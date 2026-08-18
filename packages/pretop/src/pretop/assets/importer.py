@@ -2,8 +2,7 @@ from pathlib import Path
 import shutil
 from typing import Iterator
 
-from packages.pretop.src.pretop.shared.constants import ENGINE_DIR, ASSET_DIR
-from packages.pretop.src.pretop.utils import load_module
+from pretop.shared.constants import ENGINE_DIR, ASSET_DIR
 
 ASSET_IMPORT_DIR = Path(ENGINE_DIR) / ASSET_DIR
 
@@ -30,7 +29,6 @@ def import_copy(path: str):
     file_imports.append(CopyImport(path))
 
 def import_assets():
-    import config.importer
     ASSET_IMPORT_DIR.parent.mkdir(parents=True, exist_ok=True)
     for file_import in file_imports:
         for impt in iter_files(ASSET_DIR / file_import.path):

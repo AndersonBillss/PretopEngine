@@ -1,4 +1,4 @@
-from packages.pretop.src.pretop.codegen.gen_asset_path import gen_asset_path
+from pretop.codegen.gen_asset_path import gen_asset_path
 
 def gen_code():
     gen_asset_path()

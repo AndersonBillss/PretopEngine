@@ -2,11 +2,11 @@ from subprocess import SubprocessError
 from enum import Enum
 import sys
 
-from packages.pretop.src.pretop.assets.importer import import_assets
-from packages.pretop.src.pretop.codegen.gen_code import gen_code
-from packages.pretop.src.pretop.codegen.gen_sources import gen_sources
-from packages.pretop.src.pretop.build_scripts.native import build_native_debug, configure_native_debug, run_native_debug, run_tests
-from packages.pretop.src.pretop.build_scripts.web import build_web_debug, run_web_debug
+from pretop.assets.importer import import_assets
+from pretop.codegen.gen_code import gen_code
+from pretop.codegen.gen_sources import gen_sources
+from pretop.build_scripts.native import build_native_debug, configure_native_debug, run_native_debug, run_tests
+from pretop.build_scripts.web import build_web_debug, run_web_debug
 
 
 class ArgType(Enum):
@@ -125,7 +125,7 @@ def validate_command(command: Command, cmd_name: list[str], args: list[str]):
         exit(0)
 
 
-def pretop_cli():
+def cli():
     cmd: list[str] = sys.argv[1:]
     if len(cmd) == 0:
         help()

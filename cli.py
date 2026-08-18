@@ -1,3 +1,3 @@
-from packages.pretop.src.pretop.cli import pretop_cli
+from pretop import cli
 
 pretop_cli()
