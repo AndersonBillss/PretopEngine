@@ -1,7 +1,7 @@
-from pretop_cli.utils.cmd import cmd
-from pretop_cli.shared.constants import BUILD_DIR, ENGINE_NAME
-from pretop_cli.codegen.gen_sources import gen_sources
-from pretop_cli.server.server import run_server
+from packages.pretop.utils.cmd import cmd
+from packages.pretop.shared.constants import BUILD_DIR, ENGINE_NAME
+from packages.pretop.codegen.gen_sources import gen_sources
+from packages.pretop.server.server import run_server
 import sys
 
 ENGINE_WEB_OUT = f"{BUILD_DIR}/web-engine"

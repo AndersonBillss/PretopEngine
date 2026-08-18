@@ -2,11 +2,11 @@ from subprocess import SubprocessError
 from enum import Enum
 import sys
 
-from pretop_cli.assets.importer import import_assets
-from pretop_cli.codegen.gen_code import gen_code
-from pretop_cli.codegen.gen_sources import gen_sources
-from pretop_cli.build_scripts.native import build_native_debug, configure_native_debug, run_native_debug, run_tests
-from pretop_cli.build_scripts.web import build_web_debug, run_web_debug
+from packages.pretop.assets.importer import import_assets
+from packages.pretop.codegen.gen_code import gen_code
+from packages.pretop.codegen.gen_sources import gen_sources
+from packages.pretop.build_scripts.native import build_native_debug, configure_native_debug, run_native_debug, run_tests
+from packages.pretop.build_scripts.web import build_web_debug, run_web_debug
 
 
 class ArgType(Enum):

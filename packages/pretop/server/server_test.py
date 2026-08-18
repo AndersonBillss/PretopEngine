@@ -2,7 +2,7 @@ import io
 import unittest
 from unittest import mock
 
-from server import server as server_module
+from packages.pretop.server.server import server as server_module
 
 
 class InterruptingInput:

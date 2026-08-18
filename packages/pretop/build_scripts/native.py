@@ -1,6 +1,6 @@
-from pretop_cli.utils.cmd import cmd 
-from pretop_cli.shared.constants import BUILD_DIR, COMPILER_C, COMPILER_CPP, EXE_SUFFIX
-from pretop_cli.codegen.gen_sources import gen_sources
+from packages.pretop.utils.cmd import cmd 
+from packages.pretop.shared.constants import BUILD_DIR, COMPILER_C, COMPILER_CPP, EXE_SUFFIX
+from packages.pretop.codegen.gen_sources import gen_sources
 
 ENGINE_OUT = f"{BUILD_DIR}/engine"
 
