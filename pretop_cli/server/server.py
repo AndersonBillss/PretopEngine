@@ -1,5 +1,6 @@
 import http.server
 import errno
+from pathlib import Path
 import threading
 import webbrowser
 import sys
@@ -15,7 +16,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def translate_path(self, path):
         if path.startswith("/assets/"):
             relative_path = path[len("/assets/"):]
-            return os.path.join(os.getcwd(), ENGINE_DIR / ASSET_DIR, relative_path)
+            return os.path.join(os.getcwd(), Path(ENGINE_DIR) / Path(ASSET_DIR), relative_path)
 
         return super().translate_path(path)
 

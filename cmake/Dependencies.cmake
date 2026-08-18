@@ -18,34 +18,37 @@ FetchContent_Declare(
     GIT_TAG master
 )
 
-FetchContent_Declare(
-    glfw
-    GIT_REPOSITORY https://github.com/glfw/glfw.git
-    GIT_TAG 3.4
-)
-
-# Avoid building GLFW extras that PretopEngine does not need.
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL
-    "Build GLFW examples"
-    FORCE
-)
-
-set(GLFW_BUILD_TESTS OFF CACHE BOOL
-    "Build GLFW tests"
-    FORCE
-)
-
-set(GLFW_BUILD_DOCS OFF CACHE BOOL
-    "Build GLFW documentation"
-    FORCE
-)
-
 FetchContent_MakeAvailable(
     nlohmann_json
     magic_enum
     stb
-    glfw
 )
+
+if(NOT EMSCRIPTEN)
+    FetchContent_Declare(
+        glfw
+        GIT_REPOSITORY https://github.com/glfw/glfw.git
+        GIT_TAG 3.4
+    )
+
+    # Avoid building GLFW extras that PretopEngine does not need.
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL
+        "Build GLFW examples"
+        FORCE
+    )
+
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL
+        "Build GLFW tests"
+        FORCE
+    )
+
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL
+        "Build GLFW documentation"
+        FORCE
+    )
+
+    FetchContent_MakeAvailable(glfw)
+endif()
 
 add_library(stb_image INTERFACE)
 

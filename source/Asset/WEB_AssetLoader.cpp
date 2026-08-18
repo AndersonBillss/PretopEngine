@@ -3,6 +3,7 @@
 #include "../Core/Assert.hpp"
 #include "../Core/RecordTable.hpp"
 #include "../Core/Platform.hpp"
+#include "../Gen/AssetBase.hpp"
 
 #include <atomic>
 #include <cstring>
@@ -247,7 +248,8 @@ namespace Pretop::Asset
         attributes.onsuccess = &WebAssetLoader::OnFetchSuccess;
         attributes.onerror = &WebAssetLoader::OnFetchError;
 
-        emscripten_fetch_t *fetch = emscripten_fetch(&attributes, data->Path.c_str());
+        std::string filePath = std::string(AssetBase) + "/" + data->Path;
+        emscripten_fetch_t *fetch = emscripten_fetch(&attributes, filePath.c_str());
         if (fetch == nullptr)
         {
             data->ErrorText = "Failed to start fetch for asset: " + data->Path;
