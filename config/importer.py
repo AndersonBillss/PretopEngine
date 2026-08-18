@@ -1,4 +1,4 @@
-from packages.pretop.assets.importer import import_copy
+from packages.pretop.src.pretop.assets.importer import import_copy
 
 import_copy("models")
 import_copy("shaders")

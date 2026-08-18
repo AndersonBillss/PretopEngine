@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from packages.pretop.shared.constants import ASSET_DIR, ENGINE_DIR, GEN_DIR
+from packages.pretop.src.pretop.shared.constants import ASSET_DIR, ENGINE_DIR, GEN_DIR
 
 
 def createAssetBaseDeclaration(asset_path):

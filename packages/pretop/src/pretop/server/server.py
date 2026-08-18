@@ -6,7 +6,7 @@ import webbrowser
 import sys
 import os
 
-from packages.pretop.shared.constants import ENGINE_DIR, ASSET_DIR, ENGINE_NAME
+from packages.pretop.src.pretop.shared.constants import ENGINE_DIR, ASSET_DIR, ENGINE_NAME
 
 PORT = 8000
 BUILD_DIRECTORY = "build/web-engine"

@@ -1,5 +1,5 @@
 # Generate sources for CMake
-from packages.pretop.shared.constants import SOURCE_DIR
+from packages.pretop.src.pretop.shared.constants import SOURCE_DIR
 
 import os
 

@@ -2,8 +2,8 @@ from pathlib import Path
 import shutil
 from typing import Iterator
 
-from packages.pretop.shared.constants import ENGINE_DIR, ASSET_DIR
-from packages.pretop.utils import load_module
+from packages.pretop.src.pretop.shared.constants import ENGINE_DIR, ASSET_DIR
+from packages.pretop.src.pretop.utils import load_module
 
 ASSET_IMPORT_DIR = Path(ENGINE_DIR) / ASSET_DIR
 
