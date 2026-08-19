@@ -41,20 +41,29 @@ TEST_CASE("NormalizePath Correctly resovles backtrack no preceeding path", "[Uti
     REQUIRE(Pretop::Utils::NormalizePath(path) == "../player.png");
 }
 
-TEST_CASE("NormalizePath Correctly resovles backtracks two preceeding paths", "[Utils][NormalizePath][only1]")
+TEST_CASE("NormalizePath Correctly resovles backtracks two preceeding paths", "[Utils][NormalizePath]")
 {
     std::string path = "assets/test/../player.png";
     REQUIRE(Pretop::Utils::NormalizePath(path) == "assets/player.png");
 }
 
-TEST_CASE("NormalizePath Correctly resovles two backtracks no preceeding path", "[Utils][NormalizePath][only2]")
+TEST_CASE("NormalizePath Correctly resovles two backtracks no preceeding path", "[Utils][NormalizePath]")
 {
     std::string path = "../../player.png";
     REQUIRE(Pretop::Utils::NormalizePath(path) == "../../player.png");
 }
 
-TEST_CASE("NormalizePath Correctly resovles three backtracks no preceeding path", "[Utils][NormalizePath][only2]")
+TEST_CASE("NormalizePath Correctly resovles three backtracks no preceeding path", "[Utils][NormalizePath]")
 {
     std::string path = "../../../player.png";
     REQUIRE(Pretop::Utils::NormalizePath(path) == "../../../player.png");
+}
+
+TEST_CASE("NormalizePath Correctly resovles several backtracks", "[Utils][NormalizePath]")
+{
+    std::string path = "../test/../test/../player.png";
+    REQUIRE(Pretop::Utils::NormalizePath(path) == "../player.png");
+
+    std::string path2 = "../../test/../test../../test/../player.png";
+    REQUIRE(Pretop::Utils::NormalizePath(path2) == "../../../player.png");
 }
