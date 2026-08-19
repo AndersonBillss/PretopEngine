@@ -7,3 +7,9 @@ TEST_CASE("NormalizePath returns correct values for already normalized paths", "
     std::string path = "test/player.png";
     REQUIRE(Pretop::Utils::NormalizePath(path) == path);
 }
+
+TEST_CASE("NormalizePath returns correct values for relative paths", "[Utils][NormalizePath][only]")
+{
+    std::string path = "./test/player.png";
+    REQUIRE(Pretop::Utils::NormalizePath(path) == "test/player.png");
+}

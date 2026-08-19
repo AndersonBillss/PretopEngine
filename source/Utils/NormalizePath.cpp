@@ -1,5 +1,6 @@
 #include "NormalizePath.hpp"
 #include <algorithm>
+#include <iostream>
 
 bool strMatch(std::string_view a, size_t offset, std::string_view b)
 {
@@ -23,9 +24,9 @@ std::string Pretop::Utils::NormalizePath(std::string_view path)
     normalized.reserve(path.size());
     for (size_t i = 0; i < path.size(); i++)
     {
-        if (strMatch(normalized, i, "./"))
+        if (strMatch(path, i, "./") || strMatch(path, i, ".\\"))
         {
-            i += 2;
+            i++;
         }
         else if (path[i] == '\\')
         {
