@@ -2,9 +2,9 @@
 #include <algorithm>
 #include <iostream>
 
-bool strMatch(std::string_view a, size_t offset, std::string_view b)
+bool strMatch(std::string_view a, int offset, std::string_view b)
 {
-    for (size_t i = 0; i < b.size(); i++)
+    for (int i = 0; i < b.size(); i++)
     {
         if (offset + i >= a.size())
         {
@@ -18,9 +18,9 @@ bool strMatch(std::string_view a, size_t offset, std::string_view b)
     return true;
 }
 
-int strFind(std::string_view haystack, size_t offset, std::string_view needle)
+int strFind(std::string_view haystack, int offset, std::string_view needle)
 {
-    for (size_t i = offset; i < haystack.size(); i++)
+    for (int i = offset; i < haystack.size(); i++)
     {
         if (strMatch(haystack, i, needle))
         {
@@ -29,9 +29,9 @@ int strFind(std::string_view haystack, size_t offset, std::string_view needle)
     }
     return -1;
 }
-int strFindBackwards(std::string_view haystack, size_t offset, std::string_view needle)
+int strFindBackwards(std::string_view haystack, int offset, std::string_view needle)
 {
-    for (size_t i = offset; i >= 0; i--)
+    for (int i = offset; i >= 0; i--)
     {
         if (strMatch(haystack, i, needle))
         {
@@ -55,6 +55,19 @@ std::string Pretop::Utils::NormalizePath(std::string_view path)
             if (beforeBacktrack == normalized.size() - 1)
             {
                 beforeBacktrack = strFindBackwards(normalized, normalized.size() - 2, "/");
+            }
+            if (beforeBacktrack == -1)
+            {
+                if (i > 0)
+                {
+                    beforeBacktrack = 0;
+                }
+                else
+                {
+                    normalized += "../";
+                    i += 2;
+                    continue;
+                }
             }
             size_t numCharsToErase = i - beforeBacktrack;
             normalized.erase(normalized.size() - numCharsToErase);
