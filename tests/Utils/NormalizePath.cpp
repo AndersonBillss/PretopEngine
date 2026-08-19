@@ -52,3 +52,9 @@ TEST_CASE("NormalizePath Correctly resovles two backtracks no preceeding path", 
     std::string path = "../../player.png";
     REQUIRE(Pretop::Utils::NormalizePath(path) == "../../player.png");
 }
+
+TEST_CASE("NormalizePath Correctly resovles three backtracks no preceeding path", "[Utils][NormalizePath][only2]")
+{
+    std::string path = "../../../player.png";
+    REQUIRE(Pretop::Utils::NormalizePath(path) == "../../../player.png");
+}

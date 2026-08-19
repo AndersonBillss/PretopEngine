@@ -71,7 +71,7 @@ std::string Pretop::Utils::NormalizePath(std::string_view path)
                     continue;
                 }
             }
-            if (strMatch(normalized, beforeBacktrack, "../"))
+            if (strMatch(normalized, eraseIndex, "../"))
             {
                 normalized += "../";
                 i += 2;
