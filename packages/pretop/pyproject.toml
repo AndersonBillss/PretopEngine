@@ -1,0 +1,14 @@
+[project]
+name = "pretop"
+version = "0.1.0"
+description = "Tools for interacting with Pretop game engine"
+readme = "README.md"
+authors = [
+    { name = "AndersonBillss", email = "anderson@thebillsfamily.com" }
+]
+requires-python = ">=3.13"
+dependencies = []
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"

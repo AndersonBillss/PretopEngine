@@ -1,0 +1,25 @@
+version = 1
+revision = 3
+requires-python = ">=3.13"
+
+[manifest]
+members = [
+    "pretop",
+    "pretopcli",
+]
+
+[[package]]
+name = "pretop"
+version = "0.1.0"
+source = { editable = "packages/pretop" }
+
+[[package]]
+name = "pretopcli"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "pretop" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pretop", editable = "packages/pretop" }]

@@ -1,3 +1,5 @@
 from pretop import cli
+from config.importer import import_assets
 
-pretop_cli()
+import_assets()
+cli()

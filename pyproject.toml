@@ -1,0 +1,23 @@
+[project]
+name = "pretopcli"
+version = "0.1.0"
+description = "CLI using the Pretop library"
+readme = "README.md"
+authors = [
+    { name = "AndersonBillss", email = "anderson@thebillsfamily.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "pretop",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = [
+    "packages/pretop",
+]
+
+[tool.uv.sources]
+pretop = { workspace = true, editable = true }

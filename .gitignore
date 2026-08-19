@@ -2,4 +2,5 @@ build/
 source/Gen
 .pretop/
 .vscode/
+.venv/
 __pycache__
