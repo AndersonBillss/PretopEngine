@@ -9,6 +9,7 @@
 Make sure the following tools are installed and available in your system `PATH`:
 
 - **Go**
+- **UV**
 - **Python**
 - **MSVC Build Tools**
   - Install via **Visual Studio Installer**
@@ -46,13 +47,13 @@ If you are using a different version of Visual Studio:
 2. Run the setup build:
 
    ```
-   python cli.py setup
+   uv run python cli.py setup
    ```
 
 3. Run the engine:
 
    ```
-   python cli.py run native
+   uv run python cli.py run native
    ```
 
 # Building the Engine for Linux 
@@ -61,6 +62,7 @@ If you are using a different version of Visual Studio:
 
 Make sure the following tools are installed and available in your system `PATH`:
 
+- **UV**
 - **Python**
 - **CMake**
 - **Ninja**
@@ -82,13 +84,13 @@ Install the following dependencies:
 1. Run the setup build:
 
    ```
-   python cli.py setup
+   uv run python cli.py setup
    ```
 
 2. Run the engine:
 
    ```
-   python cli.py run native
+   uv run python cli.py run native
    ```
 
 # Building the Engine for Web
@@ -110,5 +112,5 @@ Unlike native builds, the web target does **not** require the Dawn setup step.
 Build and run the web target with:
 
 ```
-python cli.py run web
+uv run python cli.py run web
 ```
