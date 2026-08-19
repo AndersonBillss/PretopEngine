@@ -73,3 +73,27 @@ TEST_CASE("NormalizePath Correctly resovles ../ with ./", "[Utils][NormalizePath
     std::string path = "./../player.png";
     REQUIRE(Pretop::Utils::NormalizePath(path) == "../player.png");
 }
+
+TEST_CASE("NormalizePath Correctly resovles empty paths", "[Utils][NormalizePath][only]")
+{
+    std::string path = "./test/../";
+    REQUIRE(Pretop::Utils::NormalizePath(path) == "");
+}
+
+TEST_CASE("NormalizePath Correctly resovles a bunch of ./ paths", "[Utils][NormalizePath][only]")
+{
+    std::string path = "./././././";
+    REQUIRE(Pretop::Utils::NormalizePath(path) == "");
+}
+
+TEST_CASE("NormalizePath Converts \\ to /", "[Utils][NormalizePath][only]")
+{
+    std::string path = "tests\\files\\assets\\player.png";
+    REQUIRE(Pretop::Utils::NormalizePath(path) == "tests/files/assets/player.png");
+}
+
+TEST_CASE("NormalizePath resolves a mix of \\ and /", "[Utils][NormalizePath][only]")
+{
+    std::string path = "../..\\tests\\files/../..\\assets/player.png";
+    REQUIRE(Pretop::Utils::NormalizePath(path) == "../../assets/player.png");
+}
