@@ -3,7 +3,7 @@
 #include <chrono>
 #include <iostream>
 
-#include "../../Source/Core/JobSystem.hpp"
+#include "../../source/Core/JobSystem.hpp"
 
 using namespace Pretop::Core;
 

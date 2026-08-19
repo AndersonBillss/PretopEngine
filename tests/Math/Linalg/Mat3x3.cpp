@@ -1,5 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
-#include "../../../Source/Math/Linalg/Mat3x3.hpp"
+#include "../../../source/Math/Linalg/Mat3x3.hpp"
 
 using namespace Pretop::Math;
 

@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "../../Source/Core/RecordTable.hpp"
-#include "../../Source/Core/Assert.hpp"
+#include "../../source/Core/RecordTable.hpp"
+#include "../../source/Core/Assert.hpp"
 
 TEST_CASE("RecordTable holds single record", "[Core][RecordTable]")
 {

@@ -33,6 +33,7 @@ set(PRETOP_ENGINE_SOURCES
   source/RHI/Shader.cpp
   source/RHI/VertexBufferLayout.cpp
   source/RHI/VertexLayout.cpp
+  source/Utils/NormalizePath.cpp
   source/Window/WindowFactory.cpp
 )
 set(PRETOP_ENGINE_SOURCES_NATIVE
@@ -54,4 +55,5 @@ set(PRETOP_ENGINE_TEST_SOURCES
   tests/Math/Linalg/Vec2.cpp
   tests/Math/Linalg/Vec3.cpp
   tests/Math/Linalg/Vec4.cpp
+  tests/Utils/GetAssetKey.cpp
 )

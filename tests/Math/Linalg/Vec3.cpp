@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
-#include "../../../Source/Math/Linalg/Vec3.hpp"
+#include "../../../source/Math/Linalg/Vec3.hpp"
 
 using namespace Pretop::Math;
 

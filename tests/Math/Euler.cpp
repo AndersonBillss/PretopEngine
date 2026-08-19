@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include "../Matchers/Vec4ApproxMatcher.hpp"
-#include "../../Source/Math/Euler.hpp"
-#include "../../Source/Math/Constants.hpp"
+#include "../../source/Math/Euler.hpp"
+#include "../../source/Math/Constants.hpp"
 
 using namespace Pretop::Math;
 

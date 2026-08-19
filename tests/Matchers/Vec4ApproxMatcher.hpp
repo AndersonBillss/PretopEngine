@@ -1,7 +1,7 @@
 #pragma once
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <sstream>
-#include "../../Source/Math/Linalg/Vec4.hpp"
+#include "../../source/Math/Linalg/Vec4.hpp"
 
 using Pretop::Math::Vec4;
 
