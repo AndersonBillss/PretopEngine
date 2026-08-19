@@ -26,6 +26,12 @@ FetchContent_MakeAvailable(
 
 if(NOT EMSCRIPTEN)
     FetchContent_Declare(
+        pybind11
+        GIT_REPOSITORY https://github.com/pybind/pybind11.git
+        GIT_TAG v3.0.1
+    )
+
+    FetchContent_Declare(
         glfw
         GIT_REPOSITORY https://github.com/glfw/glfw.git
         GIT_TAG 3.4
@@ -47,7 +53,10 @@ if(NOT EMSCRIPTEN)
         FORCE
     )
 
-    FetchContent_MakeAvailable(glfw)
+    FetchContent_MakeAvailable(
+        glfw
+        pybind11
+    )
 endif()
 
 add_library(stb_image INTERFACE)

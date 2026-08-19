@@ -17,6 +17,10 @@ add_library(pretop_engine_core STATIC
     ${PRETOP_ENGINE_SOURCES}
 )
 
+set_target_properties(pretop_engine_core PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
 target_include_directories(pretop_engine_core PUBLIC
     include
 )
@@ -43,6 +47,20 @@ add_executable(pretop_engine
 target_link_libraries(pretop_engine PRIVATE
     pretop_engine_core
 )
+
+# ---------------------------------------------------------------------------
+# Python bindings
+# ---------------------------------------------------------------------------
+
+if(NOT EMSCRIPTEN)
+    pybind11_add_module(pretop_engine_python
+        ${PRETOP_ENGINE_SOURCES_PYBIND_Python}
+    )
+
+    target_link_libraries(pretop_engine_python PRIVATE
+        pretop_engine_core
+    )
+endif()
 
 include(cmake/Platform.cmake)
 include(cmake/Tests.cmake)
