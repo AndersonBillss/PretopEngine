@@ -59,7 +59,7 @@ std::string Pretop::Utils::NormalizePath(std::string_view path)
             size_t eraseIndex = beforeBacktrack + 1;
             if (beforeBacktrack == -1)
             {
-                if (i > 0)
+                if (normalized.size() > 0)
                 {
                     eraseIndex = 0;
                     beforeBacktrack = 0;
