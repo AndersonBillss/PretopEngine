@@ -55,5 +55,5 @@ set(PRETOP_ENGINE_TEST_SOURCES
   tests/Math/Linalg/Vec2.cpp
   tests/Math/Linalg/Vec3.cpp
   tests/Math/Linalg/Vec4.cpp
-  tests/Utils/GetAssetKey.cpp
+  tests/Utils/NormalizePath.cpp
 )

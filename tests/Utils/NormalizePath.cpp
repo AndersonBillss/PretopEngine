@@ -8,8 +8,14 @@ TEST_CASE("NormalizePath returns correct values for already normalized paths", "
     REQUIRE(Pretop::Utils::NormalizePath(path) == path);
 }
 
-TEST_CASE("NormalizePath returns correct values for relative paths", "[Utils][NormalizePath][only]")
+TEST_CASE("NormalizePath returns correct values for relative paths", "[Utils][NormalizePath]")
 {
     std::string path = "./test/player.png";
     REQUIRE(Pretop::Utils::NormalizePath(path) == "test/player.png");
+}
+
+TEST_CASE("NormalizePath Correctly resovles backtrack", "[Utils][NormalizePath]")
+{
+    std::string path = "/test../player.png";
+    REQUIRE(Pretop::Utils::NormalizePath(path) == "player.png");
 }
