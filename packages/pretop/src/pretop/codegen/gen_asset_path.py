@@ -1,14 +1,14 @@
 from pathlib import Path
 
-from pretop.shared.constants import ASSET_DIR, ENGINE_DIR, GEN_DIR
+from pretop.shared.constants import ASSET_OUTPUT_DIR, WEB_ASSET_PATH_PREFIX, GEN_DIR
 
 
 def createAssetBaseDeclaration(asset_path):
     return f'constexpr std::string_view AssetBase = "{asset_path}";\n'
 
 
-NATIVE_ASSET_PATH = f"{ENGINE_DIR}/{ASSET_DIR}"
-WEB_ASSET_PATH = ASSET_DIR
+NATIVE_ASSET_PATH = ASSET_OUTPUT_DIR
+WEB_ASSET_PATH = WEB_ASSET_PATH_PREFIX
 FILE_COMMENT = "// Generate by Pretop CLI, do not touch\n"
 FILE_HEADER = (
     '#include <iostream>\n#include <string_view>\n#include "../Core/Platform.hpp"\n\n'
@@ -17,9 +17,9 @@ FILE_CONTENTS = (
     FILE_COMMENT
     + FILE_HEADER
     + "#ifdef PRETOP_PLATFORM_WEB\n"
-    + createAssetBaseDeclaration(WEB_ASSET_PATH)
+    + createAssetBaseDeclaration(ASSET_OUTPUT_DIR)
     + "#else\n"
-    + createAssetBaseDeclaration(NATIVE_ASSET_PATH)
+    + createAssetBaseDeclaration(WEB_ASSET_PATH_PREFIX)
     + "#endif\n"
 )
 
