@@ -53,12 +53,22 @@ target_link_libraries(pretop_engine PRIVATE
 # ---------------------------------------------------------------------------
 
 if(NOT EMSCRIPTEN)
-    pybind11_add_module(pretop_engine_python
-        ${PRETOP_ENGINE_SOURCES_PYBIND_Python}
+    pybind11_add_module(pretop_native
+        ${PRETOP_ENGINE_SOURCES_PYBIND}
     )
 
-    target_link_libraries(pretop_engine_python PRIVATE
+    target_link_libraries(pretop_native PRIVATE
         pretop_engine_core
+    )
+
+    set_target_properties(pretop_native PROPERTIES
+        OUTPUT_NAME "_native"
+    )
+
+    install(
+        TARGETS pretop_native
+        LIBRARY DESTINATION pretop COMPONENT pretop
+        RUNTIME DESTINATION pretop COMPONENT pretop
     )
 endif()
 

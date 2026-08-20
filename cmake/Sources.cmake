@@ -40,7 +40,7 @@ set(PRETOP_ENGINE_SOURCES_NATIVE
   source/Asset/NATIVE_AssetLoader.cpp
   source/Window/NATIVE_GlfwWindow.cpp
 )
-set(PRETOP_ENGINE_SOURCES_PYBIND_Python
+set(PRETOP_ENGINE_SOURCES_PYBIND
   source/PYBIND_Python/Asset.cpp
 )
 set(PRETOP_ENGINE_SOURCES_WEB

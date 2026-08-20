@@ -10,5 +10,27 @@ requires-python = ">=3.13"
 dependencies = []
 
 [build-system]
-requires = ["uv_build>=0.12.5,<0.13.0"]
-build-backend = "uv_build"
+requires = ["scikit-build-core>=1.0", "pybind11>=3.0"]
+build-backend = "scikit_build_core.build"
+
+[tool.scikit-build]
+minimum-version = "1.0"
+cmake.source-dir = "../.."
+cmake.define.BUILD_TESTING = "OFF"
+build.targets = ["pretop_native"]
+install.components = ["pretop"]
+wheel.packages = ["src/pretop"]
+
+[tool.scikit-build.sdist.force-include]
+"../../CMakeLists.txt" = "CMakeLists.txt"
+"../../cmake" = "cmake"
+"../../source" = "source"
+
+[[tool.scikit-build.overrides]]
+if.from-sdist = false
+build-dir = "../../build/engine"
+cmake.build-type = "Debug"
+
+[[tool.scikit-build.overrides]]
+if.from-sdist = true
+cmake.source-dir = "."

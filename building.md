@@ -78,6 +78,7 @@ Install the following dependencies:
 - **libxkbcommon-dev**
 - **mesa-common-dev**
 - **pkg-config**
+- **python3-dev**
 
 ## Build instructions
 

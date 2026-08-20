@@ -7,7 +7,7 @@ int add(int a, int b)
     return a + b;
 }
 
-PYBIND11_MODULE(pretop_engine_python, module)
+PYBIND11_MODULE(_native, module)
 {
     module.def("add", &add, "Add two integers");
 }
