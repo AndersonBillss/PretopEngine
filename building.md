@@ -8,7 +8,6 @@
 
 Make sure the following tools are installed and available in your system `PATH`:
 
-- **Go**
 - **UV**
 - **Python**
 - **MSVC Build Tools**
@@ -19,41 +18,25 @@ Make sure the following tools are installed and available in your system `PATH`:
 
 ## Build Instructions
 
-### Option 1: Visual Studio Community 2022
-
-If you are using **Visual Studio Installer (Community 2022)**:
-
-1. Run:
-
-   ```
-   ./script/windows/setup.bat
-   ```
-
-2. Then start the engine:
-
-   ```
-   ./script/windows/run.bat
-   ```
-
----
-
-### Option 2: Other Visual Studio Versions
-
-If you are using a different version of Visual Studio:
-
 1. Open an **MSVC Developer Command Prompt**
    (This ensures the compiler and environment variables are set correctly.)
 
-2. Run the setup build:
+2. Sync uv project:
 
    ```
-   uv run python cli.py setup
+   uv sync
    ```
 
-3. Run the engine:
+3. Run the setup build:
 
    ```
-   uv run python cli.py run native
+   uv run cli.py setup
+   ```
+
+4. Run the engine:
+
+   ```
+   uv run cli.py run native
    ```
 
 # Building the Engine for Linux 
@@ -82,13 +65,19 @@ Install the following dependencies:
 
 ## Build instructions
 
-1. Run the setup build:
+1. Sync uv project:
 
    ```
    uv run python cli.py setup
    ```
 
-2. Run the engine:
+2. Run the setup build:
+
+   ```
+   uv run python cli.py setup
+   ```
+
+3. Run the engine:
 
    ```
    uv run python cli.py run native
@@ -108,9 +97,7 @@ After installation, activate the Emscripten environment and make sure the follow
 
 ## Build Instructions
 
-Unlike native builds, the web target does **not** require the Dawn setup step.
-
-Build and run the web target with:
+Follow the setup instructions for whatever OS your are using. Build and run the web target with:
 
 ```
 uv run python cli.py run web

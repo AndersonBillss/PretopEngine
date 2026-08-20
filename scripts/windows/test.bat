@@ -1,7 +1,0 @@
-
-@echo off
-setlocal
-call "%~dp0shared\load-msvc.bat" || exit /b 1
-call "%~dp0shared\enter-root-dir.bat" || exit /b 1
-
-uv run python cli.py run test
