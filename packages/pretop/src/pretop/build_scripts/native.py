@@ -1,8 +1,9 @@
-from pretop.utils.cmd import cmd 
+from pretop.utils.cmd import cmd
 from pretop.shared.constants import BUILD_DIR, COMPILER_C, COMPILER_CPP, EXE_SUFFIX
 from pretop.codegen.gen_sources import gen_sources
 
 ENGINE_OUT = f"{BUILD_DIR}/engine"
+
 
 def configure_native_debug():
     if (
@@ -18,7 +19,7 @@ def configure_native_debug():
                 f"-DCMAKE_C_COMPILER={COMPILER_C}",
                 f"-DCMAKE_CXX_COMPILER={COMPILER_CPP}",
                 "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
-                "-DCMAKE_BUILD_TYPE=Debug"
+                "-DCMAKE_BUILD_TYPE=Debug",
             ]
         ).returncode
         != 0
@@ -35,6 +36,35 @@ def build_native_debug(target="pretop_engine"):
 def run_native_debug():
     build_native_debug()
     return cmd([f"build/engine/pretop_engine{EXE_SUFFIX}"])
+
+
+def build_python():
+    if (
+        cmd(
+            [
+                "cmake",
+                "--build",
+                "build/engine",
+                "--target",
+                "pretop_python",
+            ]
+        )
+    ).returncode != 0:
+        print("Python Build failed")
+        exit(1)
+
+    return cmd(
+        [
+            "cmake",
+            "--install",
+            "build/engine",
+            "--prefix",
+            ".venv/lib/python3.13/site-packages",
+            "--component",
+            "pretop",
+        ]
+    ).returncode
+
 
 def run_tests(args: list[str]):
     build_native_debug("pretop_engine_tests")

@@ -4,7 +4,7 @@ namespace py = pybind11;
 
 int add(int a, int b)
 {
-    return a * b * b;
+    return a + b;
 }
 
 PYBIND11_MODULE(_native, module)

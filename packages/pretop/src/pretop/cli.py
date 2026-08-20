@@ -5,7 +5,13 @@ import sys
 from pretop.assets.importer import import_assets
 from pretop.codegen.gen_code import gen_code
 from pretop.codegen.gen_sources import gen_sources
-from pretop.build_scripts.native import build_native_debug, configure_native_debug, run_native_debug, run_tests
+from pretop.build_scripts.native import (
+    build_native_debug,
+    build_python,
+    configure_native_debug,
+    run_native_debug,
+    run_tests,
+)
 from pretop.build_scripts.web import build_web_debug, run_web_debug
 
 
@@ -73,6 +79,7 @@ COMMANDS = {
     "build": {
         "native": Command(build_native_debug, "Build engine for native"),
         "web": Command(build_web_debug, "Build engine for web"),
+        "python": Command(build_python, "Build C++ python module"),
     },
     "run": {
         "native": Command(run_native_debug, "Run the engine for native"),
@@ -83,7 +90,7 @@ COMMANDS = {
         "sources": Command(gen_sources, "Generate CMake sources"),
         "code": Command(gen_code, "Generate C++ code"),
     },
-    "import": Command(import_assets, "Import assets")
+    "import": Command(import_assets, "Import assets"),
 }
 
 
@@ -135,7 +142,7 @@ def cli():
     if result is None:
         print(f"unknown command: {cmd_str}")
         exit(0)
-    (command, cmd_split_index) = result
+    command, cmd_split_index = result
     cmd_name = cmd[:cmd_split_index]
     cmd_args = cmd[cmd_split_index:]
     print(cmd_str)
