@@ -17,7 +17,7 @@ build-backend = "scikit_build_core.build"
 minimum-version = "1.0"
 cmake.source-dir = "../.."
 cmake.define.BUILD_TESTING = "OFF"
-build.targets = ["pretop_native"]
+build.targets = ["pretop_python"]
 install.components = ["pretop"]
 wheel.packages = ["src/pretop"]
 
