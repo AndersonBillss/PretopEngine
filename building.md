@@ -68,7 +68,7 @@ Install the following dependencies:
 1. Sync uv project:
 
    ```
-   uv run python cli.py setup
+   uv sync
    ```
 
 2. Run the setup build:
