@@ -37,9 +37,11 @@ class SourceTracker:
         else:
             self.src_targets[target] = [filepath]
 
+
 def get_current_file_contents():
     with open(OUT_FILE, "r", encoding="utf-8") as file:
         return file.read()
+
 
 def save_rules(file_contents: str):
     if get_current_file_contents() == file_contents:
@@ -47,11 +49,13 @@ def save_rules(file_contents: str):
     with open(OUT_FILE, "w") as output:
         output.write(file_contents)
 
+
 def generate_file_contents(rules: list[str]):
     file_content = STARTING_COMMENT + "\n"
     for rule in rules:
         file_content += f"{rule}\n"
     return file_content
+
 
 def generate_rule(sources: list[str], label) -> str:
     sources.sort()
@@ -63,6 +67,7 @@ def generate_rule(sources: list[str], label) -> str:
     result = f"set({label}\n{concat_files}\n)"
     return result
 
+
 def get_tests():
     test_files = []
     for root, dirs, files in os.walk("tests"):
@@ -70,10 +75,11 @@ def get_tests():
             filepath = os.path.join(root, file).replace("\\", "/")
             if file.endswith(".cpp"):
                 test_files += [filepath]
-    
+
     return test_files
 
-def gen_sources():
+
+def gen_sources(app=None):
     tracker = SourceTracker()
     for root, dirs, files in os.walk(SOURCE_DIR):
         for file in files:
@@ -87,8 +93,10 @@ def gen_sources():
         generate_rule(tracker.src_files, RULE_PREFIX),
     ]
     for key in tracker.src_targets:
-        target_files_rules += [generate_rule(tracker.src_targets[key], f"{RULE_PREFIX}_" + key)]
-        
+        target_files_rules += [
+            generate_rule(tracker.src_targets[key], f"{RULE_PREFIX}_" + key)
+        ]
+
     target_files_rules.sort()
     file_contents = generate_file_contents(target_files_rules)
     save_rules(file_contents)

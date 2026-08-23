@@ -12,7 +12,7 @@ from pretop.shared.constants import (
 from pretop.codegen.gen_sources import gen_sources
 
 
-def configure_native_debug():
+def configure_native_debug(app=None):
     if (
         cmd(
             [
@@ -35,17 +35,17 @@ def configure_native_debug():
         exit(1)
 
 
-def build_native_debug(target=NATIVE_TARGET):
+def build_native_debug(app=None, target=NATIVE_TARGET):
     gen_sources()
     return cmd(["cmake", "--build", ENGINE_OUT, "--target", target])
 
 
-def run_native_debug():
+def run_native_debug(app=None):
     build_native_debug()
     return cmd([f"{ENGINE_OUT}/{NATIVE_TARGET}{EXE_SUFFIX}"])
 
 
-def build_python():
+def build_python(app=None):
     if (
         cmd(
             [
@@ -73,6 +73,6 @@ def build_python():
     ).returncode
 
 
-def run_tests(args: list[str]):
-    build_native_debug(TEST_TARGET)
+def run_tests(args: list[str], app=None):
+    build_native_debug(target=TEST_TARGET)
     return cmd([f"{ENGINE_OUT}/{TEST_TARGET}{EXE_SUFFIX}"] + args)

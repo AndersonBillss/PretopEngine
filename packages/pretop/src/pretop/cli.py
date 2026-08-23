@@ -2,6 +2,7 @@ from subprocess import SubprocessError
 from enum import Enum
 import sys
 
+from pretop.app import App
 from pretop.assets.importer import import_assets
 from pretop.codegen.gen_code import gen_code
 from pretop.codegen.gen_sources import gen_sources
@@ -26,11 +27,11 @@ class Command:
         self.description = description
         self.arg_type = arg_type
 
-    def run(self, args: list[str]):
+    def run(self, app: App, args: list[str]):
         if self.arg_type == ArgType.NONE:
-            self.fn()
+            self.fn(app=app)
         else:
-            self.fn(args)
+            self.fn(app=app, args=args)
 
 
 DESCRIPTION = "AB Engine: A performant game engine built for web and native"
@@ -68,7 +69,7 @@ def print_help(cmdTree: dict, tabs: int = 1):
             print_help(val, tabs + 1)
 
 
-def help():
+def help(app=None):
     print_desc()
     print_help(COMMANDS)
 
@@ -116,9 +117,9 @@ def get_command(
     return None
 
 
-def handle_command(command: Command, args: list[str]):
+def handle_command(command: Command, app: App, args: list[str]):
     try:
-        command.run(args)
+        command.run(app=app, args=args)
     except KeyboardInterrupt:
         pass
     except SubprocessError:
@@ -132,7 +133,7 @@ def validate_command(command: Command, cmd_name: list[str], args: list[str]):
         exit(0)
 
 
-def cli():
+def cli(app: App):
     cmd: list[str] = sys.argv[1:]
     if len(cmd) == 0:
         help()
@@ -147,4 +148,4 @@ def cli():
     cmd_args = cmd[cmd_split_index:]
     print(cmd_str)
     validate_command(command, cmd_name, cmd_args)
-    handle_command(command, cmd_args)
+    handle_command(command, app, cmd_args)

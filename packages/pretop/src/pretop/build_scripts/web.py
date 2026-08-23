@@ -10,7 +10,7 @@ if sys.platform == "win32":
 
 
 # Web engine commands
-def build_web_debug():
+def build_web_debug(app=None):
     gen_sources()
     if (
         cmd(
@@ -33,7 +33,7 @@ def build_web_debug():
     return cmd(["cmake", "--build", ENGINE_WEB_OUT])
 
 
-def run_web_debug():
+def run_web_debug(app=None):
     build_web_debug()
     print(f"Running engine at http://localhost:8000/{NATIVE_TARGET}.html")
     run_server()
