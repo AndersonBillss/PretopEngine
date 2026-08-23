@@ -1,5 +1,8 @@
 # Auto-generated code, do not edit
+set(ASSET_DIR
+  .pretop/assets
+)
 set(VFS_FILES
-  .pretop/assets/shaders/shader.wgsl
-  .pretop/assets/shaders/textureDemoShader.wgsl
+  shaders/shader.wgsl
+  shaders/textureDemoShader.wgsl
 )

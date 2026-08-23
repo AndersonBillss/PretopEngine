@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.21)
 project(PretopEngine LANGUAGES C CXX)
 
 include(cmake/Sources.cmake)
+include(cmake/VfsFiles.cmake)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

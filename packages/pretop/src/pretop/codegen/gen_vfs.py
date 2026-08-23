@@ -1,17 +1,19 @@
 from pathlib import Path
 
+from pretop.shared.constants import ASSET_OUTPUT_DIR
+
 VFS_FILES_DIR = "cmake/VfsFiles.cmake"
 STARTING_COMMENT = "# Auto-generated code, do not edit"
 VFS_SOURCES_RULE_NAME = "VFS_FILES"
 
 
-def gen_vfs(asset_dir: Path, files: list[Path | str]):
-    file_start = f"{STARTING_COMMENT}\nset({VFS_SOURCES_RULE_NAME}\n"
+def gen_vfs(files: list[Path | str]):
+    file_start = f"{STARTING_COMMENT}\nset(ASSET_DIR\n  {ASSET_OUTPUT_DIR}\n)\nset({VFS_SOURCES_RULE_NAME}\n"
     file_end = ")\n"
 
     file_contents = file_start
     for file in files:
-        file_contents += f"  {asset_dir / Path(file)}\n"
+        file_contents += f"  {file}\n"
 
     file_contents += file_end
 

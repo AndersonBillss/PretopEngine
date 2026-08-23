@@ -24,7 +24,7 @@ def import_assets(app: App):
             for f in iter_files(ASSET_INPUT_DIR / file_import.path)
         ]
         if file_import.is_vfs:
-            gen_vfs(Path(ASSET_OUTPUT_DIR), files_to_import)
+            gen_vfs(files_to_import)
 
         for impt in files_to_import:
             source = Path(ASSET_INPUT_DIR) / impt
