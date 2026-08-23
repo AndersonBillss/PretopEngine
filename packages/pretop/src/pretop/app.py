@@ -6,7 +6,9 @@ class ImportConfig:
         self.__file_imports: list[FileImport] = []
 
     def import_copy(self, path: str):
-        self.__file_imports.append(CopyImport(path))
+        file_import = CopyImport(path)
+        self.__file_imports.append(file_import)
+        return file_import
 
     def get_imports(self) -> list[FileImport]:
         return self.__file_imports
