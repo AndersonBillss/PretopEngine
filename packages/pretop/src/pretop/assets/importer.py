@@ -19,13 +19,15 @@ def iter_files(path: str | Path) -> Iterator[Path]:
 def import_assets(app: App):
     Path(ASSET_OUTPUT_DIR).parent.mkdir(parents=True, exist_ok=True)
     for file_import in app.imports.get_imports():
-        files_to_import = [f for f in iter_files(ASSET_INPUT_DIR / file_import.path)]
+        files_to_import = [
+            f.relative_to(f.parts[0])
+            for f in iter_files(ASSET_INPUT_DIR / file_import.path)
+        ]
         if file_import.is_vfs:
-            gen_vfs("", files_to_import)
+            gen_vfs(Path(ASSET_OUTPUT_DIR), files_to_import)
 
         for impt in files_to_import:
-            relative_impt = impt.relative_to(impt.parts[0])
-            source = Path(ASSET_INPUT_DIR) / relative_impt
-            destination = Path(ASSET_OUTPUT_DIR) / relative_impt
+            source = Path(ASSET_INPUT_DIR) / impt
+            destination = Path(ASSET_OUTPUT_DIR) / impt
             destination.parent.mkdir(parents=True, exist_ok=True)
             file_import.import_file(source, destination)
