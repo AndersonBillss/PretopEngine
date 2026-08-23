@@ -1,8 +1,15 @@
 from pretop.utils.cmd import cmd
-from pretop.shared.constants import BUILD_DIR, COMPILER_C, COMPILER_CPP, EXE_SUFFIX
+from pretop.shared.constants import (
+    COMPILER_C,
+    COMPILER_CPP,
+    NATIVE_TARGET,
+    ENGINE_OUT,
+    EXE_SUFFIX,
+    PYTHON_LIBRARY_NAME,
+    PYTHON_PACKAGE_TARGET,
+    TEST_TARGET,
+)
 from pretop.codegen.gen_sources import gen_sources
-
-ENGINE_OUT = f"{BUILD_DIR}/engine"
 
 
 def configure_native_debug():
@@ -28,14 +35,14 @@ def configure_native_debug():
         exit(1)
 
 
-def build_native_debug(target="pretop_engine"):
+def build_native_debug(target=NATIVE_TARGET):
     gen_sources()
     return cmd(["cmake", "--build", ENGINE_OUT, "--target", target])
 
 
 def run_native_debug():
     build_native_debug()
-    return cmd([f"build/engine/pretop_engine{EXE_SUFFIX}"])
+    return cmd([f"{ENGINE_OUT}/{NATIVE_TARGET}{EXE_SUFFIX}"])
 
 
 def build_python():
@@ -44,9 +51,9 @@ def build_python():
             [
                 "cmake",
                 "--build",
-                "build/engine",
+                ENGINE_OUT,
                 "--target",
-                "pretop_python",
+                PYTHON_PACKAGE_TARGET,
             ]
         )
     ).returncode != 0:
@@ -57,15 +64,15 @@ def build_python():
         [
             "cmake",
             "--install",
-            "build/engine",
+            ENGINE_OUT,
             "--prefix",
             ".venv/lib/python3.13/site-packages",
             "--component",
-            "pretop",
+            PYTHON_LIBRARY_NAME,
         ]
     ).returncode
 
 
 def run_tests(args: list[str]):
-    build_native_debug("pretop_engine_tests")
-    return cmd([f"build/engine/pretop_engine_tests{EXE_SUFFIX}"] + args)
+    build_native_debug(TEST_TARGET)
+    return cmd([f"{ENGINE_OUT}/{TEST_TARGET}{EXE_SUFFIX}"] + args)

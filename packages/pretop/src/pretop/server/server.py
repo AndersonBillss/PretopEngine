@@ -6,22 +6,25 @@ import webbrowser
 import sys
 import os
 
-from pretop.shared.constants import ENGINE_DIR, ASSET_OUTPUT_DIR, ENGINE_NAME
-
-PORT = 8000
-BUILD_DIRECTORY = "build/web-engine"
+from pretop.shared.constants import (
+    ASSET_OUTPUT_DIR,
+    ENGINE_NAME,
+    ENGINE_WEB_OUT,
+    WEB_ASSET_PATH_PREFIX,
+    WEB_SERVER_PORT,
+)
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def translate_path(self, path):
-        if path.startswith("/assets/"):
-            relative_path = path[len("/assets/") :]
+        if path.startswith(f"/{WEB_ASSET_PATH_PREFIX}/"):
+            relative_path = path[len(f"/{WEB_ASSET_PATH_PREFIX}/") :]
             return os.path.join(os.getcwd(), Path(ASSET_OUTPUT_DIR), relative_path)
 
         return super().translate_path(path)
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=BUILD_DIRECTORY, **kwargs)
+        super().__init__(*args, directory=ENGINE_WEB_OUT, **kwargs)
 
     def end_headers(self):
         self.send_header("Cross-Origin-Opener-Policy", "same-origin")
@@ -29,7 +32,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
 
-def run_server(port=PORT, input_stream=None):
+def run_server(port=WEB_SERVER_PORT, input_stream=None):
     if input_stream is None:
         input_stream = sys.stdin
 
@@ -55,7 +58,7 @@ def run_server(port=PORT, input_stream=None):
         httpd.server_close()
 
 
-def key_listener(port=PORT, input_stream=None):
+def key_listener(port=WEB_SERVER_PORT, input_stream=None):
     if input_stream is None:
         input_stream = sys.stdin
 

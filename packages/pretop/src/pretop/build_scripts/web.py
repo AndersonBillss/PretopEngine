@@ -1,10 +1,8 @@
 from pretop.utils.cmd import cmd
-from pretop.shared.constants import BUILD_DIR, ENGINE_NAME
+from pretop.shared.constants import ENGINE_WEB_OUT, NATIVE_TARGET
 from pretop.codegen.gen_sources import gen_sources
 from pretop.server.server import run_server
 import sys
-
-ENGINE_WEB_OUT = f"{BUILD_DIR}/web-engine"
 
 EMCMAKE = "emcmake"
 if sys.platform == "win32":
@@ -17,13 +15,13 @@ def build_web_debug():
     if (
         cmd(
             [
-                EMCMAKE, 
-                "cmake", 
-                "-S", 
-                ".", 
-                "-B", 
-                ENGINE_WEB_OUT, 
-                "-G", 
+                EMCMAKE,
+                "cmake",
+                "-S",
+                ".",
+                "-B",
+                ENGINE_WEB_OUT,
+                "-G",
                 "Ninja",
                 "-DCMAKE_BUILD_TYPE=Debug",
             ]
@@ -37,5 +35,5 @@ def build_web_debug():
 
 def run_web_debug():
     build_web_debug()
-    print(f"Running engine at http://localhost:8000/{ENGINE_NAME}.html")
+    print(f"Running engine at http://localhost:8000/{NATIVE_TARGET}.html")
     run_server()

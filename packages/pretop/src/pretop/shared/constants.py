@@ -1,13 +1,21 @@
 from pathlib import Path
 import platform
 
+PYTHON_LIBRARY_NAME = "pretop"
 ENGINE_NAME = "pretop_engine"
+NATIVE_TARGET = "pretop_engine"
+TEST_TARGET = "pretop_engine_tests"
+PYTHON_PACKAGE_TARGET = "pretop_python"
 
 BUILD_DIR = "build"
+ENGINE_OUT = f"{BUILD_DIR}/engine"
+ENGINE_WEB_OUT = f"{BUILD_DIR}/web-engine"
+WEB_SERVER_PORT = 8000
+
 ENGINE_DIR = ".pretop"
 
 ASSET_INPUT_DIR = "assets"
-ASSET_OUTPUT_DIR = Path(ENGINE_DIR) / Path("assets")
+ASSET_OUTPUT_DIR = f"{ENGINE_DIR}/assets"
 WEB_ASSET_PATH_PREFIX = "assets"
 
 SOURCE_DIR = "source"
