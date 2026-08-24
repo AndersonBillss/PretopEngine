@@ -39,7 +39,7 @@ if(EMSCRIPTEN)
     get_filename_component(vfs_runtime_root "${ASSET_DIR}" NAME)
     foreach(vfs_file IN LISTS VFS_FILES)
         target_link_options(pretop_engine PRIVATE
-            "--preload-file" "${CMAKE_SOURCE_DIR}/${ASSET_DIR}/${vfs_file}@/${vfs_runtime_root}/${vfs_file}"
+            "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/${ASSET_DIR}/${vfs_file}@/${vfs_runtime_root}/${vfs_file}"
         )
     endforeach()
 

@@ -17,9 +17,9 @@ FILE_CONTENTS = (
     FILE_COMMENT
     + FILE_HEADER
     + "#ifdef PRETOP_PLATFORM_WEB\n"
-    + createAssetBaseDeclaration(ASSET_OUTPUT_DIR)
-    + "#else\n"
     + createAssetBaseDeclaration(WEB_ASSET_PATH_PREFIX)
+    + "#else\n"
+    + createAssetBaseDeclaration(ASSET_OUTPUT_DIR)
     + "#endif\n"
 )
 
