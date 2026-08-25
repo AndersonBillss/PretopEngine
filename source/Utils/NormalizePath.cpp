@@ -73,7 +73,7 @@ std::string Pretop::Utils::NormalizePath(std::string_view path)
         }
     }
 
-    size_t pathEnd = 0;
+    size_t pathEnd = pathBegin;
     for (size_t i = path.size() - 1; i > pathBegin; i--)
     {
         if (!isWhitespace(path[i]))

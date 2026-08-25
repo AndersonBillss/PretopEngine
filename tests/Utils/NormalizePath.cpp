@@ -145,9 +145,11 @@ TEST_CASE("NormalizePath preserves non-special path components",
 }
 
 TEST_CASE("NormalizePath handles root paths",
-          "[Utils][NormalizePath]")
+          "[Utils][NormalizePath][only]")
 {
     REQUIRE(Pretop::Utils::NormalizePath("/") == "/");
+
+    REQUIRE(Pretop::Utils::NormalizePath("   /   ") == "/");
 
     REQUIRE(Pretop::Utils::NormalizePath("/test/..") == "/");
 
