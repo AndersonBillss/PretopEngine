@@ -107,3 +107,72 @@ TEST_CASE("NormalizePath is idempotent",
 
     REQUIRE(Pretop::Utils::NormalizePath(normalized) == normalized);
 }
+
+TEST_CASE("NormalizePath collapses repeated separators",
+          "[Utils][NormalizePath]")
+{
+    REQUIRE(Pretop::Utils::NormalizePath("assets//test///player.png") == "assets/test/player.png");
+
+    REQUIRE(Pretop::Utils::NormalizePath("///assets/player.png") == "/assets/player.png");
+}
+
+TEST_CASE("NormalizePath resolves ordinary current-directory segments",
+          "[Utils][NormalizePath]")
+{
+    REQUIRE(Pretop::Utils::NormalizePath("assets/./test/./player.png") == "assets/test/player.png");
+
+    REQUIRE(Pretop::Utils::NormalizePath("assets/./../player.png") == "player.png");
+}
+
+TEST_CASE("NormalizePath resolves multiple parent segments",
+          "[Utils][NormalizePath]")
+{
+    REQUIRE(Pretop::Utils::NormalizePath("assets/test/../../player.png") == "player.png");
+
+    REQUIRE(Pretop::Utils::NormalizePath("a/b/../../player.png") == "player.png");
+
+    REQUIRE(Pretop::Utils::NormalizePath("a/../../player.png") == "../player.png");
+}
+
+TEST_CASE("NormalizePath preserves non-special path components",
+          "[Utils][NormalizePath]")
+{
+    REQUIRE(Pretop::Utils::NormalizePath("..hidden/player.png") == "..hidden/player.png");
+
+    REQUIRE(Pretop::Utils::NormalizePath("file..txt") == "file..txt");
+
+    REQUIRE(Pretop::Utils::NormalizePath("test.../player.png") == "test.../player.png");
+}
+
+TEST_CASE("NormalizePath handles root paths",
+          "[Utils][NormalizePath]")
+{
+    REQUIRE(Pretop::Utils::NormalizePath("/") == "/");
+
+    REQUIRE(Pretop::Utils::NormalizePath("/test/..") == "/");
+
+    REQUIRE(Pretop::Utils::NormalizePath("/test/../") == "/");
+}
+
+TEST_CASE("NormalizePath trims whitespace from path ends",
+          "[Utils][NormalizePath]")
+{
+    REQUIRE(Pretop::Utils::NormalizePath("  assets/player.png  ") == "assets/player.png");
+
+    REQUIRE(Pretop::Utils::NormalizePath(
+                "\t./assets/player.png\r\n") == "assets/player.png");
+
+    REQUIRE(Pretop::Utils::NormalizePath(" \t\r\n ") == "");
+
+    REQUIRE(Pretop::Utils::NormalizePath(" \t. \r\n") == "");
+}
+
+TEST_CASE("NormalizePath preserves internal whitespace",
+          "[Utils][NormalizePath]")
+{
+    REQUIRE(Pretop::Utils::NormalizePath("assets/my player.png") == "assets/my player.png");
+
+    REQUIRE(Pretop::Utils::NormalizePath("assets/ player.png") == "assets/ player.png");
+
+    REQUIRE(Pretop::Utils::NormalizePath("assets/player .png") == "assets/player .png");
+}

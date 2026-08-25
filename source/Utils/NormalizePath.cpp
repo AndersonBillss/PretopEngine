@@ -1,6 +1,12 @@
 #include "NormalizePath.hpp"
 #include <algorithm>
 #include <iostream>
+#include <cctype>
+
+bool isWhitespace(char ch)
+{
+    return std::isspace(static_cast<unsigned char>(ch));
+}
 
 bool strMatch(std::string_view a, int offset, std::string_view b)
 {
@@ -43,7 +49,8 @@ int strFindBackwards(std::string_view haystack, int offset, std::string_view nee
 
 std::string Pretop::Utils::NormalizePath(std::string_view path)
 {
-    if (path == ".")
+
+    if (path.size() == 0 || path == ".")
     {
         return {};
     }
@@ -51,23 +58,61 @@ std::string Pretop::Utils::NormalizePath(std::string_view path)
     std::string normalized;
     normalized.reserve(path.size());
 
-    std::string pathCpy(path);
-    std::replace(pathCpy.begin(), pathCpy.end(), '\\', '/');
-
-    for (size_t i = 0; i < pathCpy.size(); i++)
+    size_t pathBegin = 0;
+    for (size_t i = 0; i < path.size(); i++)
     {
-        bool isLastChar = i == pathCpy.size() - 1;
-        if (isLastChar && pathCpy[i] == '/')
+        if (!isWhitespace(path[i]))
+        {
+            pathBegin = i;
+            break;
+        }
+    }
+
+    size_t pathEnd = 0;
+    for (size_t i = path.size() - 1; i > pathBegin; i--)
+    {
+        if (!isWhitespace(path[i]))
+        {
+            pathEnd = i;
+            break;
+        }
+    }
+
+    if (pathEnd <= pathBegin)
+    {
+        return {};
+    }
+
+    std::string sanitizedPath;
+    sanitizedPath.reserve(pathEnd - pathBegin);
+    for (size_t i = pathBegin; i <= pathEnd; i++)
+    {
+        if (path[i] == '\\')
+        {
+            sanitizedPath += '/';
+        }
+        else
+        {
+            sanitizedPath += path[i];
+        }
+    }
+
+    for (size_t i = 0; i < sanitizedPath.size(); i++)
+    {
+        bool isLastChar = i == sanitizedPath.size() - 1;
+        if (isLastChar && sanitizedPath[i] == '/')
         {
             continue;
         }
-        if (strMatch(pathCpy, i, "../"))
+
+        char lastAddedChar = '\0';
+        if (normalized.size() > 0)
         {
-            char lastAddedChar = '\0';
-            if (normalized.size() > 0)
-            {
-                lastAddedChar = normalized[normalized.size() - 1];
-            }
+            lastAddedChar = normalized[normalized.size() - 1];
+        }
+
+        if (strMatch(sanitizedPath, i, "../"))
+        {
             if (lastAddedChar != '/')
             {
                 normalized += "../";
@@ -76,7 +121,8 @@ std::string Pretop::Utils::NormalizePath(std::string_view path)
             }
             int beforeBacktrack = strFindBackwards(normalized, normalized.size() - 2, "/");
             size_t eraseIndex = beforeBacktrack + 1;
-            if(eraseIndex == 0 && normalized[0] == '/') {
+            if (eraseIndex == 0 && normalized[0] == '/')
+            {
                 continue;
             }
             if (beforeBacktrack == -1)
@@ -102,13 +148,17 @@ std::string Pretop::Utils::NormalizePath(std::string_view path)
             normalized.erase(eraseIndex);
             i += 2;
         }
-        else if (strMatch(pathCpy, i, "./"))
+        else if (lastAddedChar == '/' && sanitizedPath[i] == '/')
+        {
+            continue;
+        }
+        else if (strMatch(sanitizedPath, i, "./"))
         {
             i++;
         }
         else
         {
-            normalized += pathCpy[i];
+            normalized += sanitizedPath[i];
         }
     }
     return normalized;
