@@ -29,7 +29,7 @@ HEADER_CONTENTS = (
     + "#ifdef PRETOP_PLATFORM_WEB\n"
     + "        Pretop::Gen::SourceType SourceType;\n"
     + "#endif\n"
-    + "    };"
+    + "    };\n"
     + "\n"
     + "    extern const std::unordered_map<uint64_t, FileMetadata> AssetMetadata;\n"
     + "}\n"
