@@ -24,6 +24,15 @@ bool strMatch(std::string_view a, int offset, std::string_view b)
     return true;
 }
 
+bool endMatch(std::string_view a, int offset, std::string_view b)
+{
+    if (a.size() - offset != b.size())
+    {
+        return false;
+    }
+    return strMatch(a, offset, b);
+}
+
 int strFind(std::string_view haystack, int offset, std::string_view needle)
 {
     for (int i = offset; i < haystack.size(); i++)
@@ -49,8 +58,7 @@ int strFindBackwards(std::string_view haystack, int offset, std::string_view nee
 
 std::string Pretop::Utils::NormalizePath(std::string_view path)
 {
-
-    if (path.size() == 0 || path == ".")
+    if (path.size() == 0)
     {
         return {};
     }
@@ -117,7 +125,7 @@ std::string Pretop::Utils::NormalizePath(std::string_view path)
             lastAddedChar = normalized[normalized.size() - 1];
         }
 
-        if (strMatch(sanitizedPath, i, "../"))
+        if (strMatch(sanitizedPath, i, "../") || endMatch(sanitizedPath, i, ".."))
         {
             if (lastAddedChar != '/')
             {
@@ -158,7 +166,7 @@ std::string Pretop::Utils::NormalizePath(std::string_view path)
         {
             continue;
         }
-        else if (strMatch(sanitizedPath, i, "./"))
+        else if (strMatch(sanitizedPath, i, "./") || endMatch(sanitizedPath, i, "."))
         {
             i++;
         }
