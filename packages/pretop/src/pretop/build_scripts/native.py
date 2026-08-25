@@ -12,7 +12,7 @@ from pretop.shared.constants import (
 from pretop.codegen.generate_sources import gen_sources
 
 
-def configure_native_debug(app=None):
+def configure_native_debug():
     if (
         cmd(
             [
