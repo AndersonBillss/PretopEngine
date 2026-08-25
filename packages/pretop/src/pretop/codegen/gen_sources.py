@@ -1,10 +1,8 @@
-# Generate sources for CMake
-from pretop.shared.constants import SOURCE_DIR
+from pretop.shared.constants import CMAKE_COMMENT, GENERATED_CODE_COMMENT, SOURCE_DIR
 
 import os
 
 OUT_FILE = "cmake/Sources.cmake"
-STARTING_COMMENT = "# Auto-generated code, do not edit"
 MAIN_RULE_PREFIX = "PRETOP_ENGINE_MAIN"
 RULE_PREFIX = "PRETOP_ENGINE_SOURCES"
 TEST_RULE_PREFIX = "PRETOP_ENGINE_TEST_SOURCES"
@@ -51,7 +49,7 @@ def save_rules(file_contents: str):
 
 
 def generate_file_contents(rules: list[str]):
-    file_content = STARTING_COMMENT + "\n"
+    file_content = f"{CMAKE_COMMENT} {GENERATED_CODE_COMMENT}\n"
     for rule in rules:
         file_content += f"{rule}\n"
     return file_content

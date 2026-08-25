@@ -5,11 +5,14 @@ from pretop.assets.file_import import FileImport
 from pretop.shared.constants import (
     ASSET_METADATA_DIR,
     ASSET_METADATA_OUT,
+    CPP_COMMENT,
+    GENERATED_CODE_COMMENT,
 )
 from pretop._native import get_asset_id
 
 HEADER_CONTENTS = (
-    "#pragma once\n"
+    f"{CPP_COMMENT} {GENERATED_CODE_COMMENT}\n"
+    + "#pragma once\n"
     + "#include <unordered_map>\n"
     + "#include <string>\n"
     + "#include <cstdint>\n"
@@ -55,7 +58,8 @@ def gen_asset_metadata(import_config: ImportConfig):
     asset_input_dir = import_config.get_asset_dir()
 
     CPP_CONTENTS_START = (
-        f'#include "{ASSET_METADATA_DIR}.hpp"\n'
+        f"{CPP_COMMENT} {GENERATED_CODE_COMMENT}\n"
+        + f'#include "{ASSET_METADATA_DIR}.hpp"\n'
         + "\n"
         + "const std::unordered_map<uint64_t, Pretop::Gen::FileMetadata> Pretop::Gen::AssetMetadata = {\n"
     )
