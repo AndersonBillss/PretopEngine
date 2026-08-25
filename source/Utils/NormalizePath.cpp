@@ -76,6 +76,9 @@ std::string Pretop::Utils::NormalizePath(std::string_view path)
             }
             int beforeBacktrack = strFindBackwards(normalized, normalized.size() - 2, "/");
             size_t eraseIndex = beforeBacktrack + 1;
+            if(eraseIndex == 0 && normalized[0] == '/') {
+                continue;
+            }
             if (beforeBacktrack == -1)
             {
                 if (normalized.size() > 0)
