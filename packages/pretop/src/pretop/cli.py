@@ -4,6 +4,7 @@ import sys
 
 from pretop.app import App
 from pretop.assets.importer import import_assets
+from pretop.codegen.generate_cmake import gen_cmake
 from pretop.codegen.generate_code import gen_code
 from pretop.codegen.generate_sources import gen_sources
 from pretop.build_scripts.native import (
@@ -90,6 +91,7 @@ COMMANDS = {
     "gen": {
         "sources": Command(gen_sources, "Generate CMake sources"),
         "code": Command(gen_code, "Generate C++ code"),
+        "cmake": Command(gen_cmake, "Generate CMAKE files and sources"),
     },
     "import": Command(import_assets, "Import assets"),
 }
