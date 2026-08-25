@@ -1,5 +1,11 @@
+from pathlib import Path
+
 from pretop.assets.file_import import FileImport
-from pretop.shared.constants import ASSET_METADATA_DIR, ASSET_METADATA_OUT
+from pretop.shared.constants import (
+    ASSET_INPUT_DIR,
+    ASSET_METADATA_DIR,
+    ASSET_METADATA_OUT,
+)
 from pretop._native import get_asset_id
 
 HEADER_CONTENTS = (
@@ -30,14 +36,14 @@ HEADER_CONTENTS = (
 )
 
 
-def create_metadata(file_import: FileImport):
+def create_metadata(asset_import: FileImport, file_import: Path):
     return (
         "    {\n"
-        + f"        {get_asset_id(str(file_import.path))},\n"
+        + f"        {get_asset_id(str(file_import))},\n"
         + "        {\n"
-        + f'            "{file_import.path}",\n'
+        + f'            "{file_import}",\n'
         + "#ifdef PRETOP_PLATFORM_WEB\n"
-        + f"            Pretop::Gen::SourceType::{"VFS" if file_import.is_vfs else "HTTP"},\n"
+        + f"            Pretop::Gen::SourceType::{"VFS" if asset_import.is_vfs else "HTTP"},\n"
         + "#endif\n"
         + "        },\n"
         + "    },\n"
@@ -53,8 +59,9 @@ def gen_asset_metadata(file_imports: list[FileImport]):
     CPP_CONTENTS_END = "};\n"
 
     cpp_contents = CPP_CONTENTS_START
-    for file_import in file_imports:
-        cpp_contents += create_metadata(file_import)
+    for asset_import in file_imports:
+        for file_import in asset_import.iter_files(ASSET_INPUT_DIR):
+            cpp_contents += create_metadata(asset_import, file_import)
 
     cpp_contents += CPP_CONTENTS_END
 
