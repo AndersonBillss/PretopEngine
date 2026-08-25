@@ -1,8 +1,8 @@
 from pathlib import Path
 
+from pretop.app import ImportConfig
 from pretop.assets.file_import import FileImport
 from pretop.shared.constants import (
-    ASSET_INPUT_DIR,
     ASSET_METADATA_DIR,
     ASSET_METADATA_OUT,
 )
@@ -50,7 +50,10 @@ def create_metadata(asset_import: FileImport, file_import: Path):
     )
 
 
-def gen_asset_metadata(file_imports: list[FileImport]):
+def gen_asset_metadata(import_config: ImportConfig):
+    file_imports = import_config.get_imports()
+    asset_input_dir = import_config.get_asset_dir()
+
     CPP_CONTENTS_START = (
         f'#include "{ASSET_METADATA_DIR}.hpp"\n'
         + "\n"
@@ -60,7 +63,7 @@ def gen_asset_metadata(file_imports: list[FileImport]):
 
     cpp_contents = CPP_CONTENTS_START
     for asset_import in file_imports:
-        for file_import in asset_import.iter_files(ASSET_INPUT_DIR):
+        for file_import in asset_import.iter_files(asset_input_dir):
             cpp_contents += create_metadata(asset_import, file_import)
 
     cpp_contents += CPP_CONTENTS_END

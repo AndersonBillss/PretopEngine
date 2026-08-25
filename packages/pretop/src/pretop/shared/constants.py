@@ -14,7 +14,6 @@ WEB_SERVER_PORT = 8000
 
 ENGINE_DIR = ".pretop"
 
-ASSET_INPUT_DIR = "assets"
 ASSET_OUTPUT_DIR = f"{ENGINE_DIR}/assets"
 WEB_ASSET_PATH_PREFIX = "assets"
 
