@@ -4,8 +4,8 @@ import sys
 
 from pretop.app import App
 from pretop.assets.importer import import_assets
-from pretop.codegen.gen_code import gen_code
-from pretop.codegen.gen_sources import gen_sources
+from pretop.codegen.generate_code import gen_code
+from pretop.codegen.generate_sources import gen_sources
 from pretop.build_scripts.native import (
     build_native_debug,
     build_python,

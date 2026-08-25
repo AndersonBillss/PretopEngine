@@ -9,7 +9,7 @@ from pretop.shared.constants import (
     PYTHON_PACKAGE_TARGET,
     TEST_TARGET,
 )
-from pretop.codegen.gen_sources import gen_sources
+from pretop.codegen.generate_sources import gen_sources
 
 
 def configure_native_debug(app=None):

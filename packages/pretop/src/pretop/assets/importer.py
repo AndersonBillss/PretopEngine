@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from pretop.app import App
-from pretop.codegen.gen_vfs import gen_vfs
+from pretop.codegen.generate_vfs import gen_vfs
 from pretop.shared.constants import ASSET_OUTPUT_DIR
 
 

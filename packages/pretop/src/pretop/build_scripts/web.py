@@ -1,6 +1,6 @@
 from pretop.utils.cmd import cmd
 from pretop.shared.constants import ENGINE_WEB_OUT, NATIVE_TARGET
-from pretop.codegen.gen_sources import gen_sources
+from pretop.codegen.generate_sources import gen_sources
 from pretop.server.server import run_server
 import sys
 
