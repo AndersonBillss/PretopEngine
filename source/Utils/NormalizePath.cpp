@@ -43,10 +43,17 @@ int strFindBackwards(std::string_view haystack, int offset, std::string_view nee
 
 std::string Pretop::Utils::NormalizePath(std::string_view path)
 {
-    std::string pathCpy(path);
-    std::replace(pathCpy.begin(), pathCpy.end(), '\\', '/');
+    if (path == ".")
+    {
+        return {};
+    }
+
     std::string normalized;
     normalized.reserve(path.size());
+
+    std::string pathCpy(path);
+    std::replace(pathCpy.begin(), pathCpy.end(), '\\', '/');
+
     for (size_t i = 0; i < pathCpy.size(); i++)
     {
         bool isLastChar = i == pathCpy.size() - 1;

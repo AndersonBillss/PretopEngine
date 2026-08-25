@@ -16,7 +16,7 @@ TEST_CASE("NormalizePath resolves current-directory segments",
 }
 
 TEST_CASE("NormalizePath preserves .. inside path components",
-          "[Utils][NormalizePath][only]")
+          "[Utils][NormalizePath]")
 {
     REQUIRE(Pretop::Utils::NormalizePath("/test../player.png") == "/test../player.png");
 
