@@ -45,7 +45,7 @@ HEADER_CONTENTS = (
 def create_metadata(asset_import: FileImport, file_import: Path):
     return (
         "    {\n"
-        + f"        {get_asset_id(str(file_import))},\n"
+        + f"        {get_asset_id(str(file_import))}ULL,\n"
         + "        {\n"
         + f'            "{file_import}",\n'
         + f"#ifdef {WEB_PLATFORM_DEFINE}\n"
