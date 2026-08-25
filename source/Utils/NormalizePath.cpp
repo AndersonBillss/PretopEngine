@@ -55,9 +55,6 @@ std::string Pretop::Utils::NormalizePath(std::string_view path)
         return {};
     }
 
-    std::string normalized;
-    normalized.reserve(path.size());
-
     size_t pathBegin = 0;
     for (size_t i = 0; i < path.size(); i++)
     {
@@ -78,13 +75,22 @@ std::string Pretop::Utils::NormalizePath(std::string_view path)
         }
     }
 
-    if (pathEnd <= pathBegin)
+    if (pathEnd < pathBegin)
+    {
+        return {};
+    }
+
+    if (pathBegin == pathEnd && isWhitespace(path[pathBegin]))
     {
         return {};
     }
 
     std::string sanitizedPath;
     sanitizedPath.reserve(pathEnd - pathBegin);
+
+    std::string normalized;
+    normalized.reserve(sanitizedPath.size());
+
     for (size_t i = pathBegin; i <= pathEnd; i++)
     {
         if (path[i] == '\\')
@@ -100,7 +106,7 @@ std::string Pretop::Utils::NormalizePath(std::string_view path)
     for (size_t i = 0; i < sanitizedPath.size(); i++)
     {
         bool isLastChar = i == sanitizedPath.size() - 1;
-        if (isLastChar && sanitizedPath[i] == '/')
+        if (isLastChar && sanitizedPath[i] == '/' && normalized.size() > 0)
         {
             continue;
         }
