@@ -49,6 +49,11 @@ std::string Pretop::Utils::NormalizePath(std::string_view path)
     normalized.reserve(path.size());
     for (size_t i = 0; i < pathCpy.size(); i++)
     {
+        bool isLastChar = i == pathCpy.size() - 1;
+        if (isLastChar && pathCpy[i] == '/')
+        {
+            continue;
+        }
         if (strMatch(pathCpy, i, "../"))
         {
             int beforeBacktrack = strFindBackwards(normalized, normalized.size() - 1, "/");

@@ -97,3 +97,9 @@ TEST_CASE("NormalizePath resolves a mix of \\ and /", "[Utils][NormalizePath][on
     std::string path = "../..\\tests\\files/../..\\assets/player.png";
     REQUIRE(Pretop::Utils::NormalizePath(path) == "../../assets/player.png");
 }
+
+TEST_CASE("NormalizePath resolves a path that ends with /", "[Utils][NormalizePath][only]")
+{
+    std::string path = "test/";
+    REQUIRE(Pretop::Utils::NormalizePath(path) == "test");
+}
