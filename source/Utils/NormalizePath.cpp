@@ -56,11 +56,18 @@ std::string Pretop::Utils::NormalizePath(std::string_view path)
         }
         if (strMatch(pathCpy, i, "../"))
         {
-            int beforeBacktrack = strFindBackwards(normalized, normalized.size() - 1, "/");
-            if (beforeBacktrack == normalized.size() - 1)
+            char lastAddedChar = '\0';
+            if (normalized.size() > 0)
             {
-                beforeBacktrack = strFindBackwards(normalized, normalized.size() - 2, "/");
+                lastAddedChar = normalized[normalized.size() - 1];
             }
+            if (lastAddedChar != '/')
+            {
+                normalized += "../";
+                i += 2;
+                continue;
+            }
+            int beforeBacktrack = strFindBackwards(normalized, normalized.size() - 2, "/");
             size_t eraseIndex = beforeBacktrack + 1;
             if (beforeBacktrack == -1)
             {
