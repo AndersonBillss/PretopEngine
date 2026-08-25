@@ -20,6 +20,8 @@ WEB_ASSET_PATH_PREFIX = "assets"
 
 SOURCE_DIR = "source"
 GEN_DIR = Path(SOURCE_DIR) / "Gen"
+ASSET_METADATA_DIR = "AssetMetadata"
+ASSET_METADATA_OUT = f"{GEN_DIR}/AssetMetadata"
 
 COMPILER_C = "cl"
 COMPILER_CPP = "cl"
