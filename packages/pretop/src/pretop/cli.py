@@ -77,6 +77,7 @@ def help(app=None):
 
 def setup(app: App):
     configure_native_debug()
+    import_assets(app)
     gen_all(app)
 
 COMMANDS = {
