@@ -5,9 +5,9 @@ from pretop.shared.constants import (
     CPP_COMMENT,
     GENERATED_CODE_COMMENT,
     PLATFORM_INCLUDE,
-    PRETOP_GEN_NAMESPACE,
     WEB_ASSET_PATH_PREFIX,
     GEN_DIR,
+    WEB_PLATFORM_DEFINE,
 )
 
 
@@ -19,7 +19,7 @@ FILE_CONTENTS = (
     f"{CPP_COMMENT} {GENERATED_CODE_COMMENT}\n"
     + "#include <string_view>\n"
     + f"{PLATFORM_INCLUDE}\n"
-    + f"#ifdef {PRETOP_GEN_NAMESPACE}\n"
+    + f"#ifdef {WEB_PLATFORM_DEFINE}\n"
     + createAssetBaseDeclaration(WEB_ASSET_PATH_PREFIX)
     + "#else\n"
     + createAssetBaseDeclaration(ASSET_OUTPUT_DIR)

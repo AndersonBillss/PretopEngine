@@ -93,7 +93,7 @@ COMMANDS = {
         "test": Command(run_tests, "Run the tests", ArgType.STR_LIST),
     },
     "gen": {
-        "app": Command(gen_all, "Generate all CMake and C++ code"),
+        "all": Command(gen_all, "Generate all CMake and C++ code"),
         "sources": Command(gen_sources, "Generate CMake sources"),
         "code": Command(gen_code, "Generate C++ code"),
         "cmake": Command(gen_cmake, "Generate CMake files and sources"),
