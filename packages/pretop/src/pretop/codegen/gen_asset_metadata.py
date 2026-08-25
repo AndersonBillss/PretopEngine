@@ -7,6 +7,9 @@ from pretop.shared.constants import (
     ASSET_METADATA_OUT,
     CPP_COMMENT,
     GENERATED_CODE_COMMENT,
+    PLATFORM_INCLUDE,
+    PRETOP_GEN_NAMESPACE,
+    WEB_PLATFORM_DEFINE,
 )
 from pretop._native import get_asset_id
 
@@ -16,9 +19,9 @@ HEADER_CONTENTS = (
     + "#include <unordered_map>\n"
     + "#include <string>\n"
     + "#include <cstdint>\n"
-    + '#include "../Core/Platform.hpp"\n'
+    + f"{PLATFORM_INCLUDE}\n"
     + "\n"
-    + "namespace Pretop::Gen\n"
+    + f"namespace {PRETOP_GEN_NAMESPACE}\n"
     + "{\n"
     + "    enum SourceType\n"
     + "    {\n"
@@ -29,8 +32,8 @@ HEADER_CONTENTS = (
     + "    struct FileMetadata\n"
     + "    {\n"
     + "        std::string path;\n"
-    + "#ifdef PRETOP_PLATFORM_WEB\n"
-    + "        Pretop::Gen::SourceType SourceType;\n"
+    + f"#ifdef {WEB_PLATFORM_DEFINE}\n"
+    + f"        {PRETOP_GEN_NAMESPACE}::SourceType SourceType;\n"
     + "#endif\n"
     + "    };\n"
     + "\n"
@@ -45,8 +48,8 @@ def create_metadata(asset_import: FileImport, file_import: Path):
         + f"        {get_asset_id(str(file_import))},\n"
         + "        {\n"
         + f'            "{file_import}",\n'
-        + "#ifdef PRETOP_PLATFORM_WEB\n"
-        + f"            Pretop::Gen::SourceType::{"VFS" if asset_import.is_vfs else "HTTP"},\n"
+        + f"#ifdef {WEB_PLATFORM_DEFINE}\n"
+        + f"            {PRETOP_GEN_NAMESPACE}::SourceType::{"VFS" if asset_import.is_vfs else "HTTP"},\n"
         + "#endif\n"
         + "        },\n"
         + "    },\n"
@@ -61,7 +64,8 @@ def gen_asset_metadata(import_config: ImportConfig):
         f"{CPP_COMMENT} {GENERATED_CODE_COMMENT}\n"
         + f'#include "{ASSET_METADATA_DIR}.hpp"\n'
         + "\n"
-        + "const std::unordered_map<uint64_t, Pretop::Gen::FileMetadata> Pretop::Gen::AssetMetadata = {\n"
+        + f"const std::unordered_map<uint64_t, {PRETOP_GEN_NAMESPACE}::FileMetadata> {PRETOP_GEN_NAMESPACE}::AssetMetadata = "
+        + "{\n"
     )
     CPP_CONTENTS_END = "};\n"
 
