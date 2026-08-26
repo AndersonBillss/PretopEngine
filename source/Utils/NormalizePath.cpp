@@ -129,8 +129,8 @@ std::string Pretop::Utils::NormalizePath(std::string_view path)
         {
             if (lastAddedChar != '/')
             {
-                normalized += "../";
-                i += 2;
+                normalized += "..";
+                i++;
                 continue;
             }
             int beforeBacktrack = strFindBackwards(normalized, normalized.size() - 2, "/");
@@ -148,15 +148,15 @@ std::string Pretop::Utils::NormalizePath(std::string_view path)
                 }
                 else
                 {
-                    normalized += "../";
-                    i += 2;
+                    normalized += "..";
+                    i++;
                     continue;
                 }
             }
             if (strMatch(normalized, eraseIndex, "../"))
             {
-                normalized += "../";
-                i += 2;
+                normalized += "..";
+                i++;
                 continue;
             }
             normalized.erase(eraseIndex);

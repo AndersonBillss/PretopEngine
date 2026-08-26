@@ -124,6 +124,15 @@ TEST_CASE("NormalizePath resolves ordinary current-directory segments",
     REQUIRE(Pretop::Utils::NormalizePath("assets/./../player.png") == "player.png");
 }
 
+TEST_CASE("NormalizePath preserves a trailing parent-directory segment",
+          "[Utils][NormalizePath]")
+{
+    REQUIRE(Pretop::Utils::NormalizePath("../") == "..");
+    REQUIRE(Pretop::Utils::NormalizePath("..") == "..");
+    REQUIRE(Pretop::Utils::NormalizePath("../../") == "../..");
+    REQUIRE(Pretop::Utils::NormalizePath("../..") == "../..");
+}
+
 TEST_CASE("NormalizePath resolves multiple parent segments",
           "[Utils][NormalizePath]")
 {
