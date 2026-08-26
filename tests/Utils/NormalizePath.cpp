@@ -241,9 +241,9 @@ TEST_CASE("NormalizePath preserves whitespace",
                 "  assets/player.png  ")
             == "  assets/player.png  ");
 
-    // REQUIRE(Pretop::Utils::NormalizePath(
-    //             "\t./assets/player.png\r\n")
-    //         == "\t./assets/player.png\r\n");
+    REQUIRE(Pretop::Utils::NormalizePath(
+                "\t./assets/player.png\r\n")
+            == "\t./assets/player.png\r\n");
 
     REQUIRE(Pretop::Utils::NormalizePath(" \t\r\n ")
             == " \t\r\n ");

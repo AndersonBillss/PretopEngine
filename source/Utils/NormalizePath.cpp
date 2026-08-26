@@ -56,6 +56,30 @@ int strFindBackwards(std::string_view haystack, int offset, std::string_view nee
     return -1;
 }
 
+bool isParentSegment(std::string_view path, size_t i)
+{
+    bool isFirstChar = i == 0;
+    bool matchBacktrackSegment = strMatch(path, i, "../") || endMatch(path, i, "..");
+    bool hasPreceedingSlash = false;
+    if (!isFirstChar)
+    {
+        hasPreceedingSlash = path[i - 1] == '/';
+    }
+    return matchBacktrackSegment && (isFirstChar || hasPreceedingSlash);
+}
+
+bool isCurrDirSegment(std::string_view path, size_t i)
+{
+    bool isFirstChar = i == 0;
+    bool matchCurrDirSegment = strMatch(path, i, "./") || endMatch(path, i, ".");
+    bool hasPreceedingSlash = false;
+    if (!isFirstChar)
+    {
+        hasPreceedingSlash = path[i - 1] == '/';
+    }
+    return matchCurrDirSegment && (isFirstChar || hasPreceedingSlash);
+}
+
 std::string Pretop::Utils::NormalizePath(std::string_view path)
 {
     if (path.size() == 0)
@@ -83,18 +107,13 @@ std::string Pretop::Utils::NormalizePath(std::string_view path)
             lastAddedChar = normalized[normalized.size() - 1];
         }
 
-        if (strMatch(sanitizedPath, i, "../") || endMatch(sanitizedPath, i, ".."))
+        if (isParentSegment(sanitizedPath, i))
         {
-            if (lastAddedChar != '/')
-            {
-                normalized += "..";
-                i++;
-                continue;
-            }
             int beforeBacktrack = strFindBackwards(normalized, normalized.size() - 2, "/");
             size_t eraseIndex = beforeBacktrack + 1;
             if (eraseIndex == 0 && normalized[0] == '/')
             {
+                i++;
                 continue;
             }
             if (beforeBacktrack == -1)
@@ -124,7 +143,7 @@ std::string Pretop::Utils::NormalizePath(std::string_view path)
         {
             continue;
         }
-        else if (strMatch(sanitizedPath, i, "./") || endMatch(sanitizedPath, i, "."))
+        else if (isCurrDirSegment(sanitizedPath, i))
         {
             i++;
         }
