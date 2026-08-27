@@ -6,9 +6,6 @@ set(WEB_ASSET_PATH_PREFIX
   assets
 )
 set(VFS_FILES
-  models/woolly-mammoth-100k-4096_std.glb
-  models/DiffuseTransmissionPlant.glb
   shaders/shader.wgsl
   shaders/textureDemoShader.wgsl
-  textures/cobblestoneFloor.png
 )

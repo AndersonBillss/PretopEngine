@@ -26,8 +26,9 @@ def gen_vfs_files(import_config: ImportConfig):
     file_end = ")\n"
     file_contents = file_start
     for asset_import in import_config.get_imports():
-        for file_import in asset_import.iter_files(import_config.get_asset_dir()):
-            file_contents += f"  {file_import}\n"
+        if asset_import.is_vfs:
+            for file_import in asset_import.iter_files(import_config.get_asset_dir()):
+                file_contents += f"  {file_import}\n"
 
     file_contents += file_end
     with open(VFS_FILES_DIR, "w") as output_file:
