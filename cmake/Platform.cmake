@@ -34,12 +34,9 @@ if(EMSCRIPTEN)
         "-sPTHREAD_POOL_SIZE=navigator.hardwareConcurrency"
     )
 
-    # ASSET_DIR is the staged asset root and VFS_FILES contains paths relative
-    # to it. Preload each file at the asset directory's runtime path.
-    get_filename_component(vfs_runtime_root "${ASSET_DIR}" NAME)
     foreach(vfs_file IN LISTS VFS_FILES)
         target_link_options(pretop_engine PRIVATE
-            "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/${ASSET_DIR}/${vfs_file}@/${vfs_runtime_root}/${vfs_file}"
+            "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/${PRETOP_ASSET_DIR}/${vfs_file}@/${WEB_ASSET_PATH_PREFIX}/${vfs_file}"
         )
     endforeach()
 

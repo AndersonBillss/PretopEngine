@@ -4,6 +4,8 @@
 #include "../Core/RecordTable.hpp"
 #include "../Core/Platform.hpp"
 #include "../Gen/AssetBase.hpp"
+#include "../Gen/AssetMetadata.hpp"
+#include "../Utils/GetAssetId.hpp"
 
 #include <atomic>
 #include <cstring>
@@ -19,8 +21,6 @@ namespace Pretop::Asset
 {
     namespace
     {
-        constexpr std::string_view ShaderDirectory = "assets/shaders/";
-
         enum class ReadSource
         {
             Http,
@@ -44,22 +44,6 @@ namespace Pretop::Asset
             bool FetchSucceeded = false;
             bool HasProcessingJob = false;
         };
-
-        std::string_view NormalizeAssetPath(std::string_view path)
-        {
-            if (!path.empty() && path.front() == '/')
-            {
-                path.remove_prefix(1);
-            }
-            return path;
-        }
-
-        bool IsShaderPath(std::string_view path)
-        {
-            path = NormalizeAssetPath(path);
-            return path.size() >= ShaderDirectory.size() &&
-                   path.compare(0, ShaderDirectory.size(), ShaderDirectory) == 0;
-        }
 
         std::string MakeHttpError(emscripten_fetch_t *fetch)
         {
@@ -226,10 +210,25 @@ namespace Pretop::Asset
         data->Path = std::string(path);
         data->UserData = userData;
         data->Self = this;
-        data->Source = IsShaderPath(path)
+        data->AssetHandle = _impl->Records.Add(data);
+
+        const uint64_t assetId = Pretop::Utils::GetAssetId(path);
+        const auto metadataIt = Pretop::Gen::AssetMetadata.find(assetId);
+        if (metadataIt == Pretop::Gen::AssetMetadata.end())
+        {
+            data->ErrorText = "Asset not found in generated metadata: " + data->Path;
+            data->ProcessingJob = _js->Submit(
+                {ProcessReadFile, data},
+                {CompleteReadFile});
+            data->HasProcessingJob = true;
+            return data->AssetHandle;
+        }
+
+        const Pretop::Gen::FileMetadata &metadata = metadataIt->second;
+        data->Path = std::string(AssetBase) + "/" + metadata.path;
+        data->Source = metadata.SourceType == Pretop::Gen::SourceType::VFS
                            ? ReadSource::VirtualFileSystem
                            : ReadSource::Http;
-        data->AssetHandle = _impl->Records.Add(data);
 
         if (data->Source == ReadSource::VirtualFileSystem)
         {
@@ -248,8 +247,7 @@ namespace Pretop::Asset
         attributes.onsuccess = &WebAssetLoader::OnFetchSuccess;
         attributes.onerror = &WebAssetLoader::OnFetchError;
 
-        std::string filePath = std::string(AssetBase) + "/" + data->Path;
-        emscripten_fetch_t *fetch = emscripten_fetch(&attributes, filePath.c_str());
+        emscripten_fetch_t *fetch = emscripten_fetch(&attributes, data->Path.c_str());
         if (fetch == nullptr)
         {
             data->ErrorText = "Failed to start fetch for asset: " + data->Path;
