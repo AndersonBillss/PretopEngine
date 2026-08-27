@@ -1,6 +1,8 @@
 from pathlib import Path
 
 from pretop.app import App
+from pretop.codegen.generate_asset_metadata import gen_asset_metadata
+from pretop.codegen.generate_asset_path import gen_asset_path
 from pretop.codegen.generate_vfs_files import gen_vfs_files
 from pretop.shared.constants import ASSET_OUTPUT_DIR
 
@@ -8,6 +10,9 @@ from pretop.shared.constants import ASSET_OUTPUT_DIR
 def import_assets(app: App):
     Path(ASSET_OUTPUT_DIR).parent.mkdir(parents=True, exist_ok=True)
     gen_vfs_files(app.imports)
+    gen_asset_path()
+    gen_asset_metadata(app.imports)
+
     for asset_import in app.imports.get_imports():
         for impt in asset_import.iter_files(app.imports.get_asset_dir()):
             source = Path(app.imports.get_asset_dir()) / impt

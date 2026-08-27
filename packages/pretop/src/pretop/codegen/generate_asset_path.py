@@ -9,6 +9,7 @@ from pretop.shared.constants import (
     GEN_DIR,
     WEB_PLATFORM_DEFINE,
 )
+from pretop.utils.file_utls import save_if_changed
 
 
 def createAssetBaseDeclaration(asset_path):
@@ -30,5 +31,5 @@ FILE_CONTENTS = (
 def gen_asset_path():
     output_file = Path(GEN_DIR) / Path("AssetBase.hpp")
     output_file.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_file, "w") as file:
-        file.write(FILE_CONTENTS)
+
+    save_if_changed(output_file, FILE_CONTENTS)

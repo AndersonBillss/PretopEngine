@@ -2,6 +2,8 @@ from pretop.shared.constants import CMAKE_COMMENT, GENERATED_CODE_COMMENT, SOURC
 
 import os
 
+from pretop.utils.file_utls import save_if_changed
+
 OUT_FILE = "cmake/Sources.cmake"
 MAIN_RULE_PREFIX = "PRETOP_ENGINE_MAIN"
 RULE_PREFIX = "PRETOP_ENGINE_SOURCES"
@@ -34,18 +36,6 @@ class SourceTracker:
             self.src_targets[target] += [filepath]
         else:
             self.src_targets[target] = [filepath]
-
-
-def get_current_file_contents():
-    with open(OUT_FILE, "r", encoding="utf-8") as file:
-        return file.read()
-
-
-def save_rules(file_contents: str):
-    if get_current_file_contents() == file_contents:
-        return
-    with open(OUT_FILE, "w") as output:
-        output.write(file_contents)
 
 
 def generate_file_contents(rules: list[str]):
@@ -97,4 +87,4 @@ def gen_sources(app=None):
 
     target_files_rules.sort()
     file_contents = generate_file_contents(target_files_rules)
-    save_rules(file_contents)
+    save_if_changed(OUT_FILE, file_contents)

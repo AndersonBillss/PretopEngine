@@ -7,6 +7,7 @@ from pretop.shared.constants import (
     GENERATED_CODE_COMMENT,
     WEB_ASSET_PATH_PREFIX,
 )
+from pretop.utils.file_utls import save_if_changed
 
 VFS_FILES_DIR = "cmake/VfsFiles.cmake"
 VFS_SOURCES_RULE_NAME = "VFS_FILES"
@@ -31,5 +32,5 @@ def gen_vfs_files(import_config: ImportConfig):
                 file_contents += f"  {file_import}\n"
 
     file_contents += file_end
-    with open(VFS_FILES_DIR, "w") as output_file:
-        output_file.write(file_contents)
+
+    save_if_changed(VFS_FILES_DIR, file_contents)

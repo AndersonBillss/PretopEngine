@@ -12,6 +12,7 @@ from pretop.shared.constants import (
     WEB_PLATFORM_DEFINE,
 )
 from pretop._native import get_asset_id
+from pretop.utils.file_utls import save_if_changed
 
 HEADER_CONTENTS = (
     f"{CPP_COMMENT} {GENERATED_CODE_COMMENT}\n"
@@ -79,8 +80,5 @@ def gen_asset_metadata(import_config: ImportConfig):
     OUT_HPP = ASSET_METADATA_OUT + ".hpp"
     OUT_CPP = ASSET_METADATA_OUT + ".cpp"
 
-    with open(OUT_HPP, "w") as header_output:
-        header_output.write(HEADER_CONTENTS)
-
-    with open(OUT_CPP, "w") as cpp_output:
-        cpp_output.write(cpp_contents)
+    save_if_changed(OUT_HPP, HEADER_CONTENTS)
+    save_if_changed(OUT_CPP, cpp_contents)
