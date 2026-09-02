@@ -6,6 +6,7 @@ set(PRETOP_ENGINE_SOURCES
   source/Asset/AssetLoaderFactory.cpp
   source/Asset/AssetManager.cpp
   source/Asset/AssetManagerFactory.cpp
+  source/Asset/GeneratedAssetCatalog.cpp
   source/Asset/LoadGlb.cpp
   source/Core/JobSystem.cpp
   source/Demos/LoadModel.cpp
@@ -35,6 +36,7 @@ set(PRETOP_ENGINE_SOURCES
   source/RHI/VertexBufferLayout.cpp
   source/RHI/VertexLayout.cpp
   source/Utils/NormalizePath.cpp
+  source/Utils/StableHash.cpp
   source/Window/WindowFactory.cpp
 )
 set(PRETOP_ENGINE_SOURCES_NATIVE

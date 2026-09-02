@@ -177,8 +177,8 @@ namespace Pretop::Asset
         Core::RecordTable<WebReadFileData *> Records;
     };
 
-    WebAssetLoader::WebAssetLoader(Core::JobSystem *js)
-        : _js(js), _impl(std::make_unique<Impl>())
+    WebAssetLoader::WebAssetLoader(Core::JobSystem *js, std::unique_ptr<AssetCatalog> catalog)
+        : _js(js), _impl(std::make_unique<Impl>()), _catalog(std::move(catalog))
     {
         PRETOP_ASSERT(js != nullptr, "WebAssetLoader requires a JobSystem");
     }
@@ -212,9 +212,8 @@ namespace Pretop::Asset
         data->Self = this;
         data->AssetHandle = _impl->Records.Add(data);
 
-        const uint64_t assetId = Pretop::Utils::GetAssetId(path);
-        const auto metadataIt = Pretop::Gen::AssetMetadata.find(assetId);
-        if (metadataIt == Pretop::Gen::AssetMetadata.end())
+        const auto metadata = _catalog->Find(path);
+        if (metadata == nullptr)
         {
             data->ErrorText = "Asset not found in generated metadata: " + data->Path;
             data->ProcessingJob = _js->Submit(
@@ -224,9 +223,8 @@ namespace Pretop::Asset
             return data->AssetHandle;
         }
 
-        const Pretop::Gen::FileMetadata &metadata = metadataIt->second;
-        data->Path = std::string(AssetBase) + "/" + metadata.path;
-        data->Source = metadata.SourceType == Pretop::Gen::SourceType::VFS
+        data->Path = std::string(AssetBase) + "/" + metadata->path;
+        data->Source = metadata->SourceType == Pretop::Gen::SourceType::VFS
                            ? ReadSource::VirtualFileSystem
                            : ReadSource::Http;
 

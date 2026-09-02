@@ -2,6 +2,7 @@
 
 #include "Texture.hpp"
 #include "../RHI/Application.hpp"
+#include "../Asset/GeneratedAssetCatalog.hpp"
 #include "../Asset/AssetManagerFactory.hpp"
 #include "../Asset/AssetLoaderFactory.hpp"
 #include "../Window/WindowFactory.hpp"
@@ -258,7 +259,9 @@ void Start(Pretop::RHI::Application &application)
     state.app = &application;
     state.Assets = std::move(
         Pretop::Asset::AssetManagerFactory::CreateAssetManager(
-            std::move(Pretop::Asset::AssetLoaderFactory::CreateAssetLoader(&state.jobs)),
+            std::move(Pretop::Asset::AssetLoaderFactory::CreateAssetLoader(
+                &state.jobs,
+                std::move(Pretop::Asset::CreateGeneratedAssetCatalog()))),
             &application));
 
     std::unique_ptr<Pretop::Window::Window> window = Pretop::Window::WindowFactory::CreateWindow("Texture");

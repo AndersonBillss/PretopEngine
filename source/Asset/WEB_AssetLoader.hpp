@@ -1,5 +1,6 @@
 #pragma once
 #include "AssetLoader.hpp"
+#include "AssetCatalog.hpp"
 
 #include <memory>
 
@@ -10,7 +11,7 @@ namespace Pretop::Asset
     class WebAssetLoader final : public AssetLoader
     {
     public:
-        WebAssetLoader(Core::JobSystem *js);
+        WebAssetLoader(Core::JobSystem *js, std::unique_ptr<AssetCatalog> catalog);
         ~WebAssetLoader() override;
 
         Handle ReadFile(std::string_view path) override;
@@ -34,6 +35,7 @@ namespace Pretop::Asset
 
         Core::JobSystem *_js;
         std::unique_ptr<Impl> _impl;
+        std::unique_ptr<AssetCatalog> _catalog;
     };
 
 } // namespace Pretop::Asset

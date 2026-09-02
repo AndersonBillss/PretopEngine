@@ -25,6 +25,7 @@
 #include "../Math/Constants.hpp"
 #include "../Math/Euler.hpp"
 
+#include "../Asset/GeneratedAssetCatalog.hpp"
 #include "../Asset/AssetLoaderFactory.hpp"
 #include "../Asset/AssetManagerFactory.hpp"
 #include "../Core/JobSystem.hpp"
@@ -181,7 +182,9 @@ namespace Pretop::Demos
         auto state = std::make_shared<DemoState>();
         state->Jobs = std::make_unique<Core::JobSystem>();
         state->Assets = AssetManagerFactory::CreateAssetManager(
-            AssetLoaderFactory::CreateAssetLoader(state->Jobs.get()),
+            AssetLoaderFactory::CreateAssetLoader(
+                state->Jobs.get(),
+                std::move(Pretop::Asset::CreateGeneratedAssetCatalog())),
             &application);
 
         state->ModelHandle = state->Assets->LoadModel("models/woolly-mammoth-100k-4096_std.glb");
