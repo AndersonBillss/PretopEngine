@@ -3,6 +3,7 @@ from pretop.shared.constants import CMAKE_COMMENT, GENERATED_CODE_COMMENT, SOURC
 import os
 
 from pretop.utils.file_utls import save_if_changed
+from pretop._native import normalize_path
 
 OUT_FILE = "cmake/Sources.cmake"
 MAIN_RULE_PREFIX = "PRETOP_ENGINE_MAIN"
@@ -71,7 +72,7 @@ def gen_sources(app=None):
     tracker = SourceTracker()
     for root, dirs, files in os.walk(SOURCE_DIR):
         for file in files:
-            filepath = os.path.join(root, file).replace("\\", "/")
+            filepath = normalize_path(os.path.join(root, file))
             if file.endswith(".cpp") and file != "main.cpp":
                 tracker.add_file(filepath)
 
