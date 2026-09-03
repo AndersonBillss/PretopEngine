@@ -5,16 +5,15 @@
 #include "../Core/Platform.hpp"
 
 #ifdef PRETOP_PLATFORM_WINDOWS
-#define WIN32_LEAN_AND_MEAN
+#include "../Core/WindowsCompat.hpp"
 #define GLFW_EXPOSE_NATIVE_WIN32
-#include <glfw/glfw3native.h>
-#include <windows.h>
 #endif // PRETOP_PLATFORM_WINDOWS
 
 #ifdef PRETOP_PLATFORM_LINUX
 #define GLFW_EXPOSE_NATIVE_WAYLAND
-#include <GLFW/glfw3native.h>
 #endif // PRETOP_PLATFORM_LINUX
+
+#include <GLFW/glfw3native.h>
 
 namespace Pretop::Window
 {

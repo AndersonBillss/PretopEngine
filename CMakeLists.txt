@@ -37,6 +37,10 @@ target_compile_definitions(pretop_engine_core
         $<$<CONFIG:Debug>:PRETOP_DEBUG>
 )
 
+if(MSVC)
+    target_compile_options(pretop_engine_core PRIVATE /Zc:__cplusplus)
+endif()
+
 # ---------------------------------------------------------------------------
 # Main executable
 # ---------------------------------------------------------------------------

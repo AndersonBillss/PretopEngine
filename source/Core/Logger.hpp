@@ -13,7 +13,7 @@
 #include "Platform.hpp"
 
 #ifdef PRETOP_PLATFORM_WINDOWS
-#include <windows.h>
+#include "../Core/WindowsCompat.hpp"
 #endif
 
 namespace Pretop::Core
