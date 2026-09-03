@@ -10,10 +10,13 @@ from pretop.shared.constants import (
     WEB_PLATFORM_DEFINE,
 )
 from pretop.utils.file_utls import save_if_changed
+from pretop._native import normalize_path
 
 
 def createAssetBaseDeclaration(asset_path):
-    return f'constexpr std::string_view AssetBase = "{asset_path}";\n'
+    return (
+        f'constexpr std::string_view AssetBase = "{normalize_path(str(asset_path))}";\n'
+    )
 
 
 FILE_CONTENTS = (

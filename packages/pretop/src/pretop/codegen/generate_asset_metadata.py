@@ -13,6 +13,7 @@ from pretop.shared.constants import (
 )
 from pretop._native import get_asset_id
 from pretop.utils.file_utls import save_if_changed
+from pretop._native import normalize_path
 
 HEADER_CONTENTS = (
     f"{CPP_COMMENT} {GENERATED_CODE_COMMENT}\n"
@@ -48,7 +49,7 @@ def create_metadata(asset_import: FileImport, file_import: Path):
         "    {\n"
         + f"        {get_asset_id(str(file_import))}ULL,\n"
         + "        {\n"
-        + f'            "{file_import}",\n'
+        + f'            "{normalize_path(str(file_import))}",\n'
         + f"#ifdef {WEB_PLATFORM_DEFINE}\n"
         + f"            {GEN_NAMESPACE}::SourceType::{"VFS" if asset_import.is_vfs else "HTTP"},\n"
         + "#endif\n"
