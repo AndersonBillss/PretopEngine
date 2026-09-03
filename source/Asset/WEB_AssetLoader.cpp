@@ -5,7 +5,7 @@
 #include "../Core/Platform.hpp"
 #include "../Gen/AssetBase.hpp"
 #include "../Gen/AssetMetadata.hpp"
-#include "../Utils/GetAssetId.hpp"
+#include "../SHARED_/GetAssetId.hpp"
 
 #include <atomic>
 #include <cstring>

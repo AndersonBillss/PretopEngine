@@ -1,6 +1,6 @@
 #include <pybind11/pybind11.h>
-#include "../Utils/GetAssetId.hpp"
-#include "../Utils/NormalizePath.hpp"
+#include "../SHARED_/GetAssetId.hpp"
+#include "../SHARED_/NormalizePath.hpp"
 
 namespace py = pybind11;
 

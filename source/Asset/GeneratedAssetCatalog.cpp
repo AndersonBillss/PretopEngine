@@ -1,5 +1,5 @@
 #include "GeneratedAssetCatalog.hpp"
-#include "../Utils/GetAssetId.hpp"
+#include "../SHARED_/GetAssetId.hpp"
 #include <iostream>
 
 namespace Pretop::Asset

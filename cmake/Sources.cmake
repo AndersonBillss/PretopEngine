@@ -35,8 +35,6 @@ set(PRETOP_ENGINE_SOURCES
   source/RHI/Shader.cpp
   source/RHI/VertexBufferLayout.cpp
   source/RHI/VertexLayout.cpp
-  source/Utils/NormalizePath.cpp
-  source/Utils/StableHash.cpp
   source/Window/WindowFactory.cpp
 )
 set(PRETOP_ENGINE_SOURCES_NATIVE
@@ -45,6 +43,10 @@ set(PRETOP_ENGINE_SOURCES_NATIVE
 )
 set(PRETOP_ENGINE_SOURCES_PYBIND
   source/PYBIND_Python/Asset.cpp
+)
+set(PRETOP_ENGINE_SOURCES_SHARED
+  source/SHARED_/NormalizePath.cpp
+  source/SHARED_/StableHash.cpp
 )
 set(PRETOP_ENGINE_SOURCES_WEB
   source/Asset/WEB_AssetLoader.cpp

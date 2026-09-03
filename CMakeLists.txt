@@ -11,6 +11,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include(cmake/Dependencies.cmake)
 
 # ---------------------------------------------------------------------------
+# Shared utilities
+# ---------------------------------------------------------------------------
+
+add_library(pretop_engine_shared STATIC
+    ${PRETOP_ENGINE_SOURCES_SHARED}
+)
+
+set_target_properties(pretop_engine_shared PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
+# ---------------------------------------------------------------------------
 # Core library
 # ---------------------------------------------------------------------------
 
@@ -27,6 +39,7 @@ target_include_directories(pretop_engine_core PUBLIC
 )
 
 target_link_libraries(pretop_engine_core PUBLIC
+    pretop_engine_shared
     nlohmann_json::nlohmann_json
     magic_enum::magic_enum
     stb_image
@@ -63,7 +76,7 @@ if(NOT EMSCRIPTEN)
     )
 
     target_link_libraries(pretop_python PRIVATE
-        pretop_engine_core
+        pretop_engine_shared
     )
 
     set_target_properties(pretop_python PROPERTIES
