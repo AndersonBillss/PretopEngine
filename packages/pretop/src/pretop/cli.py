@@ -76,9 +76,9 @@ def help(app=None):
     print_help(COMMANDS)
 
 def setup(app: App):
-    configure_native_debug()
     import_assets(app)
     gen_all(app)
+    configure_native_debug()
 
 COMMANDS = {
     "setup": Command(setup, "Initial setup for engine"),
