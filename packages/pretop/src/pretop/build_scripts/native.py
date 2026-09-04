@@ -27,6 +27,7 @@ def configure_native_debug():
                 f"-DCMAKE_CXX_COMPILER={COMPILER_CPP}",
                 "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
                 "-DCMAKE_BUILD_TYPE=Debug",
+                "-DPRETOP_BUILD_ENGINE=ON",
             ]
         ).returncode
         != 0

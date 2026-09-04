@@ -17,6 +17,7 @@ build-backend = "scikit_build_core.build"
 minimum-version = "1.0"
 cmake.source-dir = "../.."
 cmake.define.BUILD_TESTING = "OFF"
+cmake.define.PRETOP_BUILD_ENGINE = "OFF"
 build.targets = ["pretop_python"]
 install.components = ["pretop"]
 wheel.packages = ["src/pretop"]
@@ -28,7 +29,7 @@ wheel.packages = ["src/pretop"]
 
 [[tool.scikit-build.overrides]]
 if.from-sdist = false
-build-dir = "../../build/engine"
+build-dir = "../../build/python"
 cmake.build-type = "Debug"
 
 [[tool.scikit-build.overrides]]

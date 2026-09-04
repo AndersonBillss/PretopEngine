@@ -8,6 +8,11 @@ include(cmake/VfsFiles.cmake)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(PRETOP_BUILD_ENGINE
+    "Build the native/web engine targets"
+    ON
+)
+
 include(cmake/Dependencies.cmake)
 
 # ---------------------------------------------------------------------------
@@ -22,49 +27,53 @@ set_target_properties(pretop_engine_shared PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
-# ---------------------------------------------------------------------------
-# Core library
-# ---------------------------------------------------------------------------
+if(PRETOP_BUILD_ENGINE)
 
-add_library(pretop_engine_core STATIC
-    ${PRETOP_ENGINE_SOURCES}
-)
+    # -----------------------------------------------------------------------
+    # Core library
+    # -----------------------------------------------------------------------
 
-set_target_properties(pretop_engine_core PROPERTIES
-    POSITION_INDEPENDENT_CODE ON
-)
+    add_library(pretop_engine_core STATIC
+        ${PRETOP_ENGINE_SOURCES}
+    )
 
-target_include_directories(pretop_engine_core PUBLIC
-    include
-)
+    set_target_properties(pretop_engine_core PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
+    )
 
-target_link_libraries(pretop_engine_core PUBLIC
-    pretop_engine_shared
-    nlohmann_json::nlohmann_json
-    magic_enum::magic_enum
-    stb_image
-)
+    target_include_directories(pretop_engine_core PUBLIC
+        include
+    )
 
-target_compile_definitions(pretop_engine_core
-    PUBLIC
-        $<$<CONFIG:Debug>:PRETOP_DEBUG>
-)
+    target_link_libraries(pretop_engine_core PUBLIC
+        pretop_engine_shared
+        nlohmann_json::nlohmann_json
+        magic_enum::magic_enum
+        stb_image
+    )
 
-if(MSVC)
-    target_compile_options(pretop_engine_core PRIVATE /Zc:__cplusplus)
+    target_compile_definitions(pretop_engine_core
+        PUBLIC
+            $<$<CONFIG:Debug>:PRETOP_DEBUG>
+    )
+
+    if(MSVC)
+        target_compile_options(pretop_engine_core PRIVATE /Zc:__cplusplus)
+    endif()
+
+    # -----------------------------------------------------------------------
+    # Main executable
+    # -----------------------------------------------------------------------
+
+    add_executable(pretop_engine
+        ${PRETOP_ENGINE_MAIN}
+    )
+
+    target_link_libraries(pretop_engine PRIVATE
+        pretop_engine_core
+    )
+
 endif()
-
-# ---------------------------------------------------------------------------
-# Main executable
-# ---------------------------------------------------------------------------
-
-add_executable(pretop_engine
-    ${PRETOP_ENGINE_MAIN}
-)
-
-target_link_libraries(pretop_engine PRIVATE
-    pretop_engine_core
-)
 
 # ---------------------------------------------------------------------------
 # Python bindings
@@ -90,5 +99,7 @@ if(NOT EMSCRIPTEN)
     )
 endif()
 
-include(cmake/Platform.cmake)
-include(cmake/Tests.cmake)
+if(PRETOP_BUILD_ENGINE)
+    include(cmake/Platform.cmake)
+    include(cmake/Tests.cmake)
+endif()

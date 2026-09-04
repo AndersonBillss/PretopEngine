@@ -24,6 +24,7 @@ def build_web_debug(app=None):
                 "-G",
                 "Ninja",
                 "-DCMAKE_BUILD_TYPE=Debug",
+                "-DPRETOP_BUILD_ENGINE=ON",
             ]
         ).returncode
         != 0
