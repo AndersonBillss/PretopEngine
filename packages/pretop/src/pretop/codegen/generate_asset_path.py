@@ -4,7 +4,7 @@ from pretop.shared.constants import (
     ASSET_OUTPUT_DIR,
     CPP_COMMENT,
     GENERATED_CODE_COMMENT,
-    PLATFORM_INCLUDE,
+    PLATFORM_INCLUDE_PATH,
     WEB_ASSET_PATH_PREFIX,
     GEN_DIR,
     WEB_PLATFORM_DEFINE,
@@ -18,6 +18,7 @@ def createAssetBaseDeclaration(asset_path):
         f'constexpr std::string_view AssetBase = "{normalize_path(str(asset_path))}";\n'
     )
 
+PLATFORM_INCLUDE = f'#include "{PLATFORM_INCLUDE_PATH}"'
 
 FILE_CONTENTS = (
     f"{CPP_COMMENT} {GENERATED_CODE_COMMENT}\n"

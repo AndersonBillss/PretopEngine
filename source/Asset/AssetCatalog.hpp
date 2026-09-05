@@ -1,5 +1,5 @@
 #pragma once
-#include "../Gen/AssetMetadata.hpp"
+#include "FileMetadata.hpp"
 #include <string_view>
 
 namespace Pretop::Asset
@@ -8,6 +8,6 @@ namespace Pretop::Asset
     {
     public:
         virtual ~AssetCatalog() = default;
-        virtual const Gen::FileMetadata *Find(std::string_view assetSource) const = 0;
+        virtual const FileMetadata *Find(std::string_view assetSource) const = 0;
     };
 }

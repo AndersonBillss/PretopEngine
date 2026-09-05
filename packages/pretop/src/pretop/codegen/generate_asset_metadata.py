@@ -5,15 +5,23 @@ from pretop.assets.file_import import FileImport
 from pretop.shared.constants import (
     ASSET_METADATA_DIR,
     ASSET_METADATA_OUT,
+    ASSET_NAMESPACE,
     CPP_COMMENT,
+    FILE_METADATA_HEADER_INCLUDE_PATH,
     GEN_NAMESPACE,
     GENERATED_CODE_COMMENT,
-    PLATFORM_INCLUDE,
+    PLATFORM_INCLUDE_PATH,
     WEB_PLATFORM_DEFINE,
 )
-from pretop._native import get_asset_id
+from pretop._native import get_asset_id, normalize_path
 from pretop.utils.file_utls import save_if_changed
-from pretop._native import normalize_path
+
+PLATFORM_INCLUDE = f'#include "{normalize_path(PLATFORM_INCLUDE_PATH)}"'
+FILE_METADATA_HEADER_INCLUDE = (
+    f'#include "{normalize_path(FILE_METADATA_HEADER_INCLUDE_PATH)}"'
+)
+FILE_METADATA_TYPE = f"{ASSET_NAMESPACE}::FileMetadata"
+SOURCETYPE_ENUM = f"{ASSET_NAMESPACE}::SourceType"
 
 HEADER_CONTENTS = (
     f"{CPP_COMMENT} {GENERATED_CODE_COMMENT}\n"
@@ -22,24 +30,11 @@ HEADER_CONTENTS = (
     + "#include <string>\n"
     + "#include <cstdint>\n"
     + f"{PLATFORM_INCLUDE}\n"
+    + f"{FILE_METADATA_HEADER_INCLUDE}\n"
     + "\n"
     + f"namespace {GEN_NAMESPACE}\n"
     + "{\n"
-    + "    enum SourceType\n"
-    + "    {\n"
-    + "        VFS,\n"
-    + "        HTTP,\n"
-    + "    };\n"
-    + "\n"
-    + "    struct FileMetadata\n"
-    + "    {\n"
-    + "        std::string path;\n"
-    + f"#ifdef {WEB_PLATFORM_DEFINE}\n"
-    + f"        {GEN_NAMESPACE}::SourceType SourceType;\n"
-    + "#endif\n"
-    + "    };\n"
-    + "\n"
-    + "    extern const std::unordered_map<uint64_t, FileMetadata> AssetMetadata;\n"
+    + f"    extern const std::unordered_map<uint64_t, {ASSET_NAMESPACE}::FileMetadata> AssetMetadata;\n"
     + "}\n"
 )
 
@@ -51,7 +46,7 @@ def create_metadata(asset_import: FileImport, file_import: Path):
         + "        {\n"
         + f'            "{normalize_path(str(file_import))}",\n'
         + f"#ifdef {WEB_PLATFORM_DEFINE}\n"
-        + f"            {GEN_NAMESPACE}::SourceType::{"VFS" if asset_import.is_vfs else "HTTP"},\n"
+        + f"            {SOURCETYPE_ENUM}::{'VFS' if asset_import.is_vfs else 'HTTP'},\n"
         + "#endif\n"
         + "        },\n"
         + "    },\n"
@@ -66,7 +61,7 @@ def gen_asset_metadata(import_config: ImportConfig):
         f"{CPP_COMMENT} {GENERATED_CODE_COMMENT}\n"
         + f'#include "{ASSET_METADATA_DIR}.hpp"\n'
         + "\n"
-        + f"const std::unordered_map<uint64_t, {GEN_NAMESPACE}::FileMetadata> {GEN_NAMESPACE}::AssetMetadata = "
+        + f"const std::unordered_map<uint64_t, {ASSET_NAMESPACE}::FileMetadata> {GEN_NAMESPACE}::AssetMetadata = "
         + "{\n"
     )
     CPP_CONTENTS_END = "};\n"
