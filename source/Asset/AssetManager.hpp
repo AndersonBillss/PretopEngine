@@ -4,6 +4,8 @@
 #include "AssetLoader.hpp"
 #include "../Core/JobSystem.hpp"
 #include "../Core/GraphicsContext.hpp"
+#include "../Core/PagedVector.hpp"
+#include "../Asset/GPUTexture.hpp"
 #include "../RHI/Shader.hpp"
 
 #include <memory>
@@ -12,19 +14,6 @@
 
 namespace Pretop::Asset
 {
-    struct GPUTexture
-    {
-        WGPUTexture texture;
-        GPUTexture(WGPUTexture texture)
-        {
-            this->texture = texture;
-        }
-        ~GPUTexture()
-        {
-            wgpuTextureDestroy(texture);
-        }
-    };
-
     class AssetManager
     {
         enum class AssetType
