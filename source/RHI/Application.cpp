@@ -150,6 +150,14 @@ namespace Pretop::RHI
         return this;
     }
 
+    Core::GraphicsContext Application::GetGraphicsContext()
+    {
+        Core::GraphicsContext ctx;
+        ctx.Device = this->Device->WgpuDevice;
+        ctx.Queue = this->WgpuQueue;
+        return ctx;
+    }
+
     WGPUTextureView Application::GetNextSurfaceTextureView()
     {
         WGPUSurfaceTexture surfaceTexture = WGPU_SURFACE_TEXTURE_INIT;

@@ -185,7 +185,7 @@ namespace Pretop::Demos
             AssetLoaderFactory::CreateAssetLoader(
                 state->Jobs.get(),
                 std::move(Pretop::Asset::CreateGeneratedAssetCatalog())),
-            &application);
+            application.GetGraphicsContext());
 
         state->ModelHandle = state->Assets->LoadModel("models/woolly-mammoth-100k-4096_std.glb");
         state->ShaderHandle = state->Assets->LoadShaderModule("shaders/shader.wgsl");

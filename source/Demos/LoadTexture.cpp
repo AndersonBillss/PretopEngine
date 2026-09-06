@@ -362,7 +362,7 @@ namespace
                 std::move(Pretop::Asset::AssetLoaderFactory::CreateAssetLoader(
                     &state.jobs,
                     std::move(Pretop::Asset::CreateGeneratedAssetCatalog()))),
-                &application));
+                application.GetGraphicsContext()));
 
         std::unique_ptr<Pretop::Window::Window> window = Pretop::Window::WindowFactory::CreateWindow("Texture");
         application.SetWindow(std::move(window));

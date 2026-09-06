@@ -1,11 +1,14 @@
 #include <iostream>
 #include <chrono>
 
+#ifdef PRETOP_PLATFORM_WINDOWS
+#include "../Core/WindowsCompat.hpp"
+#endif // PRETOP_PLATFORM_WINDOWS
+
 #include "NATIVE_GlfwWindow.hpp"
 #include "../Core/Platform.hpp"
 
 #ifdef PRETOP_PLATFORM_WINDOWS
-#include "../Core/WindowsCompat.hpp"
 #define GLFW_EXPOSE_NATIVE_WIN32
 #endif // PRETOP_PLATFORM_WINDOWS
 

@@ -4,7 +4,7 @@
 
 namespace Pretop::RHI
 {
-    Shader Shader::Pipeline(Device *device, const void *src, size_t srcSize)
+    Shader Shader::Pipeline(Core::GraphicsContext context, const void *src, size_t srcSize)
     {
         auto compilationCallbackInfo = [](
                                            WGPUCompilationInfoRequestStatus,
@@ -30,7 +30,7 @@ namespace Pretop::RHI
         WGPUShaderModuleDescriptor shaderDesc = WGPU_SHADER_MODULE_DESCRIPTOR_INIT;
         shaderDesc.nextInChain = &shaderWGSL.chain;
 
-        WGPUShaderModule shaderModule = wgpuDeviceCreateShaderModule(device->WgpuDevice, &shaderDesc);
+        WGPUShaderModule shaderModule = wgpuDeviceCreateShaderModule(context.Device, &shaderDesc);
 
         WGPUCompilationInfoCallbackInfo callbackInfo = WGPU_COMPILATION_INFO_CALLBACK_INFO_INIT;
         callbackInfo.mode = WGPUCallbackMode_AllowSpontaneous;

@@ -19,8 +19,8 @@ namespace Pretop::Asset
 
     AssetManager::AssetManager(
         std::unique_ptr<AssetLoader> assetLoader,
-        RHI::Application *application)
-        : _assetLoader(std::move(assetLoader)), _application(application)
+        Core::GraphicsContext graphicsContext)
+        : _assetLoader(std::move(assetLoader)), _graphicsContext(graphicsContext)
     {
     }
 
@@ -59,20 +59,21 @@ namespace Pretop::Asset
     struct LoadShaderModuleData : AssetManagerData
     {
         std::unique_ptr<RHI::Shader> data;
-        RHI::Device *device;
+        Core::GraphicsContext context;
     };
     AssetManager::Handle AssetManager::LoadShaderModule(std::string_view path)
     {
         LoadShaderModuleData *loadShaderModuleData = new LoadShaderModuleData;
         loadShaderModuleData->data = nullptr;
-        loadShaderModuleData->device = this->_application->Device.get();
+        loadShaderModuleData->context = this->_graphicsContext;
         return _assetLoader->ReadFile(
             path,
             [](AssetLoader &loader, AssetManager::Handle handle)
             {
                 AssetLoader::AssetBytes bytes = loader.GetBytes(handle);
                 LoadShaderModuleData *data = reinterpret_cast<LoadShaderModuleData *>(loader.GetRawData(handle));
-                data->data = std::make_unique<RHI::Shader>(RHI::Shader::Pipeline(data->device, bytes.data(), bytes.size()));
+                data->data = std::make_unique<RHI::Shader>(
+                    RHI::Shader::Pipeline(data->context, bytes.data(), bytes.size()));
             },
             loadShaderModuleData);
     }
@@ -90,12 +91,14 @@ namespace Pretop::Asset
         int channels;
         unsigned char *pixelData;
         WGPUTexture texture;
-        RHI::Application *application;
+        Core::GraphicsContext graphicsContext;
+        // RHI::Application *application;
     };
     AssetManager::Handle AssetManager::LoadTexture(std::string_view path)
     {
         LoadTextureData *loadTextureData = new LoadTextureData;
-        loadTextureData->application = this->_application;
+        loadTextureData->graphicsContext = this->_graphicsContext;
+        // loadTextureData->application = this->_application;
         return _assetLoader->ReadFile(
             path,
             [](const AssetLoader::AssetBytes &bytes, void *userData)
@@ -123,7 +126,7 @@ namespace Pretop::Asset
                 textureDesc.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
                 textureDesc.viewFormatCount = 0;
                 textureDesc.viewFormats = nullptr;
-                WGPUTexture texture = wgpuDeviceCreateTexture(data->application->Device->WgpuDevice, &textureDesc);
+                WGPUTexture texture = wgpuDeviceCreateTexture(data->graphicsContext.Device, &textureDesc);
 
                 WGPUTexelCopyTextureInfo destination = WGPU_TEXEL_COPY_TEXTURE_INFO_INIT;
                 destination.texture = texture;
@@ -141,7 +144,7 @@ namespace Pretop::Asset
                                   /*.depthOrArrayLayers=*/1};
 
                 wgpuQueueWriteTexture(
-                    data->application->WgpuQueue,
+                    data->graphicsContext.Queue,
                     &destination,
                     data->pixelData,
                     4 * data->width * data->height,

@@ -3,7 +3,7 @@
 #include "LoadGlb.hpp"
 #include "AssetLoader.hpp"
 #include "../Core/JobSystem.hpp"
-#include "../RHI/Application.hpp"
+#include "../Core/GraphicsContext.hpp"
 #include "../RHI/Shader.hpp"
 
 #include <memory>
@@ -39,7 +39,7 @@ namespace Pretop::Asset
 
         AssetManager(
             std::unique_ptr<AssetLoader> assetLoader,
-            RHI::Application *application);
+            Core::GraphicsContext graphicsContext);
         ~AssetManager();
 
         Handle LoadModel(std::string_view path);
@@ -57,6 +57,6 @@ namespace Pretop::Asset
 
     private:
         std::unique_ptr<AssetLoader> _assetLoader;
-        RHI::Application *_application;
+        Core::GraphicsContext _graphicsContext;
     };
 } // namespace Pretop::Asset

@@ -5,6 +5,7 @@
 #include <initializer_list>
 #include <vector>
 #include "../Window/Window.hpp"
+#include "../Core/GraphicsContext.hpp"
 #include "Adapter.hpp"
 #include "Device.hpp"
 #include "Instance.hpp"
@@ -75,6 +76,8 @@ namespace Pretop::RHI
         Application *InspectDevice();
         Application *InspectAdapter();
         Application *InspectQueue();
+
+        Core::GraphicsContext GetGraphicsContext();
 
         std::unique_ptr<Pretop::RHI::Instance> Instance;
 
