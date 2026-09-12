@@ -224,9 +224,79 @@ namespace Pretop::Asset
         }
 
         data->Path = std::string(AssetBase) + "/" + metadata->path;
-        data->Source = metadata->SourceType == Pretop::Gen::SourceType::VFS
+        data->Source = metadata->SourceType == SourceType::VFS
                            ? ReadSource::VirtualFileSystem
                            : ReadSource::Http;
+
+        if (data->Source == ReadSource::VirtualFileSystem)
+        {
+            data->ProcessingJob = _js->Submit(
+                {ProcessReadFile, data},
+                {CompleteReadFile});
+            data->HasProcessingJob = true;
+            return data->AssetHandle;
+        }
+
+        emscripten_fetch_attr_t attributes;
+        emscripten_fetch_attr_init(&attributes);
+        std::strcpy(attributes.requestMethod, "GET");
+        attributes.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
+        attributes.userData = data;
+        attributes.onsuccess = &WebAssetLoader::OnFetchSuccess;
+        attributes.onerror = &WebAssetLoader::OnFetchError;
+
+        emscripten_fetch_t *fetch = emscripten_fetch(&attributes, data->Path.c_str());
+        if (fetch == nullptr)
+        {
+            data->ErrorText = "Failed to start fetch for asset: " + data->Path;
+            data->ProcessingJob = _js->Submit(
+                {ProcessReadFile, data},
+                {CompleteReadFile});
+            data->HasProcessingJob = true;
+        }
+
+        return data->AssetHandle;
+    }
+
+    AssetLoader::Handle WebAssetLoader::ReadFile(uint64_t assetId)
+    {
+        return ReadFile(assetId, nullptr, nullptr, nullptr);
+    }
+
+    AssetLoader::Handle WebAssetLoader::ReadFile(
+        uint64_t assetId, FinishCb finishCb, void *userData)
+    {
+        return ReadFile(assetId, nullptr, finishCb, userData);
+    }
+
+    AssetLoader::Handle WebAssetLoader::ReadFile(
+        uint64_t assetId, RawBytesCb rawBytesCb, FinishCb finishCb, void *userData)
+    {
+        auto *data = new WebReadFileData;
+        data->RawBytesCb = rawBytesCb;
+        data->FinishCb = finishCb;
+        data->UserData = userData;
+        data->Self = this;
+        data->AssetHandle = _impl->Records.Add(data);
+
+        const auto metadata = _catalog->Find(assetId);
+        if (metadata == nullptr)
+        {
+            data->ErrorText = "Asset not found in generated metadata: " + data->Path;
+            data->ProcessingJob = _js->Submit(
+                {ProcessReadFile, data},
+                {CompleteReadFile});
+            data->HasProcessingJob = true;
+            return data->AssetHandle;
+        }
+        // std::cout << (metadata->SourceType == SourceType::VFS ? "VFS" : "HTTP") << std::endl;
+
+        data->Path = std::string(AssetBase) + "/" + metadata->path;
+        // data->Source = metadata->SourceType == SourceType::VFS
+        //                    ? ReadSource::VirtualFileSystem
+        //                    : ReadSource::Http;
+
+        data->Source = ReadSource::Http;
 
         if (data->Source == ReadSource::VirtualFileSystem)
         {

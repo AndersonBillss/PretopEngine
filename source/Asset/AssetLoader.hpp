@@ -25,6 +25,10 @@ namespace Pretop::Asset
         virtual Handle ReadFile(std::string_view path, FinishCb finishCb, void *userData) = 0;
         virtual Handle ReadFile(std::string_view path, RawBytesCb rawBytesCb, FinishCb finishCb, void *userData) = 0;
 
+        virtual Handle ReadFile(uint64_t assetId) = 0;
+        virtual Handle ReadFile(uint64_t assetId, FinishCb finishCb, void *userData) = 0;
+        virtual Handle ReadFile(uint64_t assetId, RawBytesCb rawBytesCb, FinishCb finishCb, void *userData) = 0;
+
         virtual Status GetStatus(Handle handle) const = 0;
         virtual const AssetBytes &GetBytes(Handle handle) const = 0;
         virtual void *GetRawData(Handle handle) = 0;

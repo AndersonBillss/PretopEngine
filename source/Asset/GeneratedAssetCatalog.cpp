@@ -9,14 +9,20 @@ namespace Pretop::Asset
     {
     }
 
-    const FileMetadata *Pretop::Asset::GeneratedAssetCatalog::Find(std::string_view assetSource) const
+    const FileMetadata *GeneratedAssetCatalog::Find(std::string_view assetSource) const
     {
         uint64_t key = Utils::GetAssetId(assetSource);
-        auto it = _metadata.find(key);
+        return Find(key);
+    }
+
+    const FileMetadata *GeneratedAssetCatalog::Find(uint64_t assetId) const
+    {
+
+        auto it = _metadata.find(assetId);
         if (it == _metadata.end())
         {
             return nullptr;
         }
         return &it->second;
-    }
+    };
 }

@@ -18,6 +18,10 @@ namespace Pretop::Asset
         Handle ReadFile(std::string_view path, FinishCb finishCb, void *userData) override;
         Handle ReadFile(std::string_view path, RawBytesCb rawBytesCb, FinishCb finishCb, void *userData) override;
 
+        Handle ReadFile(uint64_t assetId) override;
+        Handle ReadFile(uint64_t assetId, FinishCb finishCb, void *userData) override;
+        Handle ReadFile(uint64_t assetId, RawBytesCb rawBytesCb, FinishCb finishCb, void *userData) override;
+
         Status GetStatus(Handle handle) const override;
         const AssetBytes &GetBytes(Handle handle) const override;
         void *GetRawData(Handle handle) override;

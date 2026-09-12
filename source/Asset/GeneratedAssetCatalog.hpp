@@ -11,6 +11,7 @@ namespace Pretop::Asset
     public:
         GeneratedAssetCatalog(const std::unordered_map<uint64_t, FileMetadata> &metadata);
         const FileMetadata *Find(std::string_view assetSource) const override;
+        const FileMetadata *Find(uint64_t assetId) const override;
 
     private:
         std::unordered_map<uint64_t, FileMetadata> _metadata;

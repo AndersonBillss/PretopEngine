@@ -1,6 +1,7 @@
 #include <array>
 
 #include "Texture.hpp"
+#include "../SHARED_/GetAssetId.hpp"
 #include "../RHI/Application.hpp"
 #include "../Asset/GeneratedAssetCatalog.hpp"
 #include "../Asset/AssetManagerFactory.hpp"
@@ -50,15 +51,15 @@ namespace
         Pretop::Core::JobSystem jobs;
         std::unique_ptr<Pretop::Asset::AssetManager> Assets;
 
-        Pretop::Asset::AssetManager::Handle ShaderHandle;
-        std::unique_ptr<Pretop::RHI::Shader> Shader;
+        Pretop::Asset::AssetManager::AssetReference ShaderRef;
+        Pretop::RHI::Shader *Shader;
         WGPURenderPassDepthStencilAttachment DepthStencilAttachment;
         WGPUBindGroupLayout bindGroupLayout;
         WGPURenderPipeline pipeline;
         bool ShaderLoaded = false;
 
-        Pretop::Asset::AssetManager::Handle TextureHandle;
-        std::unique_ptr<Pretop::Asset::GPUTexture> Texture;
+        Pretop::Asset::AssetManager::AssetReference TextureRef;
+        WGPUTexture *Texture;
         bool TextureLoaded = false;
 
         WGPUBuffer uniformBuffer;
@@ -92,17 +93,17 @@ namespace
 
     void LoadShaderStage(TextureDemoData *state)
     {
-        Pretop::Asset::AssetManager::Status shaderLoadStatus = state->Assets->GetState(state->ShaderHandle);
-        if (state->ShaderLoaded || shaderLoadStatus == Pretop::Asset::AssetManager::Status::InProgress)
+
+        Pretop::Asset::AssetManager::AssetResult shaderLoadStatus = state->Assets->GetShaderModule(state->ShaderRef, &state->Shader);
+        if (state->ShaderLoaded || shaderLoadStatus == Pretop::Asset::AssetManager::AssetResult::NotReady)
         {
             return;
         }
-        if (shaderLoadStatus == Pretop::Asset::AssetManager::Status::Error)
+        if (shaderLoadStatus != Pretop::Asset::AssetManager::AssetResult::Success)
         {
-            std::cout << state->Assets->GetError(state->ShaderHandle) << std::endl;
+            std::cout << "Error loading Shader: " << state->Assets->GetError(state->ShaderRef) << std::endl;
             exit(1);
         }
-        state->Shader = std::move(state->Assets->GetShaderModule(state->ShaderHandle));
         WGPUPipelineLayoutDescriptor pipelineLayoutDesc = {
             /*.nextInChain=*/nullptr,
             /*.label=*/wgpuStr("Pipeline layout"),
@@ -318,7 +319,7 @@ namespace
         textureViewDesc.mipLevelCount = 1;
         textureViewDesc.dimension = WGPUTextureViewDimension_2D;
         textureViewDesc.format = WGPUTextureFormat_RGBA8Unorm;
-        WGPUTextureView textureView = wgpuTextureCreateView(state->Texture->texture, &textureViewDesc);
+        WGPUTextureView textureView = wgpuTextureCreateView(*state->Texture, &textureViewDesc);
 
         bindings[1].binding = 1;
         bindings[1].textureView = textureView;
@@ -336,18 +337,17 @@ namespace
 
     void LoadTextureStage(TextureDemoData *state)
     {
-        Pretop::Asset::AssetManager::Status textureLoadStatus = state->Assets->GetState(state->TextureHandle);
-        if (state->TextureLoaded || textureLoadStatus == Pretop::Asset::AssetManager::Status::InProgress)
+        Pretop::Asset::AssetManager::AssetResult textureLoadStatus = state->Assets->GetTexture(state->TextureRef, &state->Texture);
+        if (state->TextureLoaded || textureLoadStatus == Pretop::Asset::AssetManager::AssetResult::NotReady)
         {
             return;
         }
-        if (textureLoadStatus == Pretop::Asset::AssetManager::Status::Error)
+        if (textureLoadStatus != Pretop::Asset::AssetManager::AssetResult::Success)
         {
-            std::cout << "ERROR" << state->Assets->GetError(state->TextureHandle) << std::endl;
+            std::cout << "Error loading texture: " << state->Assets->GetError(state->TextureRef) << std::endl;
             exit(1);
         }
 
-        state->Texture = std::move(state->Assets->GetTexture(state->TextureHandle));
         InitializeBindGroupStage(state);
         state->TextureLoaded = true;
     }
@@ -367,8 +367,10 @@ namespace
         std::unique_ptr<Pretop::Window::Window> window = Pretop::Window::WindowFactory::CreateWindow("Texture");
         application.SetWindow(std::move(window));
 
-        state.ShaderHandle = state.Assets->LoadShaderModule("shaders/textureDemoShader.wgsl");
-        state.TextureHandle = state.Assets->LoadTexture("textures/cobblestoneFloor.png");
+        state.ShaderRef = state.Assets->LoadShaderModule(
+            Pretop::Utils::GetAssetId("shaders/textureDemoShader.wgsl"));
+        state.TextureRef = state.Assets->LoadTexture(
+            Pretop::Utils::GetAssetId("textures/cobblestoneFloor.png"));
 
         std::array<WGPUBindGroupLayoutEntry, 3> bindingLayoutEntries = {
             {WGPU_BIND_GROUP_LAYOUT_ENTRY_INIT,

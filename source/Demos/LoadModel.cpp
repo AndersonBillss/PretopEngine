@@ -8,6 +8,7 @@
 #include "../PrintStringView.hpp"
 
 #include "../Window/WindowFactory.hpp"
+#include "../SHARED_/GetAssetId.hpp"
 
 #include "../RHI/Application.hpp"
 #include "../RHI/Device.hpp"
@@ -53,10 +54,10 @@ namespace Pretop::Demos
     {
         std::unique_ptr<Core::JobSystem> Jobs;
         std::unique_ptr<AssetManager> Assets;
-        AssetManager::Handle ModelHandle;
-        AssetManager::Handle ShaderHandle;
-        std::unique_ptr<ParsedData> Model;
-        std::unique_ptr<RHI::Shader> Shader;
+        AssetManager::AssetReference ModelRef;
+        AssetManager::AssetReference ShaderRef;
+        ParsedData *Model;
+        RHI::Shader *Shader;
 
         std::unique_ptr<Buffer> Vertices;
         std::unique_ptr<Buffer> Indices;
@@ -76,12 +77,10 @@ namespace Pretop::Demos
     void InitializeShader(Application &application, DemoState &state)
     {
         std::cout << "Initializing Shaders..." << std::endl;
-        AssetManager::Status shaderLoadStatus = state.Assets->GetState(state.ShaderHandle);
-        if (shaderLoadStatus == AssetManager::Status::InProgress)
+        AssetManager::AssetResult shaderLoadStatus = state.Assets->GetShaderModule(state.ShaderRef, &state.Shader);
+        if (shaderLoadStatus != AssetManager::AssetResult::Success)
             return;
 
-        state.Shader = std::move(state.Assets->GetShaderModule(state.ShaderHandle));
-        state.Assets->Release(state.ShaderHandle);
         state.ShaderReady = true;
         std::cout << "Shaders initialized!" << std::endl;
     }
@@ -89,12 +88,9 @@ namespace Pretop::Demos
     void InitializeModel(Application &application, DemoState &state)
     {
         std::cout << "Initializing Model..." << std::endl;
-        AssetManager::Status modelLoadStatus = state.Assets->GetState(state.ModelHandle);
-        if (modelLoadStatus == AssetManager::Status::InProgress)
+        AssetManager::AssetResult modelLoadStatus = state.Assets->GetGlbData(state.ModelRef, &state.Model);
+        if (modelLoadStatus != AssetManager::AssetResult::Success)
             return;
-
-        state.Model = std::move(state.Assets->GetGlbData(state.ModelHandle));
-        state.Assets->Release(state.ModelHandle);
 
         state.Vertices = std::make_unique<Buffer>(
             application.Device.get(),
@@ -155,7 +151,7 @@ namespace Pretop::Demos
                 {bindingLayoutEntry}});
         state.ModelPipeline = std::make_unique<Pipeline>(
             application.Device.get(),
-            *state.Shader.get(),
+            *state.Shader,
             application.WindowFormat,
             vertexLayout,
             *state.ModelBindingLayout);
@@ -187,8 +183,10 @@ namespace Pretop::Demos
                 std::move(Pretop::Asset::CreateGeneratedAssetCatalog())),
             application.GetGraphicsContext());
 
-        state->ModelHandle = state->Assets->LoadModel("models/woolly-mammoth-100k-4096_std.glb");
-        state->ShaderHandle = state->Assets->LoadShaderModule("shaders/shader.wgsl");
+        state->ModelRef = state->Assets->LoadModel(
+            Pretop::Utils::GetAssetId("models/woolly-mammoth-100k-4096_std.glb"));
+        state->ShaderRef = state->Assets->LoadShaderModule(
+            Pretop::Utils::GetAssetId("shaders/shader.wgsl"));
 
         application.LogQueueCommands();
         application.SetWindow(WindowFactory::CreateWindow("My Window"));

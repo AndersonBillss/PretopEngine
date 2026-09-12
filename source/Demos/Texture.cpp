@@ -1,6 +1,7 @@
 #include <array>
 
 #include "Texture.hpp"
+#include "../SHARED_/GetAssetId.hpp"
 #include "../RHI/Application.hpp"
 #include "../Asset/GeneratedAssetCatalog.hpp"
 #include "../Asset/AssetManagerFactory.hpp"
@@ -50,8 +51,8 @@ namespace
         Pretop::Core::JobSystem jobs;
         std::unique_ptr<Pretop::Asset::AssetManager> Assets;
 
-        Pretop::Asset::AssetManager::Handle ShaderHandle;
-        std::unique_ptr<Pretop::RHI::Shader> Shader;
+        Pretop::Asset::AssetManager::AssetReference ShaderRef;
+        Pretop::RHI::Shader *Shader;
         WGPURenderPassDepthStencilAttachment DepthStencilAttachment;
         WGPUBindGroupLayout bindGroupLayout;
         WGPURenderPipeline pipeline;
@@ -109,17 +110,17 @@ namespace
 
     void LoadShaderStage(TextureDemoData *state)
     {
-        Pretop::Asset::AssetManager::Status shaderLoadStatus = state->Assets->GetState(state->ShaderHandle);
-        if (shaderLoadStatus == Pretop::Asset::AssetManager::Status::InProgress)
+        Pretop::Asset::AssetManager::AssetResult shaderLoadStatus =
+            state->Assets->GetShaderModule(state->ShaderRef, &state->Shader);
+        if (shaderLoadStatus == Pretop::Asset::AssetManager::AssetResult::NotReady)
         {
             return;
         }
-        if (shaderLoadStatus == Pretop::Asset::AssetManager::Status::Error)
+        if (shaderLoadStatus != Pretop::Asset::AssetManager::AssetResult::Success)
         {
-            std::cout << state->Assets->GetError(state->ShaderHandle) << std::endl;
+            std::cout << state->Assets->GetError(state->ShaderRef) << std::endl;
             exit(1);
         }
-        state->Shader = std::move(state->Assets->GetShaderModule(state->ShaderHandle));
         WGPUPipelineLayoutDescriptor pipelineLayoutDesc = {
             /*.nextInChain=*/nullptr,
             /*.label=*/wgpuStr("Pipeline layout"),
@@ -269,7 +270,8 @@ namespace
         std::unique_ptr<Pretop::Window::Window> window = Pretop::Window::WindowFactory::CreateWindow("Texture");
         application.SetWindow(std::move(window));
 
-        state.ShaderHandle = state.Assets->LoadShaderModule("shaders/textureDemoShader.wgsl");
+        state.ShaderRef = state.Assets->LoadShaderModule(
+            Pretop::Utils::GetAssetId("shaders/textureDemoShader.wgsl"));
 
         float textureScale = 8.0f;
         float padding = (textureScale - 1) / 2;
