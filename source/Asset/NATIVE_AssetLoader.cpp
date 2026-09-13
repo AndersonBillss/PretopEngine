@@ -42,9 +42,10 @@ namespace Pretop::Asset
         return bytes;
     }
 
-    NativeAssetLoader::NativeAssetLoader(Core::JobSystem *js)
+    NativeAssetLoader::NativeAssetLoader(Core::JobSystem *js, std::unique_ptr<AssetCatalog> catalog)
     {
         this->_js = js;
+        this->_catalog = std::move(catalog);
     }
 
     AssetLoader::Handle NativeAssetLoader::ReadFile(std::string_view path)
@@ -77,6 +78,81 @@ namespace Pretop::Asset
         data->Result = {};
         data->userData = userData;
         data->self = this;
+
+        return this->_js->Submit(
+            {[](void *userData)
+             {
+                 ReadFileJobData *readFileData = reinterpret_cast<ReadFileJobData *>(userData);
+                 try
+                 {
+                     readFileData->Result = ReadBinaryFile(readFileData->Path);
+                     if (readFileData->RawBytesCb != nullptr)
+                     {
+                         readFileData->RawBytesCb(readFileData->Result, readFileData->userData);
+                     }
+                 }
+                 catch (const std::exception &e)
+                 {
+                     readFileData->ErrorText = e.what();
+                     throw;
+                 }
+                 catch (...)
+                 {
+                     readFileData->ErrorText = "Unknown error while loading binary asset.";
+                     throw;
+                 }
+             },
+             data},
+            {[](Core::JobSystem &js, Handle handle)
+             {
+                 if (js.GetState(handle) == Core::JobSystem::Status::Error)
+                 {
+                     return;
+                 }
+                 ReadFileJobData *readFileData =
+                     reinterpret_cast<ReadFileJobData *>(js.GetData(handle));
+                 if (readFileData->FinishCb != nullptr)
+                 {
+                     readFileData->FinishCb(*readFileData->self, handle);
+                 }
+             }});
+    };
+
+    AssetLoader::Handle NativeAssetLoader::ReadFile(uint64_t assetId)
+    {
+        return ReadFile(assetId, nullptr, nullptr, nullptr);
+    }
+
+    AssetLoader::Handle NativeAssetLoader::ReadFile(uint64_t assetId, FinishCb finishCb, void *userData)
+    {
+        return ReadFile(assetId, nullptr, finishCb, userData);
+    }
+
+    AssetLoader::Handle NativeAssetLoader::ReadFile(
+        uint64_t assetId, RawBytesCb rawBytesCb, FinishCb finishCb, void *userData)
+    {
+        const auto metadata = _catalog->Find(assetId);
+
+        ReadFileJobData *data = new ReadFileJobData;
+        data->RawBytesCb = rawBytesCb;
+        data->FinishCb = finishCb;
+        data->Path = "";
+        data->ErrorText = "";
+        data->Result = {};
+        data->userData = userData;
+        data->self = this;
+        if (metadata == nullptr)
+        {
+            data->ErrorText = "Asset not found in generated metadata: " + assetId;
+            return this->_js->Submit(
+                {[](void *userData)
+                 {
+                     throw std::exception();
+                 },
+                 data},
+                {[](Core::JobSystem &js, Handle handle) {}});
+        }
+        data->Path = metadata->path;
 
         return this->_js->Submit(
             {[](void *userData)

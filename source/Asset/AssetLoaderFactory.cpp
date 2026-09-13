@@ -15,7 +15,7 @@ namespace Pretop::Asset
 #ifdef PRETOP_PLATFORM_WEB
         return std::make_unique<WebAssetLoader>(js, std::move(catalog));
 #else
-        return std::make_unique<NativeAssetLoader>(js);
+        return std::make_unique<NativeAssetLoader>(js, std::move(catalog));
 #endif
     }
 } // namespace Pretop::Asset

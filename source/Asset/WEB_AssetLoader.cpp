@@ -282,7 +282,7 @@ namespace Pretop::Asset
         const auto metadata = _catalog->Find(assetId);
         if (metadata == nullptr)
         {
-            data->ErrorText = "Asset not found in generated metadata: " + data->Path;
+            data->ErrorText = "Asset not found in generated metadata: " + assetId;
             data->ProcessingJob = _js->Submit(
                 {ProcessReadFile, data},
                 {CompleteReadFile});
