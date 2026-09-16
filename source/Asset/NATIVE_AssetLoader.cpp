@@ -131,8 +131,6 @@ namespace Pretop::Asset
     AssetLoader::Handle NativeAssetLoader::ReadFile(
         uint64_t assetId, RawBytesCb rawBytesCb, FinishCb finishCb, void *userData)
     {
-        const auto metadata = _catalog->Find(assetId);
-
         ReadFileJobData *data = new ReadFileJobData;
         data->RawBytesCb = rawBytesCb;
         data->FinishCb = finishCb;
@@ -141,9 +139,11 @@ namespace Pretop::Asset
         data->Result = {};
         data->userData = userData;
         data->self = this;
+
+        const auto metadata = _catalog->Find(assetId);
         if (metadata == nullptr)
         {
-            data->ErrorText = "Asset not found in generated metadata: " + assetId;
+            data->ErrorText = "Asset not found in generated metadata: " + std::to_string(assetId);
             return this->_js->Submit(
                 {[](void *userData)
                  {
