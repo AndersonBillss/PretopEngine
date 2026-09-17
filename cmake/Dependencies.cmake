@@ -8,12 +8,6 @@ if(PRETOP_BUILD_ENGINE)
     )
 
     FetchContent_Declare(
-        magic_enum
-        GIT_REPOSITORY https://github.com/Neargye/magic_enum.git
-        GIT_TAG master
-    )
-
-    FetchContent_Declare(
         stb
         GIT_REPOSITORY https://github.com/nothings/stb.git
         GIT_TAG master
@@ -21,7 +15,6 @@ if(PRETOP_BUILD_ENGINE)
 
     FetchContent_MakeAvailable(
         nlohmann_json
-        magic_enum
         stb
     )
 endif()

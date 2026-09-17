@@ -147,7 +147,8 @@ namespace Pretop::Asset
             return this->_js->Submit(
                 {[](void *userData)
                  {
-                     throw std::exception();
+                     ReadFileJobData *readFileData = reinterpret_cast<ReadFileJobData *>(userData);
+                     throw std::runtime_error(readFileData->ErrorText);
                  },
                  data},
                 {[](Core::JobSystem &js, Handle handle) {}});

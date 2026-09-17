@@ -15,11 +15,13 @@ if(EMSCRIPTEN)
     target_compile_options(pretop_engine_core PRIVATE
         "--use-port=emdawnwebgpu"
         "-pthread"
+        "-fwasm-exceptions"
     )
 
     target_compile_options(pretop_engine PRIVATE
         "--use-port=emdawnwebgpu"
         "-pthread"
+        "-fwasm-exceptions"
     )
 
     target_link_options(pretop_engine PRIVATE
@@ -29,7 +31,7 @@ if(EMSCRIPTEN)
         "-sASSERTIONS=1"
         "-sALLOW_MEMORY_GROWTH=1"
         "-sFETCH"
-        "-sNO_DISABLE_EXCEPTION_CATCHING"
+        "-fwasm-exceptions"
         "-pthread"
         "-sPTHREAD_POOL_SIZE=navigator.hardwareConcurrency"
     )

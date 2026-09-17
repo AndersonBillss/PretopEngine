@@ -48,7 +48,6 @@ if(PRETOP_BUILD_ENGINE)
     target_link_libraries(pretop_engine_core PUBLIC
         pretop_engine_shared
         nlohmann_json::nlohmann_json
-        magic_enum::magic_enum
         stb_image
     )
 
