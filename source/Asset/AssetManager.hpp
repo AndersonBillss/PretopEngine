@@ -28,7 +28,7 @@ namespace Pretop::Asset
         enum class AssetResult
         {
             Success,
-            InvalidHandle,
+            InvalidReference,
             WrongType,
             NotReady,
             Failed,
@@ -39,7 +39,6 @@ namespace Pretop::Asset
             Core::Handle handle;
         };
 
-        // using Handle = Core::Handle;
         using Status = Core::Status;
         using AssetId = uint64_t;
 

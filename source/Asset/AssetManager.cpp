@@ -259,8 +259,26 @@ namespace Pretop::Asset
 
     std::string AssetManager::GetError(AssetReference reference)
     {
-        // AssetManager::Asset return _assetLoader->GetError(handle);
-        return "TEST STRING FOR NOW"; // Todo: implement this
+        AssetResult result = GetResult(reference);
+        if (result == AssetResult::WrongType)
+        {
+            return "Incorrect asset type";
+        }
+        if (result == AssetResult::InvalidReference)
+        {
+            return "Asset reference is invalid";
+        }
+        if (result == AssetResult::NotReady)
+        {
+            return "Asset is not ready";
+        }
+        if (result == AssetResult::Failed)
+        {
+            AssetLoader::Handle loaderHandle;
+            _getLoaderHandle(reference, nullptr, &loaderHandle);
+            return _assetLoader->GetError(loaderHandle);
+        }
+        return "";
     }
 
     void AssetManager::Release(AssetReference reference)
@@ -312,7 +330,6 @@ namespace Pretop::Asset
             return result;
         }
 
-        // void *rawData = this->_assetLoader->GetRawData(loaderHandle);
         void *rawData = this->_assetLoader->GetRawData(loaderHandle);
         if (data != nullptr)
         {
@@ -327,14 +344,14 @@ namespace Pretop::Asset
     {
         if (!_records.IsValid(reference.handle))
         {
-            return AssetResult::InvalidHandle;
+            return AssetResult::InvalidReference;
         }
         AssetReferenceRecord *assetReferenceRecord = _records[reference.handle];
 
         auto it = _assets.find(assetReferenceRecord->AssetId);
         if (it == _assets.end())
         {
-            return AssetResult::InvalidHandle;
+            return AssetResult::InvalidReference;
         }
 
         AssetEntry &assetEntry = it->second;
