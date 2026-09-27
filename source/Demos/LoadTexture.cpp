@@ -367,9 +367,8 @@ namespace
         std::unique_ptr<Pretop::Window::Window> window = Pretop::Window::WindowFactory::CreateWindow("Texture");
         application.SetWindow(std::move(window));
 
-        // Load a non-existent cataloged asset
         state.ShaderRef = state.Assets->LoadShaderModule(
-            Pretop::Utils::GetAssetId("shaders/textureDemoShader.wgsll"));
+            Pretop::Utils::GetAssetId("shaders/textureDemoShader.wgsl"));
         state.TextureRef = state.Assets->LoadTexture(
             Pretop::Utils::GetAssetId("textures/cobblestoneFloor.png"));
 
