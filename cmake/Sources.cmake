@@ -3,6 +3,8 @@ set(PRETOP_ENGINE_MAIN
   source/main.cpp
 )
 set(PRETOP_ENGINE_SOURCES
+  source/Asset/AssetBuilders/GlbAssetBuilder.cpp
+  source/Asset/AssetBuilders/GlbAssetData.cpp
   source/Asset/AssetLoaderFactory.cpp
   source/Asset/AssetManager.cpp
   source/Asset/AssetManagerFactory.cpp
