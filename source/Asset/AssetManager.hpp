@@ -2,6 +2,7 @@
 
 #include "LoadGlb.hpp"
 #include "AssetLoader.hpp"
+#include "AssetType.hpp"
 #include "../Core/JobSystem.hpp"
 #include "../Core/GraphicsContext.hpp"
 #include "../Core/PagedVector.hpp"
@@ -17,14 +18,6 @@ namespace Pretop::Asset
     class AssetManager
     {
     public:
-        enum class AssetType
-        {
-            Undefined,
-            Shader,
-            GLB,
-            Texture,
-        };
-
         enum class AssetResult
         {
             Success,
