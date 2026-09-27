@@ -1,6 +1,11 @@
 #pragma once
+#include "AssetType.hpp"
 
-struct AssetData
+namespace Pretop::Asset
 {
-    virtual ~AssetData() = default;
-};
+    struct AssetData
+    {
+        virtual AssetType GetAssetType() = 0;
+        virtual ~AssetData() = default;
+    };
+}
