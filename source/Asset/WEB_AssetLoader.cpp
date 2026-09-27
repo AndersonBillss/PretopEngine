@@ -34,7 +34,7 @@ namespace Pretop::Asset
             AssetLoader::FinishCb FinishCb = nullptr;
             std::string Path;
             std::string ErrorText;
-            AssetLoader::AssetBytes Result;
+            AssetBytes Result;
             void *UserData = nullptr;
             WebAssetLoader *Self = nullptr;
             AssetLoader::Handle AssetHandle{};
@@ -64,7 +64,7 @@ namespace Pretop::Asset
             return message;
         }
 
-        AssetLoader::AssetBytes ReadBinaryFileFromVfs(const std::string &path)
+        AssetBytes ReadBinaryFileFromVfs(const std::string &path)
         {
             std::ifstream file(path, std::ios::binary | std::ios::ate);
             if (!file)
@@ -80,7 +80,7 @@ namespace Pretop::Asset
                     "Failed to determine VFS asset size: " + path);
             }
 
-            AssetLoader::AssetBytes bytes(static_cast<std::size_t>(end));
+            AssetBytes bytes(static_cast<std::size_t>(end));
             file.seekg(0, std::ios::beg);
             if (!bytes.empty())
             {
@@ -360,7 +360,7 @@ namespace Pretop::Asset
         return (*_impl->Records[handle])->State.load();
     }
 
-    const AssetLoader::AssetBytes &WebAssetLoader::GetBytes(Handle handle) const
+    const AssetBytes &WebAssetLoader::GetBytes(Handle handle) const
     {
         return (*_impl->Records[handle])->Result;
     }

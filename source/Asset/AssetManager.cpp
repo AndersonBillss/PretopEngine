@@ -47,7 +47,7 @@ namespace Pretop::Asset
         loadModelData->data = nullptr;
         AssetLoader::Handle loaderHandle = _assetLoader->ReadFile(
             assetId,
-            [](const AssetLoader::AssetBytes &bytes, void *userData)
+            [](const AssetBytes &bytes, void *userData)
             {
                 LoadModelData *data = reinterpret_cast<LoadModelData *>(userData);
                 data->data = std::make_unique<ParsedData>(LoadGlb(bytes));
@@ -107,7 +107,7 @@ namespace Pretop::Asset
             assetId,
             [](AssetLoader &loader, AssetLoader::Handle handle)
             {
-                AssetLoader::AssetBytes bytes = loader.GetBytes(handle);
+                AssetBytes bytes = loader.GetBytes(handle);
                 LoadShaderModuleData *data = reinterpret_cast<LoadShaderModuleData *>(loader.GetRawData(handle));
                 data->data = std::make_unique<RHI::Shader>(
                     RHI::Shader::Pipeline(data->context, bytes.data(), bytes.size()));
@@ -167,7 +167,7 @@ namespace Pretop::Asset
         loadTextureData->graphicsContext = this->_graphicsContext;
         AssetLoader::Handle loaderHandle = _assetLoader->ReadFile(
             assetId,
-            [](const AssetLoader::AssetBytes &bytes, void *userData)
+            [](const AssetBytes &bytes, void *userData)
             {
                 LoadTextureData *data = reinterpret_cast<LoadTextureData *>(userData);
                 data->pixelData = stbi_load_from_memory(

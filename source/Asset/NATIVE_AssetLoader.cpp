@@ -10,7 +10,7 @@
 
 namespace Pretop::Asset
 {
-    AssetLoader::AssetBytes ReadBinaryFile(const std::string &path)
+    AssetBytes ReadBinaryFile(const std::string &path)
     {
         std::string assetPath = std::string(AssetBase) + std::string("/") + path;
         std::ifstream file(assetPath, std::ios::binary | std::ios::ate);
@@ -25,7 +25,7 @@ namespace Pretop::Asset
             throw std::runtime_error("Failed to determine binary asset size: " + path);
         }
 
-        AssetLoader::AssetBytes bytes(static_cast<std::size_t>(end));
+        AssetBytes bytes(static_cast<std::size_t>(end));
         file.seekg(0, std::ios::beg);
 
         if (!bytes.empty())
@@ -64,7 +64,7 @@ namespace Pretop::Asset
         AssetLoader::FinishCb FinishCb;
         std::string Path;
         std::string ErrorText;
-        AssetLoader::AssetBytes Result;
+        AssetBytes Result;
         void *userData;
         NativeAssetLoader *self;
     };
@@ -199,7 +199,7 @@ namespace Pretop::Asset
         return _js->GetState(handle);
     }
 
-    const AssetLoader::AssetBytes &NativeAssetLoader::GetBytes(Handle handle) const
+    const AssetBytes &NativeAssetLoader::GetBytes(Handle handle) const
     {
         return std::move(reinterpret_cast<ReadFileJobData *>(_js->GetData(handle))->Result);
     }
