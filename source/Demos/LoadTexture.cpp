@@ -66,6 +66,8 @@ namespace
         WGPUBuffer indexBuffer;
         WGPUBuffer vertexBuffer;
         WGPUBindGroup bindGroup;
+
+        float seconds = 0.0f;
     };
 
     std::vector<uint8_t> createMip(std::vector<uint8_t> &previousLevelPixels, WGPUExtent3D &prevSize)
@@ -344,7 +346,6 @@ namespace
         }
         if (textureLoadStatus != Pretop::Asset::AssetManager::AssetResult::Success)
         {
-            std::cout << "Error loading texture: " << state->Assets->GetError(state->TextureRef) << std::endl;
             exit(1);
         }
 
@@ -355,21 +356,21 @@ namespace
     const float ModelScale = 1.0f;
     void Start(Pretop::RHI::Application &application)
     {
-        TextureDemoData state;
-        state.app = &application;
-        state.Assets = std::move(
+        TextureDemoData *state = new TextureDemoData();
+        state->app = &application;
+        state->Assets = std::move(
             Pretop::Asset::AssetManagerFactory::CreateAssetManager(
                 std::move(Pretop::Asset::AssetLoaderFactory::CreateAssetLoader(
-                    &state.jobs,
+                    &state->jobs,
                     std::move(Pretop::Asset::CreateGeneratedAssetCatalog()))),
                 application.GetGraphicsContext()));
 
         std::unique_ptr<Pretop::Window::Window> window = Pretop::Window::WindowFactory::CreateWindow("Texture");
         application.SetWindow(std::move(window));
 
-        state.ShaderRef = state.Assets->LoadShaderModule(
+        state->ShaderRef = state->Assets->LoadShaderModule(
             Pretop::Utils::GetAssetId("shaders/textureDemoShader.wgsl"));
-        state.TextureRef = state.Assets->LoadTexture(
+        state->TextureRef = state->Assets->LoadTexture(
             Pretop::Utils::GetAssetId("textures/cobblestoneFloor.png"));
 
         std::array<WGPUBindGroupLayoutEntry, 3> bindingLayoutEntries = {
@@ -400,7 +401,7 @@ namespace
         bindGroupLayoutDesc.nextInChain = nullptr;
         bindGroupLayoutDesc.entryCount = (uint32_t)bindingLayoutEntries.size();
         bindGroupLayoutDesc.entries = bindingLayoutEntries.data();
-        state.bindGroupLayout = wgpuDeviceCreateBindGroupLayout(application.Device->WgpuDevice, &bindGroupLayoutDesc);
+        state->bindGroupLayout = wgpuDeviceCreateBindGroupLayout(application.Device->WgpuDevice, &bindGroupLayoutDesc);
 
         MyUniforms uniforms;
         uniforms.ModelMatrix = Pretop::Math::Mat4x4::Identity();
@@ -409,31 +410,31 @@ namespace
         uniforms.Color = 0.0f;
         uniforms.Time = 0.0f;
 
-        float seconds = 0.0f;
+        state->seconds = 0;
 
         application.Run(
-            [&](
+            [state](
                 double dt,
                 WGPUTextureView targetView)
             {
-                state.jobs.PumpMainThreadCompletions();
-                if (!state.ShaderLoaded)
+                state->jobs.PumpMainThreadCompletions();
+                if (!state->ShaderLoaded)
                 {
-                    LoadShaderStage(&state);
+                    LoadShaderStage(state);
                 }
-                if (!state.TextureLoaded)
+                if (!state->TextureLoaded)
                 {
-                    LoadTextureStage(&state);
+                    LoadTextureStage(state);
                 }
-                if (!state.TextureLoaded || !state.ShaderLoaded)
+                if (!state->TextureLoaded || !state->ShaderLoaded)
                 {
                     return;
                 }
 
-                seconds += dt;
+                state->seconds += dt;
                 MyUniforms u;
-                u.Color = (sin(seconds * 2.32325) + 1) / 2;
-                u.Time = seconds;
+                u.Color = (sin(state->seconds * 2.32325) + 1) / 2;
+                u.Time = state->seconds;
 
                 Pretop::Math::Mat4x4 r1 = (Pretop::Math::Euler{0, 0, -5}).ToMatrix();
                 Pretop::Math::Mat4x4 s = Pretop::Math::Mat4x4::Scale(ModelScale);
@@ -442,7 +443,7 @@ namespace
                 float minTilt = -75.0f;
                 float maxTilt = -60.0f;
                 float difference = maxTilt - minTilt;
-                float tiltFactor = (sin(seconds * 2) + 1) / 2;
+                float tiltFactor = (sin(state->seconds * 2) + 1) / 2;
                 float tilt = minTilt + difference * tiltFactor;
                 Pretop::Math::Mat4x4 r2 = (Pretop::Math::Euler{tilt * (float)Pretop::Math::Deg2Rad, 0, 0}).ToMatrix();
                 Pretop::Math::Mat4x4 t2 = Pretop::Math::Mat4x4::Transform(0.0f, 0.2f, -1.5f);
@@ -452,8 +453,8 @@ namespace
                 float far = 100.0f;
                 u.ProjectionMatrix = Pretop::Math::Mat4x4::Perspective(near, far, 60.0f * Pretop::Math::Deg2Rad, 640.0 / 480.0);
                 wgpuQueueWriteBuffer(
-                    application.WgpuQueue,
-                    state.uniformBuffer,
+                    state->app->WgpuQueue,
+                    state->uniformBuffer,
                     0,
                     &u,
                     sizeof(MyUniforms));
@@ -462,7 +463,7 @@ namespace
                     /*.nextInChain=*/nullptr,
                     /*.label=*/wgpuStr("Texture command encoder"),
                 };
-                WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(application.Device->WgpuDevice, &encoderDescriptor);
+                WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(state->app->Device->WgpuDevice, &encoderDescriptor);
 
                 WGPURenderPassColorAttachment renderPassColorAttachment = {
                     /*.nextInChain=*/nullptr,
@@ -478,20 +479,20 @@ namespace
                     /*.label=*/wgpuStr("Texture render pass"),
                     /*.colorAttachmentCount=*/1,
                     /*.colorAttachments=*/&renderPassColorAttachment,
-                    /*.depthStencilAttachment=*/&state.DepthStencilAttachment,
+                    /*.depthStencilAttachment=*/&state->DepthStencilAttachment,
                     /*.occlusionQuerySet=*/nullptr,
                     /*.timestampWrites=*/nullptr,
                 };
                 WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(encoder, &renderPassDescriptor);
 
-                wgpuRenderPassEncoderSetPipeline(renderPass, state.pipeline);
+                wgpuRenderPassEncoderSetPipeline(renderPass, state->pipeline);
                 wgpuRenderPassEncoderSetVertexBuffer(
-                    renderPass, 0, state.vertexBuffer, 0, wgpuBufferGetSize(state.vertexBuffer));
+                    renderPass, 0, state->vertexBuffer, 0, wgpuBufferGetSize(state->vertexBuffer));
                 wgpuRenderPassEncoderSetIndexBuffer(
-                    renderPass, state.indexBuffer, WGPUIndexFormat_Uint16, 0, wgpuBufferGetSize(state.indexBuffer));
-                wgpuRenderPassEncoderSetBindGroup(renderPass, 0, state.bindGroup, 0, nullptr);
+                    renderPass, state->indexBuffer, WGPUIndexFormat_Uint16, 0, wgpuBufferGetSize(state->indexBuffer));
+                wgpuRenderPassEncoderSetBindGroup(renderPass, 0, state->bindGroup, 0, nullptr);
                 wgpuRenderPassEncoderDrawIndexed(
-                    renderPass, wgpuBufferGetSize(state.indexBuffer) / sizeof(uint16_t), 1, 0, 0, 0);
+                    renderPass, wgpuBufferGetSize(state->indexBuffer) / sizeof(uint16_t), 1, 0, 0, 0);
                 wgpuRenderPassEncoderEnd(renderPass);
                 wgpuRenderPassEncoderRelease(renderPass);
 
@@ -501,13 +502,15 @@ namespace
                 };
                 WGPUCommandBuffer commandBuffer = wgpuCommandEncoderFinish(encoder, &cmdBufferDescriptor);
 
-                wgpuQueueSubmit(application.WgpuQueue, 1, &commandBuffer);
+                wgpuQueueSubmit(state->app->WgpuQueue, 1, &commandBuffer);
 
                 wgpuCommandEncoderRelease(encoder);
             });
 
-        wgpuBufferDestroy(state.uniformBuffer);
-        wgpuBufferRelease(state.uniformBuffer);
+        wgpuBufferDestroy(state->uniformBuffer);
+        wgpuBufferRelease(state->uniformBuffer);
+
+        delete state;
     }
 }
 
