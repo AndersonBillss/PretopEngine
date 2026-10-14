@@ -289,12 +289,11 @@ namespace Pretop::Asset
             data->HasProcessingJob = true;
             return data->AssetHandle;
         }
-        // std::cout << (metadata->SourceType == SourceType::VFS ? "VFS" : "HTTP") << std::endl;
 
         data->Path = std::string(AssetBase) + "/" + metadata->path;
-        // data->Source = metadata->SourceType == SourceType::VFS
-        //                    ? ReadSource::VirtualFileSystem
-        //                    : ReadSource::Http;
+        data->Source = metadata->SourceType == SourceType::VFS
+                           ? ReadSource::VirtualFileSystem
+                           : ReadSource::Http;
 
         data->Source = ReadSource::Http;
 
