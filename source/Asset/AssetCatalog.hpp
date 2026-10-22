@@ -1,6 +1,7 @@
 #pragma once
 #include "FileMetadata.hpp"
 #include <string_view>
+#include <cstdint>
 
 namespace Pretop::Asset
 {
