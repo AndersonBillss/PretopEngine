@@ -3,6 +3,7 @@
 #include "LoadGlb.hpp"
 #include "AssetLoader.hpp"
 #include "AssetType.hpp"
+#include "AssetBuilders/AssetBuilder.hpp"
 #include "../Core/JobSystem.hpp"
 #include "../Core/GraphicsContext.hpp"
 #include "../Core/PagedVector.hpp"
@@ -27,7 +28,7 @@ namespace Pretop::Asset
             Failed,
         };
 
-        struct AssetReference
+        struct OldAssetReference
         {
             Core::Handle handle;
         };
@@ -54,26 +55,29 @@ namespace Pretop::Asset
             Core::GraphicsContext graphicsContext);
         ~AssetManager();
 
-        AssetReference LoadModel(AssetId assetId);
-        AssetResult GetGlbData(AssetReference reference, ParsedData **data);
+        OldAssetReference LoadModel(AssetId assetId);
+        AssetResult GetGlbData(OldAssetReference reference, ParsedData **data);
 
-        AssetReference LoadShaderModule(AssetId assetId);
-        AssetResult GetShaderModule(AssetReference reference, RHI::Shader **shader);
+        OldAssetReference LoadShaderModule(AssetId assetId);
+        AssetResult GetShaderModule(OldAssetReference reference, RHI::Shader **shader);
 
-        AssetReference LoadTexture(AssetId assetId);
-        AssetResult GetTexture(AssetReference reference, WGPUTexture **texture);
+        OldAssetReference LoadTexture(AssetId assetId);
+        AssetResult GetTexture(OldAssetReference reference, WGPUTexture **texture);
 
-        Status GetState(AssetReference reference);
-        AssetResult GetResult(AssetReference reference);
-        std::string GetError(AssetReference reference);
-        void Release(AssetReference reference);
+        // AssetReference LoadAsset<T>(AssetId assetId, std::unique_ptr<AssetBuilder> assetBuilder);
+        // AssetResult GetAsset<T>(AssetReference reference, T **texture);
+
+        Status GetState(OldAssetReference reference);
+        AssetResult GetResult(OldAssetReference reference);
+        std::string GetError(OldAssetReference reference);
+        void Release(OldAssetReference reference);
 
     private:
-        AssetReference _addReferenceRecord(AssetId assetId);
-        AssetReference _removeReference(AssetId assetId);
+        OldAssetReference _addReferenceRecord(AssetId assetId);
+        OldAssetReference _removeReference(AssetId assetId);
 
-        AssetResult _getData(AssetReference reference, AssetType *type, void **data);
-        AssetResult _getLoaderHandle(AssetReference reference, AssetType *type, AssetLoader::Handle *handle);
+        AssetResult _getData(OldAssetReference reference, AssetType *type, void **data);
+        AssetResult _getLoaderHandle(OldAssetReference reference, AssetType *type, AssetLoader::Handle *handle);
 
         std::unique_ptr<AssetLoader> _assetLoader;
         Core::GraphicsContext _graphicsContext;

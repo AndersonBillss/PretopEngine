@@ -51,14 +51,14 @@ namespace
         Pretop::Core::JobSystem jobs;
         std::unique_ptr<Pretop::Asset::AssetManager> Assets;
 
-        Pretop::Asset::AssetManager::AssetReference ShaderRef;
+        Pretop::Asset::AssetManager::OldAssetReference ShaderRef;
         Pretop::RHI::Shader *Shader;
         WGPURenderPassDepthStencilAttachment DepthStencilAttachment;
         WGPUBindGroupLayout bindGroupLayout;
         WGPURenderPipeline pipeline;
         bool ShaderLoaded = false;
 
-        Pretop::Asset::AssetManager::AssetReference TextureRef;
+        Pretop::Asset::AssetManager::OldAssetReference TextureRef;
         WGPUTexture *Texture;
         bool TextureLoaded = false;
 

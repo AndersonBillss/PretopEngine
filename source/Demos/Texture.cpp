@@ -51,7 +51,7 @@ namespace
         Pretop::Core::JobSystem jobs;
         std::unique_ptr<Pretop::Asset::AssetManager> Assets;
 
-        Pretop::Asset::AssetManager::AssetReference ShaderRef;
+        Pretop::Asset::AssetManager::OldAssetReference ShaderRef;
         Pretop::RHI::Shader *Shader;
         WGPURenderPassDepthStencilAttachment DepthStencilAttachment;
         WGPUBindGroupLayout bindGroupLayout;

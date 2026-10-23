@@ -31,7 +31,7 @@ namespace Pretop::Asset
         std::unique_ptr<ParsedData> data;
     };
 
-    AssetManager::AssetReference AssetManager::LoadModel(
+    AssetManager::OldAssetReference AssetManager::LoadModel(
         AssetId assetId)
     {
         auto it = _assets.find(assetId);
@@ -65,7 +65,7 @@ namespace Pretop::Asset
         return _addReferenceRecord(assetId);
     }
 
-    AssetManager::AssetResult AssetManager::GetGlbData(AssetReference reference, ParsedData **data)
+    AssetManager::AssetResult AssetManager::GetGlbData(OldAssetReference reference, ParsedData **data)
     {
         void *rawDataPtr = nullptr;
         AssetType type = AssetType::Undefined;
@@ -89,7 +89,7 @@ namespace Pretop::Asset
         std::unique_ptr<RHI::Shader> data;
         Core::GraphicsContext context;
     };
-    AssetManager::AssetReference AssetManager::LoadShaderModule(AssetId assetId)
+    AssetManager::OldAssetReference AssetManager::LoadShaderModule(AssetId assetId)
     {
         auto it = _assets.find(assetId);
         if (it != _assets.end())
@@ -124,7 +124,7 @@ namespace Pretop::Asset
         return _addReferenceRecord(assetId);
     }
 
-    AssetManager::AssetResult AssetManager::GetShaderModule(AssetReference reference, RHI::Shader **shader)
+    AssetManager::AssetResult AssetManager::GetShaderModule(OldAssetReference reference, RHI::Shader **shader)
     {
         void *rawDataPtr = nullptr;
         AssetType type = AssetType::Undefined;
@@ -152,7 +152,7 @@ namespace Pretop::Asset
         WGPUTexture texture;
         Core::GraphicsContext graphicsContext;
     };
-    AssetManager::AssetReference AssetManager::LoadTexture(AssetId assetId)
+    AssetManager::OldAssetReference AssetManager::LoadTexture(AssetId assetId)
     {
         auto it = _assets.find(assetId);
         if (it != _assets.end())
@@ -233,7 +233,7 @@ namespace Pretop::Asset
         return _addReferenceRecord(assetId);
     }
 
-    AssetManager::AssetResult AssetManager::GetTexture(AssetReference reference, WGPUTexture **texture)
+    AssetManager::AssetResult AssetManager::GetTexture(OldAssetReference reference, WGPUTexture **texture)
     {
         void *rawDataPtr = nullptr;
         AssetType type = AssetType::Undefined;
@@ -252,12 +252,12 @@ namespace Pretop::Asset
         return AssetResult::Success;
     }
 
-    AssetManager::AssetResult AssetManager::GetResult(AssetReference reference)
+    AssetManager::AssetResult AssetManager::GetResult(OldAssetReference reference)
     {
         return _getData(reference, nullptr, nullptr);
     }
 
-    std::string AssetManager::GetError(AssetReference reference)
+    std::string AssetManager::GetError(OldAssetReference reference)
     {
         AssetResult result = GetResult(reference);
         if (result == AssetResult::WrongType)
@@ -281,7 +281,7 @@ namespace Pretop::Asset
         return "";
     }
 
-    void AssetManager::Release(AssetReference reference)
+    void AssetManager::Release(OldAssetReference reference)
     {
         if (!_records.IsValid(reference.handle))
         {
@@ -309,18 +309,18 @@ namespace Pretop::Asset
         return _records.Release(reference.handle);
     }
 
-    AssetManager::AssetReference AssetManager::_addReferenceRecord(AssetId assetId)
+    AssetManager::OldAssetReference AssetManager::_addReferenceRecord(AssetId assetId)
     {
         AssetReferenceRecord assetReferenceRecord;
         assetReferenceRecord.AssetId = assetId;
         Core::Handle assetReferenceHandle = _records.Add(assetReferenceRecord);
 
-        AssetReference assetReference;
+        OldAssetReference assetReference;
         assetReference.handle = assetReferenceHandle;
         return assetReference;
     };
 
-    AssetManager::AssetResult AssetManager::_getData(AssetReference reference, AssetType *type, void **data)
+    AssetManager::AssetResult AssetManager::_getData(OldAssetReference reference, AssetType *type, void **data)
     {
         AssetLoader::Handle loaderHandle;
         AssetManager::AssetResult result = _getLoaderHandle(reference, type, &loaderHandle);
@@ -340,7 +340,7 @@ namespace Pretop::Asset
     }
 
     AssetManager::AssetResult AssetManager::_getLoaderHandle(
-        AssetReference reference, AssetType *type, AssetLoader::Handle *handle)
+        OldAssetReference reference, AssetType *type, AssetLoader::Handle *handle)
     {
         if (!_records.IsValid(reference.handle))
         {
