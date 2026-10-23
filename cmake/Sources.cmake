@@ -7,6 +7,8 @@ set(PRETOP_ENGINE_SOURCES
   source/Asset/AssetBuilders/GlbAssetData.cpp
   source/Asset/AssetBuilders/ShaderModuleAssetBuilder.cpp
   source/Asset/AssetBuilders/ShaderModuleAssetData.cpp
+  source/Asset/AssetBuilders/TextureAssetBuilder.cpp
+  source/Asset/AssetBuilders/TextureAssetData.cpp
   source/Asset/AssetLoaderFactory.cpp
   source/Asset/AssetManager.cpp
   source/Asset/AssetManagerFactory.cpp
