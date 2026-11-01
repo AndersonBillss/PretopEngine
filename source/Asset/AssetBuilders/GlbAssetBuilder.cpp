@@ -12,4 +12,8 @@ namespace Pretop::Asset
     {
         return std::move(this->_assetData);
     }
+    AssetType GlbAssetBuilder::GetAssetType()
+    {
+        return AssetType::GLB;
+    }
 }

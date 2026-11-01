@@ -93,12 +93,11 @@ namespace Pretop::Core
             pending.pop();
 
             JobRecord *record = _records[completion.Handle];
-            record->Completion.Done(*this, completion.Handle);
-
             if (record->State == Status::InProgress)
             {
                 record->State.store(Status::Ready);
             }
+            record->Completion.Done(*this, completion.Handle);
         }
     }
 

@@ -18,5 +18,6 @@ namespace Pretop::Asset
     public:
         void ThreadLoadStep(const AssetBytes &bytes) override;
         std::unique_ptr<AssetData> FinalizeLoadStep() override;
+        AssetType GetAssetType() override;
     };
 }

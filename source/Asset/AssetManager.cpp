@@ -309,6 +309,73 @@ namespace Pretop::Asset
         return _records.Release(reference.handle);
     }
 
+    struct AssetContext
+    {
+        AssetBuilder *Builder;
+        AssetManager *Self;
+        AssetManager::AssetId AssetId;
+    };
+    AssetManager::OldAssetReference AssetManager::_loadAsset(AssetId assetId, std::unique_ptr<AssetBuilder> assetBuilder)
+    {
+        auto it = _assets.find(assetId);
+        if (it != _assets.end())
+        {
+            AssetEntry &existingEntry = it->second;
+            existingEntry.RefCount++;
+
+            return _addReferenceRecord(assetId);
+        }
+
+        AssetContext *ctx = new AssetContext{assetBuilder.release(), this};
+
+        AssetLoader::Handle loaderHandle = _assetLoader->ReadFile(
+            assetId,
+            [](const AssetBytes &bytes, void *userData)
+            {
+                AssetContext *ctx = reinterpret_cast<AssetContext *>(userData);
+                ctx->Builder->ThreadLoadStep(bytes);
+            },
+            [](AssetLoader &loader, AssetLoader::Handle handle)
+            {
+                AssetContext *ctx = reinterpret_cast<AssetContext *>(loader.GetRawData(handle));
+                auto data = ctx->Builder->FinalizeLoadStep();
+                auto &record = ctx->Self->_assets[ctx->AssetId];
+                record.Data = std::move(data);
+                delete ctx->Builder;
+                delete ctx;
+            },
+            ctx);
+
+        _assets.emplace(assetId,
+                        AssetEntry{
+                            /* Type */ assetBuilder->GetAssetType(),
+                            /* LoaderHandle */ loaderHandle,
+                            /* Data */ nullptr,
+                            /* RefCount */ 1,
+                        });
+
+        return _addReferenceRecord(assetId);
+    }
+
+    // AssetManager::AssetResult AssetManager::_getAsset(OldAssetReference reference, void **data)
+    // {
+        // AssetLoader::Handle loaderHandle;
+        // AssetManager::AssetResult result = _getLoaderHandle(reference, type, &loaderHandle);
+
+        // if (result != AssetResult::Success)
+        // {
+        //     return result;
+        // }
+
+        // void *rawData = this->_assetLoader->GetRawData(loaderHandle);
+        // if (data != nullptr)
+        // {
+        //     *data = rawData;
+        // }
+
+        // return AssetResult::Success;
+    // }
+
     AssetManager::OldAssetReference AssetManager::_addReferenceRecord(AssetId assetId)
     {
         AssetReferenceRecord assetReferenceRecord;

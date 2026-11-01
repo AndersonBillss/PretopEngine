@@ -11,4 +11,8 @@ namespace Pretop::Asset
     {
         return std::move(this->_assetData);
     }
+    AssetType ShaderModuleAssetBuilder::GetAssetType()
+    {
+        return AssetType::Shader;
+    }
 }

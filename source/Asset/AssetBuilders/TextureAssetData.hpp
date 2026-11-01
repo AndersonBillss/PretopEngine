@@ -7,7 +7,6 @@ namespace Pretop::Asset
     struct TextureAssetData : AssetData
     {
         WGPUTexture data;
-        AssetType GetAssetType() override;
         ~TextureAssetData() override;
     };
 }
