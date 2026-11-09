@@ -7,6 +7,7 @@ namespace Pretop::Asset
     struct GlbAssetData : AssetData
     {
         ParsedData data;
+        void *GetData() override;
         ~GlbAssetData() override;
     };
 }

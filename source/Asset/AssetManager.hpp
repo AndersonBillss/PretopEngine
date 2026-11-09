@@ -53,6 +53,7 @@ namespace Pretop::Asset
             AssetType Type;
             AssetLoader::Handle LoaderHandle;
             std::unique_ptr<AssetData> Data;
+            AssetManager::AssetResult Result;
             uint32_t RefCount = 0;
         };
 
@@ -71,14 +72,13 @@ namespace Pretop::Asset
         OldAssetReference LoadTexture(AssetId assetId);
         AssetResult GetTexture(OldAssetReference reference, WGPUTexture **texture);
 
-        template <class T>
-        OldAssetReference LoadAsset(AssetId assetId, std::unique_ptr<AssetBuilder> assetBuilder) {
-            return _getAsset(handle, data);
-        };
-        template <class T>
-        AssetResult GetAsset(AssetReference<T> reference, T **data)
+        OldAssetReference LoadAsset(AssetId assetId, std::unique_ptr<AssetBuilder> assetBuilder)
         {
-            return _getAsset(reference.handle, data);
+            return _loadAsset(assetId, std::move(assetBuilder));
+        };
+        AssetResult GetAsset(OldAssetReference reference, AssetType type, void **data)
+        {
+            return _getAsset(reference, type, data);
         };
 
         Status GetState(OldAssetReference reference);
@@ -88,7 +88,7 @@ namespace Pretop::Asset
 
     private:
         OldAssetReference _loadAsset(AssetId assetId, std::unique_ptr<AssetBuilder> assetBuilder);
-        // AssetResult _getAsset(OldAssetReference reference, void **data);
+        AssetResult _getAsset(OldAssetReference reference, AssetType type, void **data);
 
         OldAssetReference _addReferenceRecord(AssetId assetId);
         OldAssetReference _removeReference(AssetId assetId);

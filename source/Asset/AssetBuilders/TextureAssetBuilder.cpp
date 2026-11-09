@@ -3,6 +3,11 @@
 
 namespace Pretop::Asset
 {
+    TextureAssetBuilder::TextureAssetBuilder(Core::GraphicsContext context)
+    {
+        this->_context = context;
+    }
+
     void TextureAssetBuilder::ThreadLoadStep(const AssetBytes &bytes)
     {
         this->pixelData = stbi_load_from_memory(

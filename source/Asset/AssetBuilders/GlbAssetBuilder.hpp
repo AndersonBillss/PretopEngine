@@ -4,7 +4,7 @@
 
 namespace Pretop::Asset
 {
-    class GlbAssetBuilder : AssetBuilder
+    class GlbAssetBuilder : public AssetBuilder
     {
     private:
         std::unique_ptr<GlbAssetData> _assetData;
