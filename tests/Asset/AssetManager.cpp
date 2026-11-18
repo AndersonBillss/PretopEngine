@@ -18,6 +18,7 @@ namespace
 
         Handle ReadFile(uint64_t, RawBytesCb rawBytesCb, FinishCb finishCb, void *userData) override
         {
+            ++_readCount;
             _rawBytesCb = rawBytesCb;
             _finishCb = finishCb;
             _userData = userData;
@@ -47,6 +48,7 @@ namespace
 
         bool AssetExists() const { return _assetExists; }
         bool HasBytes() const { return !_bytes.empty(); }
+        int ReadCount() const { return _readCount; }
         int ReleaseCount() const { return _releaseCount; }
 
     private:
@@ -57,6 +59,7 @@ namespace
         FinishCb _finishCb = nullptr;
         void *_userData = nullptr;
         bool _assetExists = false;
+        int _readCount = 0;
         int _releaseCount = 0;
     };
 
@@ -122,4 +125,43 @@ TEST_CASE("AssetManager deletes a loaded asset after its final reference is rele
     CHECK(assetDataDestructionCount == 1);
     CHECK(manager.GetAsset(reference, Pretop::Asset::AssetType::Texture, &assetData) ==
           Pretop::Asset::AssetManager::AssetResult::InvalidReference);
+}
+
+TEST_CASE("AssetManager loads a shared asset once and frees it after all references are released", "[Asset][AssetManager]")
+{
+    int assetDataDestructionCount = 0;
+    auto loader = std::make_unique<MockAssetLoader>();
+    MockAssetLoader *loaderView = loader.get();
+    Pretop::Asset::AssetManager manager(std::move(loader), {});
+
+    auto firstReference = manager.LoadAsset(17, std::make_unique<TestAssetBuilder>(assetDataDestructionCount));
+    auto secondReference = manager.LoadAsset(17, std::make_unique<TestAssetBuilder>(assetDataDestructionCount));
+
+    REQUIRE(loaderView->ReadCount() == 1);
+    loaderView->CompleteLoad();
+
+    void *firstAssetData = nullptr;
+    void *secondAssetData = nullptr;
+    REQUIRE(manager.GetAsset(firstReference, Pretop::Asset::AssetType::Texture, &firstAssetData) ==
+            Pretop::Asset::AssetManager::AssetResult::Success);
+    REQUIRE(manager.GetAsset(secondReference, Pretop::Asset::AssetType::Texture, &secondAssetData) ==
+            Pretop::Asset::AssetManager::AssetResult::Success);
+    CHECK(firstAssetData == secondAssetData);
+    CHECK(assetDataDestructionCount == 0);
+
+    manager.Release(firstReference);
+
+    CHECK(manager.GetAsset(firstReference, Pretop::Asset::AssetType::Texture, &firstAssetData) ==
+          Pretop::Asset::AssetManager::AssetResult::InvalidReference);
+    REQUIRE(manager.GetAsset(secondReference, Pretop::Asset::AssetType::Texture, &secondAssetData) ==
+            Pretop::Asset::AssetManager::AssetResult::Success);
+    CHECK(assetDataDestructionCount == 0);
+
+    manager.Release(secondReference);
+
+    CHECK(manager.GetAsset(secondReference, Pretop::Asset::AssetType::Texture, &secondAssetData) ==
+          Pretop::Asset::AssetManager::AssetResult::InvalidReference);
+    CHECK(loaderView->ReadCount() == 1);
+    CHECK(loaderView->ReleaseCount() == 1);
+    CHECK(assetDataDestructionCount == 1);
 }
