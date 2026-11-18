@@ -50,7 +50,6 @@ namespace Pretop::Asset
             return {assetReference.handle};
         }
 
-        using Status = Core::Status;
         using AssetId = uint64_t;
 
     private:
@@ -92,7 +91,6 @@ namespace Pretop::Asset
             return _getAsset(reference, type, data);
         };
 
-        Status GetState(UntypedAssetReference reference);
         AssetResult GetResult(UntypedAssetReference reference);
         std::string GetError(UntypedAssetReference reference);
         void Release(UntypedAssetReference reference);
