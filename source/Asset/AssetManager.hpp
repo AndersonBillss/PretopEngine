@@ -95,6 +95,13 @@ namespace Pretop::Asset
         std::string GetError(UntypedAssetReference reference);
         void Release(UntypedAssetReference reference);
 
+        template <class T>
+        AssetReference<T> copyReference(AssetReference<T> reference)
+        {
+            return {copyReference(reinterpret_cast<UntypedAssetReference>(reference)).handle};
+        };
+        UntypedAssetReference copyReference(UntypedAssetReference reference);
+
     private:
         UntypedAssetReference _loadAsset(AssetId assetId, std::unique_ptr<AssetBuilder> assetBuilder);
         AssetResult _getAsset(UntypedAssetReference reference, AssetType type, void **data);

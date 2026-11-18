@@ -122,6 +122,17 @@ namespace Pretop::Asset
         _records.Release(reference.handle);
     }
 
+    AssetManager::UntypedAssetReference AssetManager::copyReference(UntypedAssetReference reference)
+    {
+        if (!this->_records.IsValid(reference.handle))
+        {
+            // Return invalid asset reference
+            return UntypedAssetReference{Core::Handle{0, 0}};
+        }
+        auto assetReferenceRecord = _records[reference.handle]; 
+        return _addReferenceRecord(assetReferenceRecord->AssetId);
+    }
+
     struct AssetContext
     {
         AssetBuilder *Builder;
