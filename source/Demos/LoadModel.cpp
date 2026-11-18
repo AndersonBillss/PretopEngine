@@ -54,8 +54,8 @@ namespace Pretop::Demos
     {
         std::unique_ptr<Core::JobSystem> Jobs;
         std::unique_ptr<AssetManager> Assets;
-        AssetManager::OldAssetReference ModelRef;
-        AssetManager::OldAssetReference ShaderRef;
+        AssetManager::AssetReference<ParsedData> ModelRef;
+        AssetManager::AssetReference<RHI::Shader> ShaderRef;
         ParsedData *Model;
         RHI::Shader *Shader;
 

@@ -6,9 +6,6 @@
 #include "AssetBuilders/ShaderModuleAssetBuilder.hpp"
 #include "AssetBuilders/TextureAssetBuilder.hpp"
 
-#include <stb_image.h>
-
-#include <exception>
 #include <memory>
 #include <string>
 #include <utility>
@@ -34,46 +31,46 @@ namespace Pretop::Asset
         std::unique_ptr<ParsedData> data;
     };
 
-    AssetManager::OldAssetReference AssetManager::LoadModel(
+    AssetManager::AssetReference<ParsedData> AssetManager::LoadModel(
         AssetId assetId)
     {
         std::unique_ptr<GlbAssetBuilder> builder = std::make_unique<GlbAssetBuilder>();
-        return this->LoadAsset(assetId, std::move(builder));
+        return castReference<ParsedData>(this->LoadAsset(assetId, std::move(builder)));
     }
 
-    AssetManager::AssetResult AssetManager::GetGlbData(OldAssetReference reference, ParsedData **data)
+    AssetManager::AssetResult AssetManager::GetGlbData(AssetReference<ParsedData> reference, ParsedData **data)
     {
         return this->GetAsset(reference, AssetType::GLB, (void **)data);
     };
 
-    AssetManager::OldAssetReference AssetManager::LoadShaderModule(AssetId assetId)
+    AssetManager::AssetReference<RHI::Shader> AssetManager::LoadShaderModule(AssetId assetId)
     {
         std::unique_ptr<ShaderModuleAssetBuilder> builder = std::make_unique<ShaderModuleAssetBuilder>(this->_graphicsContext);
-        return this->LoadAsset(assetId, std::move(builder));
+        return castReference<RHI::Shader>(this->LoadAsset(assetId, std::move(builder)));
     }
 
-    AssetManager::AssetResult AssetManager::GetShaderModule(OldAssetReference reference, RHI::Shader **shader)
+    AssetManager::AssetResult AssetManager::GetShaderModule(AssetReference<RHI::Shader> reference, RHI::Shader **shader)
     {
         return this->GetAsset(reference, AssetType::Shader, (void **)shader);
     }
 
-    AssetManager::OldAssetReference AssetManager::LoadTexture(AssetId assetId)
+    AssetManager::AssetReference<WGPUTexture> AssetManager::LoadTexture(AssetId assetId)
     {
         std::unique_ptr<TextureAssetBuilder> builder = std::make_unique<TextureAssetBuilder>(this->_graphicsContext);
-        return this->LoadAsset(assetId, std::move(builder));
+        return castReference<WGPUTexture>(this->LoadAsset(assetId, std::move(builder)));
     }
 
-    AssetManager::AssetResult AssetManager::GetTexture(OldAssetReference reference, WGPUTexture **texture)
+    AssetManager::AssetResult AssetManager::GetTexture(AssetReference<WGPUTexture> reference, WGPUTexture **texture)
     {
         return this->GetAsset(reference, AssetType::Texture, (void **)texture);
     }
 
-    AssetManager::AssetResult AssetManager::GetResult(OldAssetReference reference)
+    AssetManager::AssetResult AssetManager::GetResult(UntypedAssetReference reference)
     {
         return _getData(reference, nullptr, nullptr);
     }
 
-    std::string AssetManager::GetError(OldAssetReference reference)
+    std::string AssetManager::GetError(UntypedAssetReference reference)
     {
         AssetResult result = GetResult(reference);
         if (result == AssetResult::WrongType)
@@ -97,7 +94,7 @@ namespace Pretop::Asset
         return "";
     }
 
-    void AssetManager::Release(OldAssetReference reference)
+    void AssetManager::Release(UntypedAssetReference reference)
     {
         if (!_records.IsValid(reference.handle))
         {
@@ -131,7 +128,7 @@ namespace Pretop::Asset
         AssetManager *Self;
         AssetManager::AssetId AssetId;
     };
-    AssetManager::OldAssetReference AssetManager::_loadAsset(AssetId assetId, std::unique_ptr<AssetBuilder> assetBuilder)
+    AssetManager::UntypedAssetReference AssetManager::_loadAsset(AssetId assetId, std::unique_ptr<AssetBuilder> assetBuilder)
     {
         auto it = _assets.find(assetId);
         if (it != _assets.end())
@@ -188,7 +185,7 @@ namespace Pretop::Asset
         return _addReferenceRecord(assetId);
     }
 
-    AssetManager::AssetResult AssetManager::_getAsset(OldAssetReference reference, AssetType type, void **data)
+    AssetManager::AssetResult AssetManager::_getAsset(UntypedAssetReference reference, AssetType type, void **data)
     {
         if (!this->_records.IsValid(reference.handle))
         {
@@ -227,18 +224,18 @@ namespace Pretop::Asset
         return AssetResult::Success;
     }
 
-    AssetManager::OldAssetReference AssetManager::_addReferenceRecord(AssetId assetId)
+    AssetManager::UntypedAssetReference AssetManager::_addReferenceRecord(AssetId assetId)
     {
         AssetReferenceRecord assetReferenceRecord;
         assetReferenceRecord.AssetId = assetId;
         Core::Handle assetReferenceHandle = _records.Add(assetReferenceRecord);
 
-        OldAssetReference assetReference;
+        UntypedAssetReference assetReference;
         assetReference.handle = assetReferenceHandle;
         return assetReference;
     };
 
-    AssetManager::AssetResult AssetManager::_getData(OldAssetReference reference, AssetType *type, void **data)
+    AssetManager::AssetResult AssetManager::_getData(UntypedAssetReference reference, AssetType *type, void **data)
     {
         AssetLoader::Handle loaderHandle;
         AssetManager::AssetResult result = _getLoaderHandle(reference, type, &loaderHandle);
@@ -258,7 +255,7 @@ namespace Pretop::Asset
     }
 
     AssetManager::AssetResult AssetManager::_getLoaderHandle(
-        OldAssetReference reference, AssetType *type, AssetLoader::Handle *handle)
+        UntypedAssetReference reference, AssetType *type, AssetLoader::Handle *handle)
     {
         if (!_records.IsValid(reference.handle))
         {
