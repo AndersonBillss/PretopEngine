@@ -117,9 +117,9 @@ namespace Pretop::Asset
         assetEntry.RefCount--;
         if (assetEntry.RefCount == 0)
         {
-            _assetLoader->Release(assetEntry.LoaderHandle);
+            _assets.erase(assetReferenceRecord->AssetId);
         }
-        return _records.Release(reference.handle);
+        _records.Release(reference.handle);
     }
 
     struct AssetContext

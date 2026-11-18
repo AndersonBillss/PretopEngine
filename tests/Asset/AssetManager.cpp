@@ -34,6 +34,8 @@ namespace
         {
             ++_releaseCount;
             _assetExists = false;
+            _bytes.clear();
+            _userData = nullptr;
         }
 
         void CompleteLoad()
@@ -44,6 +46,7 @@ namespace
         }
 
         bool AssetExists() const { return _assetExists; }
+        bool HasBytes() const { return !_bytes.empty(); }
         int ReleaseCount() const { return _releaseCount; }
 
     private:
@@ -107,8 +110,9 @@ TEST_CASE("AssetManager deletes a loaded asset after its final reference is rele
     REQUIRE(manager.GetAsset(reference, Pretop::Asset::AssetType::Texture, &assetData) ==
             Pretop::Asset::AssetManager::AssetResult::Success);
     REQUIRE(*static_cast<int *>(assetData) == 42);
-    CHECK(loaderView->AssetExists());
-    CHECK(loaderView->ReleaseCount() == 0);
+    CHECK_FALSE(loaderView->AssetExists());
+    CHECK_FALSE(loaderView->HasBytes());
+    CHECK(loaderView->ReleaseCount() == 1);
     CHECK(assetDataDestructionCount == 0);
 
     manager.Release(reference);
