@@ -122,7 +122,7 @@ namespace Pretop::Asset
         _records.Release(reference.handle);
     }
 
-    AssetManager::UntypedAssetReference AssetManager::copyReference(UntypedAssetReference reference)
+    AssetManager::UntypedAssetReference AssetManager::CopyReference(UntypedAssetReference reference)
     {
         if (!this->_records.IsValid(reference.handle))
         {

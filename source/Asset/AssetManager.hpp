@@ -96,11 +96,11 @@ namespace Pretop::Asset
         void Release(UntypedAssetReference reference);
 
         template <class T>
-        AssetReference<T> copyReference(AssetReference<T> reference)
+        AssetReference<T> CopyReference(AssetReference<T> reference)
         {
-            return {copyReference(reinterpret_cast<UntypedAssetReference>(reference)).handle};
+            return {CopyReference(reinterpret_cast<UntypedAssetReference>(reference)).handle};
         };
-        UntypedAssetReference copyReference(UntypedAssetReference reference);
+        UntypedAssetReference CopyReference(UntypedAssetReference reference);
 
     private:
         UntypedAssetReference _loadAsset(AssetId assetId, std::unique_ptr<AssetBuilder> assetBuilder);

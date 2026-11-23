@@ -166,7 +166,7 @@ TEST_CASE("AssetManager loads a shared asset once and frees it after all referen
     CHECK(assetDataDestructionCount == 1);
 }
 
-TEST_CASE("copyReference creates an independent reference to the same asset", "[Asset][AssetManager]")
+TEST_CASE("CopyReference creates an independent reference to the same asset", "[Asset][AssetManager]")
 {
     int assetDataDestructionCount = 0;
     auto loader = std::make_unique<MockAssetLoader>();
@@ -176,7 +176,7 @@ TEST_CASE("copyReference creates an independent reference to the same asset", "[
     Pretop::Asset::AssetManager::UntypedAssetReference original = manager.LoadAsset(
         23,
         std::make_unique<TestAssetBuilder>(assetDataDestructionCount));
-    Pretop::Asset::AssetManager::UntypedAssetReference copy = manager.copyReference(original);
+    Pretop::Asset::AssetManager::UntypedAssetReference copy = manager.CopyReference(original);
     // CHECK(copy.handle.Index != original.handle.Index || copy.handle.Generation != original.handle.Generation);
 
     loaderView->CompleteLoad();
