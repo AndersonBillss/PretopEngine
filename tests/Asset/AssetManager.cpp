@@ -165,3 +165,42 @@ TEST_CASE("AssetManager loads a shared asset once and frees it after all referen
     CHECK(loaderView->ReleaseCount() == 1);
     CHECK(assetDataDestructionCount == 1);
 }
+
+TEST_CASE("copyReference creates an independent reference to the same asset", "[Asset][AssetManager]")
+{
+    int assetDataDestructionCount = 0;
+    auto loader = std::make_unique<MockAssetLoader>();
+    MockAssetLoader *loaderView = loader.get();
+    Pretop::Asset::AssetManager manager(std::move(loader), {});
+
+    Pretop::Asset::AssetManager::UntypedAssetReference original = manager.LoadAsset(
+        23,
+        std::make_unique<TestAssetBuilder>(assetDataDestructionCount));
+    Pretop::Asset::AssetManager::UntypedAssetReference copy = manager.copyReference(original);
+    // CHECK(copy.handle.Index != original.handle.Index || copy.handle.Generation != original.handle.Generation);
+
+    loaderView->CompleteLoad();
+
+    void *originalData = nullptr;
+    void *copyData = nullptr;
+    REQUIRE(manager.GetAsset(original, Pretop::Asset::AssetType::Texture, &originalData) ==
+            Pretop::Asset::AssetManager::AssetResult::Success);
+    REQUIRE(manager.GetAsset(copy, Pretop::Asset::AssetType::Texture, &copyData) ==
+            Pretop::Asset::AssetManager::AssetResult::Success);
+    CHECK(originalData == copyData);
+
+    manager.Release(original);
+
+    CHECK(manager.GetAsset(original, Pretop::Asset::AssetType::Texture, &originalData) ==
+          Pretop::Asset::AssetManager::AssetResult::InvalidReference);
+    REQUIRE(assetDataDestructionCount == 0);
+    REQUIRE(manager.GetAsset(copy, Pretop::Asset::AssetType::Texture, &copyData) ==
+            Pretop::Asset::AssetManager::AssetResult::Success);
+    CHECK(copyData == originalData);
+
+    manager.Release(copy);
+
+    CHECK(manager.GetAsset(copy, Pretop::Asset::AssetType::Texture, &copyData) ==
+          Pretop::Asset::AssetManager::AssetResult::InvalidReference);
+    CHECK(assetDataDestructionCount == 1);
+}

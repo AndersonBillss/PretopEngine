@@ -129,7 +129,18 @@ namespace Pretop::Asset
             // Return invalid asset reference
             return UntypedAssetReference{Core::Handle{0, 0}};
         }
-        auto assetReferenceRecord = _records[reference.handle]; 
+        auto assetReferenceRecord = _records[reference.handle];
+        auto it = _assets.find(assetReferenceRecord->AssetId);
+        if (it == _assets.end())
+        {
+            // Return invalid asset reference
+            return UntypedAssetReference{Core::Handle{0, 0}};
+        }
+        else
+        {
+            AssetEntry &existingEntry = it->second;
+            existingEntry.RefCount++;
+        }
         return _addReferenceRecord(assetReferenceRecord->AssetId);
     }
 
@@ -146,7 +157,6 @@ namespace Pretop::Asset
         {
             AssetEntry &existingEntry = it->second;
             existingEntry.RefCount++;
-
             return _addReferenceRecord(assetId);
         }
 
