@@ -13,7 +13,7 @@ namespace Pretop::Asset
         Core::GraphicsContext _context;
 
     public:
-        ShaderModuleAssetBuilder::ShaderModuleAssetBuilder(Core::GraphicsContext context);
+        ShaderModuleAssetBuilder(Core::GraphicsContext context);
         void ThreadLoadStep(const AssetBytes &bytes) override;
         std::unique_ptr<AssetData> FinalizeLoadStep() override;
         AssetType GetAssetType() override;

@@ -16,7 +16,7 @@ namespace Pretop::Asset
         Core::GraphicsContext _context;
 
     public:
-        TextureAssetBuilder::TextureAssetBuilder(Core::GraphicsContext context);
+        TextureAssetBuilder(Core::GraphicsContext context);
         void ThreadLoadStep(const AssetBytes &bytes) override;
         std::unique_ptr<AssetData> FinalizeLoadStep() override;
         AssetType GetAssetType() override;
