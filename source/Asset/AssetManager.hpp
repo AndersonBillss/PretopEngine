@@ -61,7 +61,7 @@ namespace Pretop::Asset
         struct AssetEntry
         {
             AssetType Type;
-            AssetLoader::Handle LoaderHandle;
+            std::string ErrorText;
             std::unique_ptr<AssetData> Data;
             AssetManager::AssetResult Result;
             uint32_t RefCount = 0;
@@ -86,10 +86,7 @@ namespace Pretop::Asset
         {
             return _loadAsset(assetId, std::move(assetBuilder));
         };
-        AssetResult GetAsset(UntypedAssetReference reference, AssetType type, void **data)
-        {
-            return _getAsset(reference, type, data);
-        };
+        AssetResult GetAsset(UntypedAssetReference reference, AssetType type, void **data);
 
         AssetResult GetResult(UntypedAssetReference reference);
         std::string GetError(UntypedAssetReference reference);
@@ -104,13 +101,9 @@ namespace Pretop::Asset
 
     private:
         UntypedAssetReference _loadAsset(AssetId assetId, std::unique_ptr<AssetBuilder> assetBuilder);
-        AssetResult _getAsset(UntypedAssetReference reference, AssetType type, void **data);
+        AssetResult _getAsset(UntypedAssetReference reference, AssetType type, AssetEntry **entry);
 
         UntypedAssetReference _addReferenceRecord(AssetId assetId);
-        UntypedAssetReference _removeReference(AssetId assetId);
-
-        AssetResult _getData(UntypedAssetReference reference, AssetType *type, void **data);
-        AssetResult _getLoaderHandle(UntypedAssetReference reference, AssetType *type, AssetLoader::Handle *handle);
 
         std::unique_ptr<AssetLoader> _assetLoader;
         Core::GraphicsContext _graphicsContext;

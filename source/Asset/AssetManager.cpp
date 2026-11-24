@@ -65,14 +65,27 @@ namespace Pretop::Asset
         return this->GetAsset(reference, AssetType::Texture, (void **)texture);
     }
 
+    AssetManager::AssetResult AssetManager::GetAsset(UntypedAssetReference reference, AssetType type, void **data)
+    {
+        AssetEntry *entry = nullptr;
+        AssetManager::AssetResult result = this->_getAsset(reference, type, &entry);
+        if (data != nullptr && result == AssetResult::Success)
+        {
+            entry->Data->GetData();
+            *data = entry->Data->GetData();
+        }
+        return result;
+    }
+
     AssetManager::AssetResult AssetManager::GetResult(UntypedAssetReference reference)
     {
-        return _getData(reference, nullptr, nullptr);
+        return _getAsset(reference, AssetType::Undefined, nullptr);
     }
 
     std::string AssetManager::GetError(UntypedAssetReference reference)
     {
-        AssetResult result = GetResult(reference);
+        AssetEntry *entry = nullptr;
+        AssetResult result = _getAsset(reference, AssetType::Undefined, &entry);
         if (result == AssetResult::WrongType)
         {
             return "Incorrect asset type";
@@ -87,9 +100,7 @@ namespace Pretop::Asset
         }
         if (result == AssetResult::Failed)
         {
-            AssetLoader::Handle loaderHandle;
-            _getLoaderHandle(reference, nullptr, &loaderHandle);
-            return _assetLoader->GetError(loaderHandle);
+            return entry->ErrorText;
         }
         return "";
     }
@@ -164,7 +175,7 @@ namespace Pretop::Asset
 
         AssetContext *ctx = new AssetContext{assetBuilder.release(), this, assetId};
 
-        AssetLoader::Handle loaderHandle = _assetLoader->ReadFile(
+        _assetLoader->ReadFile(
             assetId,
             [](const AssetBytes &bytes, void *userData)
             {
@@ -178,7 +189,6 @@ namespace Pretop::Asset
                 auto it = ctx->Self->_assets.find(ctx->AssetId);
                 PRETOP_ASSERT(it != ctx->Self->_assets.end(), "Asset should exist");
                 AssetEntry &record = it->second;
-                record.LoaderHandle = handle;
                 if (status == AssetLoader::Status::Ready)
                 {
                     record.Result = AssetManager::AssetResult::Success;
@@ -188,6 +198,7 @@ namespace Pretop::Asset
                 else if (status == AssetLoader::Status::Error)
                 {
                     record.Result = AssetManager::AssetResult::Failed;
+                    record.ErrorText = loader.GetError(handle);
                 }
                 loader.Release(handle);
                 delete ctx->Builder;
@@ -197,7 +208,7 @@ namespace Pretop::Asset
         _assets.emplace(assetId,
                         AssetEntry{
                             /* Type */ assetType,
-                            /* LoaderHandle */ loaderHandle,
+                            /* ErrorText */ "",
                             /* Data */ nullptr,
                             /* Result */ AssetManager::AssetResult::NotReady,
                             /* RefCount */ 1,
@@ -206,7 +217,7 @@ namespace Pretop::Asset
         return _addReferenceRecord(assetId);
     }
 
-    AssetManager::AssetResult AssetManager::_getAsset(UntypedAssetReference reference, AssetType type, void **data)
+    AssetManager::AssetResult AssetManager::_getAsset(UntypedAssetReference reference, AssetType type, AssetEntry **entry)
     {
         if (!this->_records.IsValid(reference.handle))
         {
@@ -216,30 +227,20 @@ namespace Pretop::Asset
         AssetReferenceRecord *record = this->_records[reference.handle];
         auto it = _assets.find(record->AssetId);
         PRETOP_ASSERT(it != _assets.end(), "Asset does not exist");
-        AssetEntry &entry = it->second;
+        if (entry != nullptr)
+        {
+            *entry = &it->second;
+        }
+        AssetEntry &e = it->second;
 
-        if (entry.Type != type)
+        if (e.Type != type && type != AssetType::Undefined)
         {
             return AssetResult::WrongType;
         }
 
-        if (entry.Result != AssetResult::Success)
+        if (e.Result != AssetResult::Success)
         {
-            if (entry.Result == AssetResult::NotReady)
-            {
-                std::cout << "Not Ready" << std::endl;
-            }
-            if (entry.Result == AssetResult::Failed)
-            {
-                std::cout << "Failed" << std::endl;
-            }
-            return entry.Result;
-        }
-
-        void *rawData = entry.Data->GetData();
-        if (data != nullptr)
-        {
-            *data = rawData;
+            return e.Result;
         }
 
         return AssetResult::Success;
@@ -255,60 +256,4 @@ namespace Pretop::Asset
         assetReference.handle = assetReferenceHandle;
         return assetReference;
     };
-
-    AssetManager::AssetResult AssetManager::_getData(UntypedAssetReference reference, AssetType *type, void **data)
-    {
-        AssetLoader::Handle loaderHandle;
-        AssetManager::AssetResult result = _getLoaderHandle(reference, type, &loaderHandle);
-
-        if (result != AssetResult::Success)
-        {
-            return result;
-        }
-
-        void *rawData = this->_assetLoader->GetRawData(loaderHandle);
-        if (data != nullptr)
-        {
-            *data = rawData;
-        }
-
-        return AssetResult::Success;
-    }
-
-    AssetManager::AssetResult AssetManager::_getLoaderHandle(
-        UntypedAssetReference reference, AssetType *type, AssetLoader::Handle *handle)
-    {
-        if (!_records.IsValid(reference.handle))
-        {
-            return AssetResult::InvalidReference;
-        }
-        AssetReferenceRecord *assetReferenceRecord = _records[reference.handle];
-
-        auto it = _assets.find(assetReferenceRecord->AssetId);
-        if (it == _assets.end())
-        {
-            return AssetResult::InvalidReference;
-        }
-
-        AssetEntry &assetEntry = it->second;
-        if (type != nullptr)
-        {
-            *type = assetEntry.Type;
-        }
-        *handle = assetEntry.LoaderHandle;
-
-        AssetLoader::Status assetLoadStatus =
-            this->_assetLoader->GetStatus(assetEntry.LoaderHandle);
-
-        if (assetLoadStatus == AssetLoader::Status::Error)
-        {
-            return AssetResult::Failed;
-        }
-        if (assetLoadStatus == AssetLoader::Status::InProgress)
-        {
-            return AssetResult::NotReady;
-        }
-
-        return AssetResult::Success;
-    }
 } // namespace Pretop::Asset
