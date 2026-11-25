@@ -1,5 +1,6 @@
 build/
 source/Gen
+third_party/
 .pretop/
 .vscode/
 .venv/

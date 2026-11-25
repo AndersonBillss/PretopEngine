@@ -1,7 +1,5 @@
 from pretop.utils.cmd import cmd
 from pretop.shared.constants import (
-    COMPILER_C,
-    COMPILER_CPP,
     NATIVE_TARGET,
     ENGINE_OUT,
     EXE_SUFFIX,
@@ -10,21 +8,23 @@ from pretop.shared.constants import (
     TEST_TARGET,
 )
 from pretop.codegen.generate_sources import gen_sources
+from pretop.build_scripts.cmake_tools import native_cmake_tools
 
 
 def configure_native_debug():
+    cmake, ninja, compiler_args = native_cmake_tools()
     if (
         cmd(
             [
-                "cmake",
+                cmake,
                 "-S",
                 ".",
                 "-B",
                 ENGINE_OUT,
                 "-G",
                 "Ninja",
-                f"-DCMAKE_C_COMPILER={COMPILER_C}",
-                f"-DCMAKE_CXX_COMPILER={COMPILER_CPP}",
+                *compiler_args,
+                f"-DCMAKE_MAKE_PROGRAM={ninja}",
                 "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
                 "-DCMAKE_BUILD_TYPE=Debug",
                 "-DPRETOP_BUILD_ENGINE=ON",
@@ -38,7 +38,8 @@ def configure_native_debug():
 
 def build_native_debug(app=None, target=NATIVE_TARGET):
     gen_sources()
-    return cmd(["cmake", "--build", ENGINE_OUT, "--target", target])
+    cmake, _, _ = native_cmake_tools()
+    return cmd([cmake, "--build", ENGINE_OUT, "--target", target])
 
 
 def run_native_debug(app=None):
@@ -47,10 +48,11 @@ def run_native_debug(app=None):
 
 
 def build_python(app=None):
+    cmake, _, _ = native_cmake_tools()
     if (
         cmd(
             [
-                "cmake",
+                cmake,
                 "--build",
                 ENGINE_OUT,
                 "--target",
@@ -63,7 +65,7 @@ def build_python(app=None):
 
     return cmd(
         [
-            "cmake",
+            cmake,
             "--install",
             ENGINE_OUT,
             "--prefix",

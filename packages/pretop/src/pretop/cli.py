@@ -15,6 +15,7 @@ from pretop.build_scripts.native import (
     run_native_debug,
     run_tests,
 )
+from pretop.build_scripts.dawn import setup_dawn
 from pretop.build_scripts.web import build_web_debug, run_web_debug
 
 
@@ -78,6 +79,7 @@ def help(app=None):
 def setup(app: App):
     import_assets(app)
     gen_all(app)
+    setup_dawn()
     configure_native_debug()
 
 COMMANDS = {

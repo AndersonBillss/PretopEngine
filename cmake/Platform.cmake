@@ -48,51 +48,17 @@ else()
     # Dawn
     # -----------------------------------------------------------------------
 
-    set(DAWN_FETCH_DEPENDENCIES ON CACHE BOOL
-        "Fetch Dawn's dependencies automatically"
-        FORCE
-    )
-
-    set(DAWN_FORCE_SYSTEM_COMPONENT_LOAD ON CACHE BOOL
-        "Allow Dawn to load system components"
-        FORCE
-    )
-
-    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-        set(DAWN_USE_WAYLAND ON CACHE BOOL
-            "Enable Wayland support in Dawn"
-            FORCE
+    set(PRETOP_DAWN_INSTALL_DIR "${CMAKE_SOURCE_DIR}/third_party/dawn-install")
+    set(PRETOP_DAWN_CONFIG "${PRETOP_DAWN_INSTALL_DIR}/lib/cmake/Dawn/DawnConfig.cmake")
+    if(NOT EXISTS "${PRETOP_DAWN_CONFIG}")
+        message(FATAL_ERROR
+            "Dawn is not installed. Run the Pretop CLI setup command to clone and build it."
         )
     endif()
-
-    set(DAWN_BUILD_SAMPLES OFF CACHE BOOL
-        "Build Dawn samples"
-        FORCE
+    find_package(Dawn CONFIG REQUIRED
+        PATHS "${PRETOP_DAWN_INSTALL_DIR}/lib/cmake/Dawn"
+        NO_DEFAULT_PATH
     )
-
-    set(DAWN_BUILD_TESTS OFF CACHE BOOL
-        "Build Dawn tests"
-        FORCE
-    )
-
-    FetchContent_Declare(
-        dawn
-        GIT_REPOSITORY https://dawn.googlesource.com/dawn
-        GIT_TAG a8db5510cc0e32e289f4d977a3a32c2526708bc6
-        GIT_SUBMODULES ""
-    )
-
-    FetchContent_MakeAvailable(dawn)
-
-    # Dawn is a pinned third-party dependency that is not maintained as part of
-    # this project. Suppress its warnings so engine warnings remain visible.
-    if(TARGET dawn_warnings_config)
-        if(MSVC)
-            target_compile_options(dawn_warnings_config INTERFACE /w)
-        else()
-            target_compile_options(dawn_warnings_config INTERFACE -w)
-        endif()
-    endif()
 
     # -----------------------------------------------------------------------
     # Native platform sources

@@ -8,6 +8,7 @@
 
 Make sure the following tools are installed and available in your system `PATH`:
 
+- **git**
 - **UV**
 - **Python**
 - **MSVC Build Tools**
@@ -45,6 +46,7 @@ Make sure the following tools are installed and available in your system `PATH`:
 
 Make sure the following tools are installed and available in your system `PATH`:
 
+- **git**
 - **UV**
 - **Python**
 - **CMake**
@@ -91,9 +93,9 @@ Download and install the **[Emscripten SDK](https://emscripten.org/docs/getting_
 
 After installation, activate the Emscripten environment and make sure the following tools are available in your system `PATH`:
 
-* **Python**
-* **CMake**
-* **emcmake** (provided by the Emscripten SDK)
+- **Python**
+- **CMake**
+- **emcmake** (provided by the Emscripten SDK)
 
 ## Build Instructions
 
