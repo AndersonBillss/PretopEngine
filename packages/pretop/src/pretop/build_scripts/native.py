@@ -1,3 +1,5 @@
+import sysconfig
+
 from pretop.utils.cmd import cmd
 from pretop.shared.constants import (
     NATIVE_TARGET,
@@ -38,6 +40,7 @@ def configure_native_debug():
 
 def build_native_debug(app=None, target=NATIVE_TARGET):
     gen_sources()
+    configure_native_debug()
     cmake, _, _ = native_cmake_tools()
     return cmd([cmake, "--build", ENGINE_OUT, "--target", target])
 
@@ -48,6 +51,8 @@ def run_native_debug(app=None):
 
 
 def build_python(app=None):
+    gen_sources()
+    configure_native_debug()
     cmake, _, _ = native_cmake_tools()
     if (
         cmd(
@@ -69,7 +74,7 @@ def build_python(app=None):
             "--install",
             ENGINE_OUT,
             "--prefix",
-            ".venv/lib/python3.13/site-packages",
+            sysconfig.get_paths()["platlib"],
             "--component",
             PYTHON_LIBRARY_NAME,
         ]

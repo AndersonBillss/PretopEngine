@@ -1,22 +1,9 @@
 from subprocess import SubprocessError
 from enum import Enum
+import importlib
 import sys
 
 from pretop.app import App
-from pretop.assets.importer import import_assets
-from pretop.codegen.generate_all import gen_all
-from pretop.codegen.generate_cmake import gen_cmake
-from pretop.codegen.generate_code import gen_code
-from pretop.codegen.generate_sources import gen_sources
-from pretop.build_scripts.native import (
-    build_native_debug,
-    build_python,
-    configure_native_debug,
-    run_native_debug,
-    run_tests,
-)
-from pretop.build_scripts.dawn import setup_dawn
-from pretop.build_scripts.web import build_web_debug, run_web_debug
 
 
 class ArgType(Enum):
@@ -25,10 +12,17 @@ class ArgType(Enum):
 
 
 class Command:
-    def __init__(self, fn, description: str, arg_type: ArgType = ArgType.NONE):
+    def __init__(
+        self,
+        fn,
+        description: str,
+        arg_type: ArgType = ArgType.NONE,
+        requires_cpp_package: bool = True,
+    ):
         self.fn = fn
         self.description = description
         self.arg_type = arg_type
+        self.requires_cpp_package = requires_cpp_package
 
     def run(self, app: App, args: list[str]):
         if self.arg_type == ArgType.NONE:
@@ -77,14 +71,103 @@ def help(app=None):
     print_help(COMMANDS)
 
 def setup(app: App):
+    from pretop.build_scripts.dawn import setup_dawn
+    from pretop.build_scripts.native_package import build_shared_python_package
+
+    setup_dawn()
+    build_shared_python_package()
+
+    import pretop
+
+    pretop._refresh_package_path()
+    importlib.invalidate_caches()
+    importlib.import_module("pretop._native")
+
+
+def build_native_debug(app=None):
+    from pretop.assets.importer import import_assets
+    from pretop.codegen.generate_all import gen_all
+    from pretop.build_scripts.native import build_native_debug as build
+
     import_assets(app)
     gen_all(app)
-    setup_dawn()
-    configure_native_debug()
+    return build(app=app)
+
+
+def build_python(app=None):
+    from pretop.build_scripts.native import build_python as build
+
+    return build(app=app)
+
+
+def run_native_debug(app=None):
+    from pretop.assets.importer import import_assets
+    from pretop.codegen.generate_all import gen_all
+    from pretop.build_scripts.native import run_native_debug as run
+
+    import_assets(app)
+    gen_all(app)
+    return run(app=app)
+
+
+def run_tests(args: list[str], app=None):
+    from pretop.assets.importer import import_assets
+    from pretop.codegen.generate_all import gen_all
+    from pretop.build_scripts.native import run_tests as run
+
+    import_assets(app)
+    gen_all(app)
+    return run(args=args, app=app)
+
+
+def build_web_debug(app=None):
+    from pretop.build_scripts.web import build_web_debug as build
+
+    return build(app=app)
+
+
+def run_web_debug(app=None):
+    from pretop.build_scripts.web import run_web_debug as run
+
+    return run(app=app)
+
+
+def gen_all(app: App):
+    from pretop.assets.importer import import_assets
+    from pretop.codegen.generate_all import gen_all as generate
+
+    import_assets(app)
+    return generate(app=app)
+
+
+def gen_cmake(app: App):
+    from pretop.codegen.generate_cmake import gen_cmake as generate
+
+    return generate(app=app)
+
+
+def gen_code(app: App):
+    from pretop.assets.importer import import_assets
+    from pretop.codegen.generate_code import gen_code as generate
+
+    import_assets(app)
+    return generate(app=app)
+
+
+def gen_sources(app=None):
+    from pretop.codegen.generate_sources import gen_sources as generate
+
+    return generate(app=app)
+
+
+def import_assets(app: App):
+    from pretop.assets.importer import import_assets as import_files
+
+    return import_files(app=app)
 
 COMMANDS = {
-    "setup": Command(setup, "Initial setup for engine"),
-    "help": Command(help, "Show help"),
+    "setup": Command(setup, "Initial setup for engine", requires_cpp_package=False),
+    "help": Command(help, "Show help", requires_cpp_package=False),
     "build": {
         "native": Command(build_native_debug, "Build engine for native"),
         "web": Command(build_web_debug, "Build engine for web"),
@@ -136,6 +219,16 @@ def handle_command(command: Command, app: App, args: list[str]):
         pass
 
 
+def require_cpp_package():
+    try:
+        importlib.import_module("pretop._native")
+    except (ImportError, OSError) as error:
+        print("The Pretop C++ Python package is not set up.")
+        print("Run `uv run cli.py setup` and retry.")
+        print(f"Import error: {error}")
+        raise SystemExit(1)
+
+
 def validate_command(command: Command, cmd_name: list[str], args: list[str]):
     is_valid_none = len(args) == 0
     if command.arg_type == ArgType.NONE and not is_valid_none:
@@ -158,4 +251,9 @@ def cli(app: App):
     cmd_args = cmd[cmd_split_index:]
     print(cmd_str)
     validate_command(command, cmd_name, cmd_args)
+    if command.requires_cpp_package:
+        require_cpp_package()
+        from config.importer import import_assets as load_project_imports
+
+        load_project_imports(app)
     handle_command(command, app, cmd_args)

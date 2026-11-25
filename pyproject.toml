@@ -7,9 +7,7 @@ authors = [
     { name = "AndersonBillss", email = "anderson@thebillsfamily.com" }
 ]
 requires-python = ">=3.13"
-dependencies = [
-    "pretop",
-]
+dependencies = []
 
 [dependency-groups]
 dev = [
@@ -19,12 +17,3 @@ dev = [
 
 [tool.uv]
 package = false
-no-build-isolation-package = ["pretop"]
-
-[tool.uv.workspace]
-members = [
-    "packages/pretop",
-]
-
-[tool.uv.sources]
-pretop = { workspace = true, editable = true }
