@@ -34,7 +34,13 @@ Make sure the following tools are installed and available in your system `PATH`:
    uv run cli.py setup
    ```
 
-4. Run the engine:
+4. import assets:
+
+   ```
+   uv run cli.py import
+   ```
+
+5. Run the engine:
 
    ```
    uv run cli.py run native
@@ -79,7 +85,13 @@ Install the following dependencies:
    uv run python cli.py setup
    ```
 
-3. Run the engine:
+3. import assets:
+
+   ```
+   uv run cli.py import
+   ```
+
+4. Run the engine:
 
    ```
    uv run python cli.py run native
