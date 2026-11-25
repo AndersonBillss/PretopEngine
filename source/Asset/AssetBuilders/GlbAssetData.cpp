@@ -2,10 +2,9 @@
 
 namespace Pretop::Asset
 {
-    AssetType Pretop::Asset::GlbAssetData::GetAssetType()
+    void *GlbAssetData::GetData()
     {
-        return AssetType::GLB;
+        return &this->data;
     }
-
     GlbAssetData::~GlbAssetData() = default;
 }

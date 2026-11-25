@@ -9,6 +9,8 @@ namespace Pretop::Asset
     {
     public:
         virtual void ThreadLoadStep(const AssetBytes &bytes) = 0;
+        virtual AssetType GetAssetType() = 0;
         virtual std::unique_ptr<AssetData> FinalizeLoadStep() = 0;
+        virtual ~AssetBuilder() = default;
     };
 }

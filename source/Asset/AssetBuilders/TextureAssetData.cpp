@@ -2,9 +2,9 @@
 
 namespace Pretop::Asset
 {
-    AssetType Pretop::Asset::TextureAssetData::GetAssetType()
+    void *TextureAssetData::GetData()
     {
-        return AssetType::Texture;
+        return &this->data;
     }
 
     TextureAssetData::~TextureAssetData()

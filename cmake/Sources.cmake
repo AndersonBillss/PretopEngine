@@ -41,6 +41,7 @@ set(PRETOP_ENGINE_SOURCES
   source/RHI/Shader.cpp
   source/RHI/VertexBufferLayout.cpp
   source/RHI/VertexLayout.cpp
+  source/StbImage.cpp
   source/Window/WindowFactory.cpp
 )
 set(PRETOP_ENGINE_SOURCES_NATIVE
@@ -59,6 +60,7 @@ set(PRETOP_ENGINE_SOURCES_WEB
   source/Window/WEB_CanvasWindow.cpp
 )
 set(PRETOP_ENGINE_TEST_SOURCES
+  tests/Asset/AssetManager.cpp
   tests/Core/JobSystem.cpp
   tests/Core/PagedVector.cpp
   tests/Core/RecordTable.cpp
@@ -69,5 +71,6 @@ set(PRETOP_ENGINE_TEST_SOURCES
   tests/Math/Linalg/Vec2.cpp
   tests/Math/Linalg/Vec3.cpp
   tests/Math/Linalg/Vec4.cpp
+  tests/StbImage.cpp
   tests/Utils/NormalizePath.cpp
 )

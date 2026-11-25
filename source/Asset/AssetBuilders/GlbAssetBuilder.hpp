@@ -4,7 +4,7 @@
 
 namespace Pretop::Asset
 {
-    class GlbAssetBuilder : AssetBuilder
+    class GlbAssetBuilder : public AssetBuilder
     {
     private:
         std::unique_ptr<GlbAssetData> _assetData;
@@ -12,5 +12,6 @@ namespace Pretop::Asset
     public:
         void ThreadLoadStep(const AssetBytes &bytes) override;
         std::unique_ptr<AssetData> FinalizeLoadStep() override;
+        AssetType GetAssetType() override;
     };
 }

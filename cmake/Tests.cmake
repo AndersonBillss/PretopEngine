@@ -19,6 +19,7 @@ if(BUILD_TESTING AND NOT EMSCRIPTEN)
 
     target_link_libraries(pretop_engine_tests PRIVATE
         pretop_engine_core
+        stb_image
         Catch2::Catch2WithMain
     )
 

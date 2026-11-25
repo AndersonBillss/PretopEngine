@@ -1,4 +1,5 @@
 #include "GlbAssetBuilder.hpp"
+#include <iostream>
 
 namespace Pretop::Asset
 {
@@ -11,5 +12,9 @@ namespace Pretop::Asset
     std::unique_ptr<AssetData> GlbAssetBuilder::FinalizeLoadStep()
     {
         return std::move(this->_assetData);
+    }
+    AssetType GlbAssetBuilder::GetAssetType()
+    {
+        return AssetType::GLB;
     }
 }

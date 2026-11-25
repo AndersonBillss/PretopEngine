@@ -2,9 +2,9 @@
 
 namespace Pretop::Asset
 {
-    AssetType Pretop::Asset::ShaderModuleAssetData::GetAssetType()
+    void *ShaderModuleAssetData::GetData()
     {
-        return AssetType::GLB;
+        return &this->data;
     }
 
     ShaderModuleAssetData::~ShaderModuleAssetData() = default;

@@ -2,10 +2,10 @@
 
 #include "AssetLoader.hpp"
 #include "../Core/JobSystem.hpp"
+#include "AssetBuilders/GlbAssetBuilder.hpp"
+#include "AssetBuilders/ShaderModuleAssetBuilder.hpp"
+#include "AssetBuilders/TextureAssetBuilder.hpp"
 
-#include <stb_image.h>
-
-#include <exception>
 #include <memory>
 #include <string>
 #include <utility>
@@ -31,235 +31,61 @@ namespace Pretop::Asset
         std::unique_ptr<ParsedData> data;
     };
 
-    AssetManager::AssetReference AssetManager::LoadModel(
+    AssetManager::AssetReference<ParsedData> AssetManager::LoadModel(
         AssetId assetId)
     {
-        auto it = _assets.find(assetId);
-        if (it != _assets.end())
-        {
-            AssetEntry &existingEntry = it->second;
-            existingEntry.RefCount++;
-
-            return _addReferenceRecord(assetId);
-        }
-
-        LoadModelData *loadModelData = new LoadModelData;
-        loadModelData->data = nullptr;
-        AssetLoader::Handle loaderHandle = _assetLoader->ReadFile(
-            assetId,
-            [](const AssetBytes &bytes, void *userData)
-            {
-                LoadModelData *data = reinterpret_cast<LoadModelData *>(userData);
-                data->data = std::make_unique<ParsedData>(LoadGlb(bytes));
-            },
-            [](AssetLoader &loader, AssetLoader::Handle handle) {},
-            loadModelData);
-
-        _assets.emplace(assetId,
-                        AssetEntry{
-                            /* Type */ AssetType::GLB,
-                            /* LoaderHandle */ loaderHandle,
-                            /* RefCount */ 0,
-                        });
-
-        return _addReferenceRecord(assetId);
+        std::unique_ptr<GlbAssetBuilder> builder = std::make_unique<GlbAssetBuilder>();
+        return castReference<ParsedData>(this->LoadAsset(assetId, std::move(builder)));
     }
 
-    AssetManager::AssetResult AssetManager::GetGlbData(AssetReference reference, ParsedData **data)
+    AssetManager::AssetResult AssetManager::GetGlbData(AssetReference<ParsedData> reference, ParsedData **data)
     {
-        void *rawDataPtr = nullptr;
-        AssetType type = AssetType::Undefined;
-        AssetResult result = this->_getData(reference, &type, &rawDataPtr);
-        LoadModelData *loadModelData = reinterpret_cast<LoadModelData *>(rawDataPtr);
-        if (type != AssetType::GLB)
-        {
-            return AssetResult::WrongType;
-        }
-        if (result != AssetResult::Success)
-        {
-            return result;
-        }
-
-        *data = loadModelData->data.get();
-        return AssetResult::Success;
+        return this->GetAsset(reference, AssetType::GLB, (void **)data);
     };
 
-    struct LoadShaderModuleData : AssetManagerData
+    AssetManager::AssetReference<RHI::Shader> AssetManager::LoadShaderModule(AssetId assetId)
     {
-        std::unique_ptr<RHI::Shader> data;
-        Core::GraphicsContext context;
-    };
-    AssetManager::AssetReference AssetManager::LoadShaderModule(AssetId assetId)
-    {
-        auto it = _assets.find(assetId);
-        if (it != _assets.end())
-        {
-            AssetEntry &existingEntry = it->second;
-            existingEntry.RefCount++;
-
-            return _addReferenceRecord(assetId);
-        }
-
-        LoadShaderModuleData *loadShaderModuleData = new LoadShaderModuleData;
-        loadShaderModuleData->data = nullptr;
-        loadShaderModuleData->context = this->_graphicsContext;
-        AssetLoader::Handle loaderHandle = _assetLoader->ReadFile(
-            assetId,
-            [](AssetLoader &loader, AssetLoader::Handle handle)
-            {
-                AssetBytes bytes = loader.GetBytes(handle);
-                LoadShaderModuleData *data = reinterpret_cast<LoadShaderModuleData *>(loader.GetRawData(handle));
-                data->data = std::make_unique<RHI::Shader>(
-                    RHI::Shader::Pipeline(data->context, bytes.data(), bytes.size()));
-            },
-            loadShaderModuleData);
-
-        _assets.emplace(assetId,
-                        AssetEntry{
-                            /* Type */ AssetType::Shader,
-                            /* LoaderHandle */ loaderHandle,
-                            /* RefCount */ 0,
-                        });
-
-        return _addReferenceRecord(assetId);
+        std::unique_ptr<ShaderModuleAssetBuilder> builder = std::make_unique<ShaderModuleAssetBuilder>(this->_graphicsContext);
+        return castReference<RHI::Shader>(this->LoadAsset(assetId, std::move(builder)));
     }
 
-    AssetManager::AssetResult AssetManager::GetShaderModule(AssetReference reference, RHI::Shader **shader)
+    AssetManager::AssetResult AssetManager::GetShaderModule(AssetReference<RHI::Shader> reference, RHI::Shader **shader)
     {
-        void *rawDataPtr = nullptr;
-        AssetType type = AssetType::Undefined;
-        AssetResult result = this->_getData(reference, &type, &rawDataPtr);
-        LoadShaderModuleData *loadShaderModuleData = reinterpret_cast<LoadShaderModuleData *>(rawDataPtr);
-        if (type != AssetType::Shader)
-        {
-            return AssetResult::WrongType;
-        }
-        if (result != AssetResult::Success)
-        {
-            return result;
-        }
-
-        *shader = loadShaderModuleData->data.get();
-        return AssetResult::Success;
+        return this->GetAsset(reference, AssetType::Shader, (void **)shader);
     }
 
-    struct LoadTextureData
+    AssetManager::AssetReference<WGPUTexture> AssetManager::LoadTexture(AssetId assetId)
     {
-        int width;
-        int height;
-        int channels;
-        unsigned char *pixelData;
-        WGPUTexture texture;
-        Core::GraphicsContext graphicsContext;
-    };
-    AssetManager::AssetReference AssetManager::LoadTexture(AssetId assetId)
-    {
-        auto it = _assets.find(assetId);
-        if (it != _assets.end())
-        {
-            AssetEntry &existingEntry = it->second;
-            existingEntry.RefCount++;
-
-            return _addReferenceRecord(assetId);
-        }
-
-        LoadTextureData *loadTextureData = new LoadTextureData;
-        loadTextureData->graphicsContext = this->_graphicsContext;
-        AssetLoader::Handle loaderHandle = _assetLoader->ReadFile(
-            assetId,
-            [](const AssetBytes &bytes, void *userData)
-            {
-                LoadTextureData *data = reinterpret_cast<LoadTextureData *>(userData);
-                data->pixelData = stbi_load_from_memory(
-                    reinterpret_cast<const unsigned char *>(bytes.data()),
-                    bytes.size(),
-                    &data->width,
-                    &data->height,
-                    &data->channels,
-                    4);
-            },
-            [](AssetLoader &loader, AssetLoader::Handle handle)
-            {
-                LoadTextureData *data = reinterpret_cast<LoadTextureData *>(loader.GetRawData(handle));
-
-                WGPUTextureDescriptor textureDesc = WGPU_TEXTURE_DESCRIPTOR_INIT;
-                textureDesc.nextInChain = nullptr;
-                textureDesc.dimension = WGPUTextureDimension_2D;
-                textureDesc.format = WGPUTextureFormat_RGBA8Unorm; // by convention for bmp, png and jpg file. Be careful with other formats.
-                textureDesc.mipLevelCount = 1;
-                textureDesc.sampleCount = 1;
-                textureDesc.size = {(unsigned int)data->width, (unsigned int)data->height, 1};
-                textureDesc.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
-                textureDesc.viewFormatCount = 0;
-                textureDesc.viewFormats = nullptr;
-                WGPUTexture texture = wgpuDeviceCreateTexture(data->graphicsContext.Device, &textureDesc);
-
-                WGPUTexelCopyTextureInfo destination = WGPU_TEXEL_COPY_TEXTURE_INFO_INIT;
-                destination.texture = texture;
-                destination.mipLevel = 0;
-                destination.origin = {/*.width=*/0, /*.height=*/0, /*.depthOrArrayLayers=*/0};
-                destination.aspect = WGPUTextureAspect_All;
-
-                WGPUTexelCopyBufferLayout dataLayout = WGPU_TEXEL_COPY_BUFFER_LAYOUT_INIT;
-                dataLayout.offset = 0;
-                dataLayout.bytesPerRow = 4 * data->width;
-                dataLayout.rowsPerImage = data->height;
-
-                WGPUExtent3D size{/*.width=*/static_cast<uint32_t>(data->width),
-                                  /*.height=*/static_cast<uint32_t>(data->height),
-                                  /*.depthOrArrayLayers=*/1};
-
-                wgpuQueueWriteTexture(
-                    data->graphicsContext.Queue,
-                    &destination,
-                    data->pixelData,
-                    4 * data->width * data->height,
-                    &dataLayout,
-                    &size);
-
-                stbi_image_free(data->pixelData);
-
-                data->texture = texture;
-            },
-            loadTextureData);
-
-        _assets.emplace(assetId,
-                        AssetEntry{
-                            /* Type */ AssetType::Texture,
-                            /* LoaderHandle */ loaderHandle,
-                            /* RefCount */ 0,
-                        });
-
-        return _addReferenceRecord(assetId);
+        std::unique_ptr<TextureAssetBuilder> builder = std::make_unique<TextureAssetBuilder>(this->_graphicsContext);
+        return castReference<WGPUTexture>(this->LoadAsset(assetId, std::move(builder)));
     }
 
-    AssetManager::AssetResult AssetManager::GetTexture(AssetReference reference, WGPUTexture **texture)
+    AssetManager::AssetResult AssetManager::GetTexture(AssetReference<WGPUTexture> reference, WGPUTexture **texture)
     {
-        void *rawDataPtr = nullptr;
-        AssetType type = AssetType::Undefined;
-        AssetResult result = this->_getData(reference, &type, &rawDataPtr);
-        LoadTextureData *loadTextureData = reinterpret_cast<LoadTextureData *>(rawDataPtr);
-        if (type != AssetType::Texture)
-        {
-            return AssetResult::WrongType;
-        }
-        if (result != AssetResult::Success)
-        {
-            return result;
-        }
-
-        *texture = &loadTextureData->texture;
-        return AssetResult::Success;
+        return this->GetAsset(reference, AssetType::Texture, (void **)texture);
     }
 
-    AssetManager::AssetResult AssetManager::GetResult(AssetReference reference)
+    AssetManager::AssetResult AssetManager::GetAsset(UntypedAssetReference reference, AssetType type, void **data)
     {
-        return _getData(reference, nullptr, nullptr);
+        AssetEntry *entry = nullptr;
+        AssetManager::AssetResult result = this->_getAsset(reference, type, &entry);
+        if (data != nullptr && result == AssetResult::Success)
+        {
+            entry->Data->GetData();
+            *data = entry->Data->GetData();
+        }
+        return result;
     }
 
-    std::string AssetManager::GetError(AssetReference reference)
+    AssetManager::AssetResult AssetManager::GetResult(UntypedAssetReference reference)
     {
-        AssetResult result = GetResult(reference);
+        return _getAsset(reference, AssetType::Undefined, nullptr);
+    }
+
+    std::string AssetManager::GetError(UntypedAssetReference reference)
+    {
+        AssetEntry *entry = nullptr;
+        AssetResult result = _getAsset(reference, AssetType::Undefined, &entry);
         if (result == AssetResult::WrongType)
         {
             return "Incorrect asset type";
@@ -274,14 +100,12 @@ namespace Pretop::Asset
         }
         if (result == AssetResult::Failed)
         {
-            AssetLoader::Handle loaderHandle;
-            _getLoaderHandle(reference, nullptr, &loaderHandle);
-            return _assetLoader->GetError(loaderHandle);
+            return entry->ErrorText;
         }
         return "";
     }
 
-    void AssetManager::Release(AssetReference reference)
+    void AssetManager::Release(UntypedAssetReference reference)
     {
         if (!_records.IsValid(reference.handle))
         {
@@ -304,75 +128,132 @@ namespace Pretop::Asset
         assetEntry.RefCount--;
         if (assetEntry.RefCount == 0)
         {
-            _assetLoader->Release(assetEntry.LoaderHandle);
+            _assets.erase(assetReferenceRecord->AssetId);
         }
-        return _records.Release(reference.handle);
+        _records.Release(reference.handle);
     }
 
-    AssetManager::AssetReference AssetManager::_addReferenceRecord(AssetId assetId)
+    AssetManager::UntypedAssetReference AssetManager::CopyReference(UntypedAssetReference reference)
+    {
+        if (!this->_records.IsValid(reference.handle))
+        {
+            // Return invalid asset reference
+            return UntypedAssetReference{Core::Handle{0, 0}};
+        }
+        auto assetReferenceRecord = _records[reference.handle];
+        auto it = _assets.find(assetReferenceRecord->AssetId);
+        if (it == _assets.end())
+        {
+            // Return invalid asset reference
+            return UntypedAssetReference{Core::Handle{0, 0}};
+        }
+        else
+        {
+            AssetEntry &existingEntry = it->second;
+            existingEntry.RefCount++;
+        }
+        return _addReferenceRecord(assetReferenceRecord->AssetId);
+    }
+
+    struct AssetContext
+    {
+        AssetBuilder *Builder;
+        AssetManager *Self;
+        AssetManager::AssetId AssetId;
+    };
+    AssetManager::UntypedAssetReference AssetManager::_loadAsset(AssetId assetId, std::unique_ptr<AssetBuilder> assetBuilder)
+    {
+        auto it = _assets.find(assetId);
+        if (it != _assets.end())
+        {
+            AssetEntry &existingEntry = it->second;
+            existingEntry.RefCount++;
+            return _addReferenceRecord(assetId);
+        }
+
+        AssetType assetType = assetBuilder->GetAssetType();
+
+        AssetContext *ctx = new AssetContext{assetBuilder.release(), this, assetId};
+
+        _assetLoader->ReadFile(
+            assetId,
+            [](const AssetBytes &bytes, void *userData)
+            {
+                AssetContext *ctx = reinterpret_cast<AssetContext *>(userData);
+                ctx->Builder->ThreadLoadStep(bytes);
+            },
+            [](AssetLoader &loader, AssetLoader::Handle handle)
+            {
+                AssetContext *ctx = reinterpret_cast<AssetContext *>(loader.GetRawData(handle));
+                AssetLoader::Status status = loader.GetStatus(handle);
+                auto it = ctx->Self->_assets.find(ctx->AssetId);
+                PRETOP_ASSERT(it != ctx->Self->_assets.end(), "Asset should exist");
+                AssetEntry &record = it->second;
+                if (status == AssetLoader::Status::Ready)
+                {
+                    record.Result = AssetManager::AssetResult::Success;
+                    auto data = ctx->Builder->FinalizeLoadStep();
+                    record.Data = std::move(data);
+                }
+                else if (status == AssetLoader::Status::Error)
+                {
+                    record.Result = AssetManager::AssetResult::Failed;
+                    record.ErrorText = loader.GetError(handle);
+                }
+                loader.Release(handle);
+                delete ctx->Builder;
+            },
+            ctx);
+
+        _assets.emplace(assetId,
+                        AssetEntry{
+                            /* Type */ assetType,
+                            /* ErrorText */ "",
+                            /* Data */ nullptr,
+                            /* Result */ AssetManager::AssetResult::NotReady,
+                            /* RefCount */ 1,
+                        });
+
+        return _addReferenceRecord(assetId);
+    }
+
+    AssetManager::AssetResult AssetManager::_getAsset(UntypedAssetReference reference, AssetType type, AssetEntry **entry)
+    {
+        if (!this->_records.IsValid(reference.handle))
+        {
+            return AssetManager::AssetResult::InvalidReference;
+        }
+
+        AssetReferenceRecord *record = this->_records[reference.handle];
+        auto it = _assets.find(record->AssetId);
+        PRETOP_ASSERT(it != _assets.end(), "Asset does not exist");
+        if (entry != nullptr)
+        {
+            *entry = &it->second;
+        }
+        AssetEntry &e = it->second;
+
+        if (e.Type != type && type != AssetType::Undefined)
+        {
+            return AssetResult::WrongType;
+        }
+
+        if (e.Result != AssetResult::Success)
+        {
+            return e.Result;
+        }
+
+        return AssetResult::Success;
+    }
+
+    AssetManager::UntypedAssetReference AssetManager::_addReferenceRecord(AssetId assetId)
     {
         AssetReferenceRecord assetReferenceRecord;
         assetReferenceRecord.AssetId = assetId;
         Core::Handle assetReferenceHandle = _records.Add(assetReferenceRecord);
 
-        AssetReference assetReference;
+        UntypedAssetReference assetReference;
         assetReference.handle = assetReferenceHandle;
         return assetReference;
     };
-
-    AssetManager::AssetResult AssetManager::_getData(AssetReference reference, AssetType *type, void **data)
-    {
-        AssetLoader::Handle loaderHandle;
-        AssetManager::AssetResult result = _getLoaderHandle(reference, type, &loaderHandle);
-
-        if (result != AssetResult::Success)
-        {
-            return result;
-        }
-
-        void *rawData = this->_assetLoader->GetRawData(loaderHandle);
-        if (data != nullptr)
-        {
-            *data = rawData;
-        }
-
-        return AssetResult::Success;
-    }
-
-    AssetManager::AssetResult AssetManager::_getLoaderHandle(
-        AssetReference reference, AssetType *type, AssetLoader::Handle *handle)
-    {
-        if (!_records.IsValid(reference.handle))
-        {
-            return AssetResult::InvalidReference;
-        }
-        AssetReferenceRecord *assetReferenceRecord = _records[reference.handle];
-
-        auto it = _assets.find(assetReferenceRecord->AssetId);
-        if (it == _assets.end())
-        {
-            return AssetResult::InvalidReference;
-        }
-
-        AssetEntry &assetEntry = it->second;
-        if (type != nullptr)
-        {
-            *type = assetEntry.Type;
-        }
-        *handle = assetEntry.LoaderHandle;
-
-        AssetLoader::Status assetLoadStatus =
-            this->_assetLoader->GetStatus(assetEntry.LoaderHandle);
-
-        if (assetLoadStatus == AssetLoader::Status::Error)
-        {
-            return AssetResult::Failed;
-        }
-        if (assetLoadStatus == AssetLoader::Status::InProgress)
-        {
-            return AssetResult::NotReady;
-        }
-
-        return AssetResult::Success;
-    }
 } // namespace Pretop::Asset

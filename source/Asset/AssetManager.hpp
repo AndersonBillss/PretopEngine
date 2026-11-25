@@ -3,6 +3,7 @@
 #include "LoadGlb.hpp"
 #include "AssetLoader.hpp"
 #include "AssetType.hpp"
+#include "AssetBuilders/AssetBuilder.hpp"
 #include "../Core/JobSystem.hpp"
 #include "../Core/GraphicsContext.hpp"
 #include "../Core/PagedVector.hpp"
@@ -27,12 +28,28 @@ namespace Pretop::Asset
             Failed,
         };
 
-        struct AssetReference
+        struct UntypedAssetReference
         {
             Core::Handle handle;
         };
 
-        using Status = Core::Status;
+        template <class T>
+        struct AssetReference
+        {
+            Core::Handle handle;
+
+            constexpr operator UntypedAssetReference() const
+            {
+                return {handle};
+            }
+        };
+
+        template <class T>
+        AssetReference<T> castReference(UntypedAssetReference assetReference)
+        {
+            return {assetReference.handle};
+        }
+
         using AssetId = uint64_t;
 
     private:
@@ -44,7 +61,9 @@ namespace Pretop::Asset
         struct AssetEntry
         {
             AssetType Type;
-            AssetLoader::Handle LoaderHandle;
+            std::string ErrorText;
+            std::unique_ptr<AssetData> Data;
+            AssetManager::AssetResult Result;
             uint32_t RefCount = 0;
         };
 
@@ -54,26 +73,37 @@ namespace Pretop::Asset
             Core::GraphicsContext graphicsContext);
         ~AssetManager();
 
-        AssetReference LoadModel(AssetId assetId);
-        AssetResult GetGlbData(AssetReference reference, ParsedData **data);
+        AssetReference<ParsedData> LoadModel(AssetId assetId);
+        AssetResult GetGlbData(AssetReference<ParsedData> reference, ParsedData **data);
 
-        AssetReference LoadShaderModule(AssetId assetId);
-        AssetResult GetShaderModule(AssetReference reference, RHI::Shader **shader);
+        AssetReference<RHI::Shader> LoadShaderModule(AssetId assetId);
+        AssetResult GetShaderModule(AssetReference<RHI::Shader> reference, RHI::Shader **shader);
 
-        AssetReference LoadTexture(AssetId assetId);
-        AssetResult GetTexture(AssetReference reference, WGPUTexture **texture);
+        AssetReference<WGPUTexture> LoadTexture(AssetId assetId);
+        AssetResult GetTexture(AssetReference<WGPUTexture> reference, WGPUTexture **texture);
 
-        Status GetState(AssetReference reference);
-        AssetResult GetResult(AssetReference reference);
-        std::string GetError(AssetReference reference);
-        void Release(AssetReference reference);
+        UntypedAssetReference LoadAsset(AssetId assetId, std::unique_ptr<AssetBuilder> assetBuilder)
+        {
+            return _loadAsset(assetId, std::move(assetBuilder));
+        };
+        AssetResult GetAsset(UntypedAssetReference reference, AssetType type, void **data);
+
+        AssetResult GetResult(UntypedAssetReference reference);
+        std::string GetError(UntypedAssetReference reference);
+        void Release(UntypedAssetReference reference);
+
+        template <class T>
+        AssetReference<T> CopyReference(AssetReference<T> reference)
+        {
+            return {CopyReference(reinterpret_cast<UntypedAssetReference>(reference)).handle};
+        };
+        UntypedAssetReference CopyReference(UntypedAssetReference reference);
 
     private:
-        AssetReference _addReferenceRecord(AssetId assetId);
-        AssetReference _removeReference(AssetId assetId);
+        UntypedAssetReference _loadAsset(AssetId assetId, std::unique_ptr<AssetBuilder> assetBuilder);
+        AssetResult _getAsset(UntypedAssetReference reference, AssetType type, AssetEntry **entry);
 
-        AssetResult _getData(AssetReference reference, AssetType *type, void **data);
-        AssetResult _getLoaderHandle(AssetReference reference, AssetType *type, AssetLoader::Handle *handle);
+        UntypedAssetReference _addReferenceRecord(AssetId assetId);
 
         std::unique_ptr<AssetLoader> _assetLoader;
         Core::GraphicsContext _graphicsContext;
