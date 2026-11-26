@@ -14,6 +14,7 @@
 
 #ifdef PRETOP_PLATFORM_LINUX
 #define GLFW_EXPOSE_NATIVE_WAYLAND
+#define GLFW_EXPOSE_NATIVE_X11
 #endif // PRETOP_PLATFORM_LINUX
 
 #include <GLFW/glfw3native.h>
@@ -87,20 +88,41 @@ namespace Pretop::Window
         return wgpuInstanceCreateSurface(instance, &surfaceDescriptor);
 #endif // PRETOP_PLATFORM_WINDOWS
 #ifdef PRETOP_PLATFORM_LINUX
-        wl_surface *surface = glfwGetWaylandWindow(this->_window);
-        wl_display *display = glfwGetWaylandDisplay();
+        switch (glfwGetPlatform())
+        {
+        case GLFW_PLATFORM_WAYLAND:
+        {
+            struct WGPUSurfaceSourceWaylandSurface fromWayland;
+            fromWayland.chain.sType = WGPUSType_SurfaceSourceWaylandSurface;
+            fromWayland.chain.next = NULL;
+            fromWayland.display = glfwGetWaylandDisplay();
+            fromWayland.surface = glfwGetWaylandWindow(this->_window);
 
-        struct WGPUSurfaceSourceWaylandSurface fromWayland;
-        fromWayland.chain.sType = WGPUSType_SurfaceSourceWaylandSurface;
-        fromWayland.chain.next = NULL;
-        fromWayland.display = display;
-        fromWayland.surface = surface;
+            WGPUSurfaceDescriptor surfaceDescriptor;
+            surfaceDescriptor.nextInChain = &fromWayland.chain;
+            surfaceDescriptor.label = WGPU_STRING_VIEW_INIT;
 
-        WGPUSurfaceDescriptor surfaceDescriptor;
-        surfaceDescriptor.nextInChain = &fromWayland.chain;
-        surfaceDescriptor.label = WGPU_STRING_VIEW_INIT;
+            return wgpuInstanceCreateSurface(instance, &surfaceDescriptor);
+        }
+        case GLFW_PLATFORM_X11:
+        {
+            struct WGPUSurfaceSourceXlibWindow fromX11{};
+            fromX11.chain.sType = WGPUSType_SurfaceSourceXlibWindow;
+            fromX11.chain.next = NULL;
+            fromX11.display = glfwGetX11Display();
+            fromX11.window = glfwGetX11Window(this->_window);
 
-        return wgpuInstanceCreateSurface(instance, &surfaceDescriptor);
+            WGPUSurfaceDescriptor surfaceDescriptor;
+            surfaceDescriptor.nextInChain = &fromX11.chain;
+            surfaceDescriptor.label = WGPU_STRING_VIEW_INIT;
+
+            return wgpuInstanceCreateSurface(instance, &surfaceDescriptor);
+        }
+        default:
+        {
+            return nullptr;
+        }
+        }
 #endif // PRETOP_PLATFORM_LINUX
     }
 } // namespace Pretop::Window
