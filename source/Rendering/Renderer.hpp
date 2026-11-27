@@ -14,13 +14,14 @@ namespace Pretop::Rendering
             WGPUIndexFormat indexFormat;
         };
 
-        Renderer(Core::GraphicsContext ctx, WGPUSurface windowSurface, WGPUTextureFormat windowFormat);
+        Renderer(Pretop::Asset::AssetManager *assetManager, Core::GraphicsContext ctx, WGPUSurface windowSurface, WGPUTextureFormat windowFormat);
         void AddObject(GpuMesh object);
-        void render();
-        void updateMVP(Math::Mat4x4 Model, Math::Mat4x4 View, Math::Mat4x4 Projection);
+        void Render();
+        void UpdateMVP(Math::Mat4x4 Model, Math::Mat4x4 View, Math::Mat4x4 Projection);
+        bool PollReady();
 
     private:
-        void _initializeBindings();
+        void _afterShadersLoadedStep(WGPUShaderModule shaderModule);
 
         struct MyUniforms
         {
@@ -42,8 +43,8 @@ namespace Pretop::Rendering
         WGPUQueue _queue;
         WGPUBindGroup _bindGroup;
         WGPUBuffer _uniformBuffer;
-        WGPUShaderModule _shaderModule;
         WGPURenderPipeline _pipeline;
+        WGPUTextureFormat _windowFormat;
         std::vector<GpuMesh> _objects;
     };
 }
