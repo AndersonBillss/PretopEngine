@@ -4,6 +4,7 @@
 #include "Assert.hpp"
 #include "PagedVector.hpp"
 #include <unordered_set>
+#include <iostream>
 
 namespace Pretop::Core
 {
@@ -60,6 +61,39 @@ namespace Pretop::Core
             _free.insert(handle.Index);
         }
 
+        class Iterator
+        {
+        public:
+            explicit Iterator(RecordTable *recordTable, Handle handle) : _recordTable(recordTable)
+            {
+                this->_handle = handle;
+            }
+
+            Handle operator*() const { return this->_handle; }
+
+            Iterator &operator++()
+            {
+                this->_handle = this->_recordTable->_getNextValidHandle(this->_handle.Index + 1);
+                return *this;
+            }
+
+            bool operator==(const Iterator &other) const
+            {
+                return this->_handle.Generation == other._handle.Generation && this->_handle.Index == other._handle.Index;
+            }
+            bool operator!=(const Iterator &other) const
+            {
+                return !(this->_handle.Generation == other._handle.Generation && this->_handle.Index == other._handle.Index);
+            }
+
+        private:
+            RecordTable *_recordTable;
+            Handle _handle;
+        };
+
+        Iterator begin() { return Iterator(this, this->_getNextValidHandle(0)); }
+        Iterator end() { return Iterator(this, Handle{0, 0}); }
+
     private:
         PagedVector<Record> _records;
         std::unordered_set<uint32_t> _free;
@@ -109,6 +143,22 @@ namespace Pretop::Core
         bool _isValid(const Record &record) const
         {
             return record.Generation != invalidGeneration;
+        }
+
+        Handle _getNextValidHandle(uint32_t index)
+        {
+            Handle result = Handle{0, 0};
+            while (
+                index <= this->_records.Size() &&
+                this->_free.find(index) != this->_free.end())
+            {
+                index++;
+            }
+            if (index < this->_records.Size())
+            {
+                result = Handle{index, this->_records[index].Generation};
+            }
+            return result;
         }
     };
 }

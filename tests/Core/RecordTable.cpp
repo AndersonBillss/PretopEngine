@@ -49,3 +49,18 @@ TEST_CASE("Records can be added after other records are freed", "[Core][RecordTa
     REQUIRE(*table[handle3] == 3);
     table.Release(handle1);
 }
+
+TEST_CASE("Records iterator works", "[Core][RecordTable]")
+{
+    Pretop::Core::RecordTable<int> table;
+    table.Add(1);
+    table.Add(2);
+    table.Add(3);
+
+    int i = 1;
+    for (Pretop::Core::Handle handle : table)
+    {
+        REQUIRE(*table[handle] == i);
+        i++;
+    }
+}
