@@ -104,3 +104,42 @@ TEST_CASE("Records iterator skips over removed value in last index", "[Core][Rec
         i++;
     }
 }
+
+TEST_CASE("Records iterator skips over multiple removed values", "[Core][RecordTable]")
+{
+    Pretop::Core::RecordTable<int> table;
+    Pretop::Core::Handle handle1 = table.Add(15);
+    table.Add(1);
+    table.Add(2);
+    Pretop::Core::Handle handle2 = table.Add(3);
+    table.Add(9);
+    Pretop::Core::Handle handle3 = table.Add(8);
+    table.Add(12);
+    table.Add(13);
+    table.Add(10);
+    table.Add(5);
+    Pretop::Core::Handle handle4 = table.Add(4);
+
+    std::vector<int> expected1 = {15, 1, 2, 3, 9, 8, 12, 13, 10, 5, 4};
+    uint32_t i = 0;
+    for (Pretop::Core::Handle handle : table)
+    {
+        REQUIRE(i < expected1.size());
+        REQUIRE(*table[handle] == expected1[i]);
+        i++;
+    }
+
+    table.Release(handle1);
+    table.Release(handle2);
+    table.Release(handle3);
+    table.Release(handle4);
+    std::vector<int> expected2 = {1, 2, 9, 12, 13, 10, 5};
+
+    i = 0;
+    for (Pretop::Core::Handle handle : table)
+    {
+        REQUIRE(i < expected2.size());
+        REQUIRE(*table[handle] == expected2[i]);
+        i++;
+    }
+}
