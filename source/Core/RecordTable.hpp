@@ -3,6 +3,7 @@
 #include "Handle.hpp"
 #include "Assert.hpp"
 #include "PagedVector.hpp"
+#include <unordered_set>
 
 namespace Pretop::Core
 {
@@ -56,12 +57,12 @@ namespace Pretop::Core
             PRETOP_ASSERT(IsValid(handle), "Handle is invalid");
             Record &record = _records[handle.Index];
             record.Generation = _getNextGeneration(record.Generation);
-            _free.push_back(handle.Index);
+            _free.insert(handle.Index);
         }
 
     private:
         PagedVector<Record> _records;
-        std::vector<uint32_t> _free;
+        std::unordered_set<uint32_t> _free;
 
         template <class U>
         Handle _addImpl(U &&data)
@@ -85,9 +86,8 @@ namespace Pretop::Core
         {
             if (_free.size() > 0)
             {
-                int result = static_cast<int>(_free[_free.size() - 1]);
-                _free.pop_back();
-                return result;
+                auto handle = this->_free.extract(this->_free.begin());
+                return std::move(handle.value());
             }
             return -1;
         }
