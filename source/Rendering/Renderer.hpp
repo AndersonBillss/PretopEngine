@@ -7,8 +7,15 @@ namespace Pretop::Rendering
     class Renderer
     {
     public:
-        Renderer(Core::GraphicsContext ctx, WGPUSurface windowSurface);
-        void AddObject(Asset::AssetManager::AssetReference<Asset::ParsedData> object);
+        struct GpuMesh
+        {
+            WGPUBuffer vertexBuffer;
+            WGPUBuffer indexBuffer;
+            WGPUIndexFormat indexFormat;
+        };
+
+        Renderer(Core::GraphicsContext ctx, WGPUSurface windowSurface, WGPUTextureFormat windowFormat);
+        void AddObject(GpuMesh object);
         void render();
         void updateMVP(Math::Mat4x4 Model, Math::Mat4x4 View, Math::Mat4x4 Projection);
 
@@ -30,9 +37,13 @@ namespace Pretop::Rendering
         Asset::AssetManager *_assetManager;
         Asset::AssetManager::AssetReference<RHI::Shader> _shaderRef;
         WGPUSurface _windowSurface;
+        WGPUTextureView _windowView;
+        WGPURenderPassDepthStencilAttachment _depthStencilAttachment;
         WGPUQueue _queue;
         WGPUBindGroup _bindGroup;
         WGPUBuffer _uniformBuffer;
-        std::vector<Asset::AssetManager::AssetReference<Asset::ParsedData>> _objects;
+        WGPUShaderModule _shaderModule;
+        WGPURenderPipeline _pipeline;
+        std::vector<GpuMesh> _objects;
     };
 }
