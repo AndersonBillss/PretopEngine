@@ -5,3 +5,4 @@
 | 11/26/2026 | Added support for Wayland on Linux.                                                | 1           |  
 | 11/26/2026 | Started on simple renderer class.                                                  | 2           |  
 | 11/26/2026 | Design and integrate simple renderer into demo.                                    | 3           |  
+| 11/26/2026 | Fix invalid state issues in renderer and add iterator to RecordTable.              | 2.5         |  
