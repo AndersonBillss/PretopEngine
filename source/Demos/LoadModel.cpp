@@ -136,17 +136,16 @@ namespace Pretop::Demos
         state->ModelRef = state->Assets->LoadModel(
             Pretop::Utils::GetAssetId("models/woolly-mammoth-100k-4096_std.glb"));
 
-        state->Renderer = std::make_unique<Rendering::Renderer>(state->Assets.get(), application.GetGraphicsContext(), application.WindowFormat);
-
         application.LogQueueCommands();
         application.SetWindow(WindowFactory::CreateWindow("My Window"));
+
+        state->Renderer = std::make_unique<Rendering::Renderer>(state->Assets.get(), application.GetGraphicsContext(), application.WindowFormat);
 
         application.Run(
             [state, &application](
                 double dt,
                 WGPUTextureView targetView)
             {
-                std::cout << "RUN CALLED" << std::endl;
                 state->Jobs->PumpMainThreadCompletions();
                 if (!state->ModelReady)
                 {

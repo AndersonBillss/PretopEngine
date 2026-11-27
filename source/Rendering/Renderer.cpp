@@ -95,10 +95,10 @@ namespace Pretop::Rendering
 
     bool Renderer::PollReady()
     {
-        if(this->_shaderLoaded == true) {
+        if (this->_shaderLoaded == true)
+        {
             return true;
         }
-        std::cout << "PollReady" << std::endl;
         Pretop::RHI::Shader *shader;
         auto result = this->_assetManager->GetShaderModule(this->_shaderRef, &shader);
         if (result != Asset::AssetManager::AssetResult::Success)
@@ -116,7 +116,6 @@ namespace Pretop::Rendering
 
     void Renderer::_afterShadersLoadedStep(WGPUShaderModule shaderModule)
     {
-        std::cout << "_afterShadersLoadedStep" << std::endl;
         WGPUVertexAttribute vertexAttributes[2];
         vertexAttributes[0] = {
             /*.nextInChain=*/nullptr,
@@ -142,7 +141,7 @@ namespace Pretop::Rendering
         bindingLayoutEntry.binding = 0;
         bindingLayoutEntry.buffer.type = WGPUBufferBindingType_Uniform;
         bindingLayoutEntry.buffer.minBindingSize = sizeof(MyUniforms);
-        bindingLayoutEntry.buffer.hasDynamicOffset = true;
+        bindingLayoutEntry.buffer.hasDynamicOffset = false;
         bindingLayoutEntry.visibility = WGPUShaderStage_Vertex;
 
         WGPUBindGroupLayoutDescriptor bindGroupLayoutDesc{};
@@ -158,7 +157,6 @@ namespace Pretop::Rendering
         this->_uniformBuffer = wgpuDeviceCreateBuffer(this->_ctx.Device, &bufferDesc);
 
         WGPUBindGroupLayout bindGroupLayout = wgpuDeviceCreateBindGroupLayout(this->_ctx.Device, &bindGroupLayoutDesc);
-        std::cout << "_afterShadersLoadedStep 1" << std::endl;
 
         WGPUPipelineLayoutDescriptor pipelineLayoutDesc = {
             /*.nextInChain=*/nullptr,
@@ -179,9 +177,7 @@ namespace Pretop::Rendering
         bindGroupDesc.layout = bindGroupLayout;
         bindGroupDesc.entryCount = 1;
         bindGroupDesc.entries = &bindings;
-        std::cout << "_afterShadersLoadedStep 1.5" << std::endl;
         this->_bindGroup = wgpuDeviceCreateBindGroup(_ctx.Device, &bindGroupDesc);
-        std::cout << "_afterShadersLoadedStep 2" << std::endl;
 
         _uniforms.ProjectionMatrix = Math::Mat4x4::Identity();
         _uniforms.ViewMatrix = Math::Mat4x4::Identity();
@@ -195,7 +191,6 @@ namespace Pretop::Rendering
             &this->_uniforms,
             sizeof(MyUniforms));
 
-        std::cout << "_afterShadersLoadedStep 3" << std::endl;
         WGPUTextureFormat depthTextureFormat = WGPUTextureFormat_Depth24Plus;
         WGPUDepthStencilState depthStencilState = {
             /*.nextInChain=*/nullptr,
@@ -224,7 +219,6 @@ namespace Pretop::Rendering
             /*.viewFormats=*/&depthTextureFormat,
         };
         WGPUTexture depthTexture = wgpuDeviceCreateTexture(this->_ctx.Device, &depthTextureDesc);
-        std::cout << "_afterShadersLoadedStep 4" << std::endl;
 
         WGPUTextureViewDescriptor depthTextureViewDesc = {
             /*.nextInChain=*/nullptr,
@@ -253,7 +247,6 @@ namespace Pretop::Rendering
             /*.stencilReadOnly=*/false,
         };
 
-        std::cout << "_afterShadersLoadedStep 5" << std::endl;
         WGPUColorTargetState colorTargetState = {
             /*.nextInChain=*/nullptr,
             /*.format=*/this->_windowFormat,
@@ -301,6 +294,5 @@ namespace Pretop::Rendering
             /*.fragment=*/&fragmentState,
         };
         this->_pipeline = wgpuDeviceCreateRenderPipeline(this->_ctx.Device, &pipelineDesc);
-        std::cout << "end _afterShadersLoadedStep" << std::endl;
     }
 }
