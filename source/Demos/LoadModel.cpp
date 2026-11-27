@@ -31,6 +31,8 @@
 #include "../Asset/AssetManagerFactory.hpp"
 #include "../Core/JobSystem.hpp"
 
+#include "../Rendering/Renderer.hpp"
+
 namespace Pretop::Demos
 {
     using namespace Pretop::Asset;
@@ -55,35 +57,18 @@ namespace Pretop::Demos
         std::unique_ptr<Core::JobSystem> Jobs;
         std::unique_ptr<AssetManager> Assets;
         AssetManager::AssetReference<ParsedData> ModelRef;
-        AssetManager::AssetReference<RHI::Shader> ShaderRef;
         ParsedData *Model;
-        RHI::Shader *Shader;
 
         std::unique_ptr<Buffer> Vertices;
         std::unique_ptr<Buffer> Indices;
-        std::unique_ptr<BindingLayout> ModelBindingLayout;
-        std::unique_ptr<Pipeline> ModelPipeline;
-        std::unique_ptr<Buffer> UniformBuffer;
-        std::unique_ptr<BindGroup> ModelBindGroup;
-
-        uint32_t IndexCount = 0;
         WGPUIndexFormat IndexFormat = WGPUIndexFormat_Undefined;
-        float Seconds = 0.0f;
+
+        std::unique_ptr<Rendering::Renderer> Renderer;
+
         bool ModelReady = false;
-        bool ShaderReady = false;
-        bool BindingsInitialized = false;
+
+        float Seconds;
     };
-
-    void InitializeShader(Application &application, DemoState &state)
-    {
-        std::cout << "Initializing Shaders..." << std::endl;
-        AssetManager::AssetResult shaderLoadStatus = state.Assets->GetShaderModule(state.ShaderRef, &state.Shader);
-        if (shaderLoadStatus != AssetManager::AssetResult::Success)
-            return;
-
-        state.ShaderReady = true;
-        std::cout << "Shaders initialized!" << std::endl;
-    }
 
     void InitializeModel(Application &application, DemoState &state)
     {
@@ -103,14 +88,12 @@ namespace Pretop::Demos
         {
             auto &indices = std::get<std::vector<uint32_t>>(state.Model->Indices);
             indicesSize = indices.size() * sizeof(uint32_t);
-            state.IndexCount = static_cast<uint32_t>(indices.size());
             state.IndexFormat = WGPUIndexFormat_Uint32;
         }
         else
         {
             auto &indices = std::get<std::vector<uint16_t>>(state.Model->Indices);
             indicesSize = indices.size() * sizeof(uint16_t);
-            state.IndexCount = static_cast<uint32_t>(indices.size());
             state.IndexFormat = WGPUIndexFormat_Uint16;
         }
 
@@ -129,48 +112,15 @@ namespace Pretop::Demos
             application.WriteVec(*state.Indices, indices);
         }
 
+        Rendering::Renderer::GpuMesh mesh{
+            /* WGPUBuffer */ state.Vertices->WgpuBuffer,
+            /* WGPUBuffer */ state.Indices->WgpuBuffer,
+            /* WGPUIndexFormat */ state.IndexFormat,
+        };
+        state.Renderer->AddObject(mesh);
+
         state.ModelReady = true;
         std::cout << "Model initialized!" << std::endl;
-    }
-
-    void InitializeBindings(Application &application, DemoState &state)
-    {
-        std::cout << "Initializing bindings..." << std::endl;
-        VertexLayout vertexLayout = {{LayoutType::Float32x3, LayoutType::Float32x3}};
-
-        WGPUBindGroupLayoutEntry bindingLayoutEntry = WGPU_BIND_GROUP_LAYOUT_ENTRY_INIT;
-        bindingLayoutEntry.binding = 0;
-        bindingLayoutEntry.buffer.type = WGPUBufferBindingType_Uniform;
-        bindingLayoutEntry.buffer.minBindingSize = sizeof(MyUniforms);
-        bindingLayoutEntry.buffer.hasDynamicOffset = true;
-        bindingLayoutEntry.visibility = WGPUShaderStage_Vertex;
-
-        state.ModelBindingLayout = std::make_unique<BindingLayout>(
-            application.Device.get(),
-            std::initializer_list<std::initializer_list<WGPUBindGroupLayoutEntry>>{
-                {bindingLayoutEntry}});
-        state.ModelPipeline = std::make_unique<Pipeline>(
-            application.Device.get(),
-            *state.Shader,
-            application.WindowFormat,
-            vertexLayout,
-            *state.ModelBindingLayout);
-        state.UniformBuffer = std::make_unique<Buffer>(
-            application.Device.get(),
-            sizeof(MyUniforms),
-            WGPUBufferUsage_CopyDst | WGPUBufferUsage_Uniform);
-
-        std::vector<WGPUBindGroupEntry> bindings = {WGPU_BIND_GROUP_ENTRY_INIT};
-        bindings[0].binding = 0;
-        bindings[0].buffer = state.UniformBuffer->WgpuBuffer;
-        bindings[0].size = sizeof(MyUniforms);
-        state.ModelBindGroup = std::make_unique<BindGroup>(
-            application.Device.get(),
-            state.ModelBindingLayout->WgpuBindGroupLayouts[0],
-            bindings);
-        application.WriteBufZero(*state.UniformBuffer);
-        state.BindingsInitialized = true;
-        std::cout << "Bindings initialized!" << std::endl;
     }
 
     void Start(Application &application)
@@ -185,8 +135,8 @@ namespace Pretop::Demos
 
         state->ModelRef = state->Assets->LoadModel(
             Pretop::Utils::GetAssetId("models/woolly-mammoth-100k-4096_std.glb"));
-        state->ShaderRef = state->Assets->LoadShaderModule(
-            Pretop::Utils::GetAssetId("shaders/shader.wgsl"));
+
+        state->Renderer = std::make_unique<Rendering::Renderer>(state->Assets.get(), application.GetGraphicsContext(), application.WindowFormat);
 
         application.LogQueueCommands();
         application.SetWindow(WindowFactory::CreateWindow("My Window"));
@@ -196,60 +146,34 @@ namespace Pretop::Demos
                 double dt,
                 WGPUTextureView targetView)
             {
+                std::cout << "RUN CALLED" << std::endl;
                 state->Jobs->PumpMainThreadCompletions();
                 if (!state->ModelReady)
                 {
                     InitializeModel(application, *state);
                 }
-                if (!state->ShaderReady)
+                if (!state->Renderer->PollReady() || !state->ModelReady)
                 {
-                    InitializeShader(application, *state);
-                }
-                if(!state->ShaderReady || !state->ModelReady) {
-                    return;
-                }
-                if (!state->BindingsInitialized)
-                {
-                    InitializeBindings(application, *state);
-                }
-                if(!state->BindingsInitialized) {
                     return;
                 }
 
                 state->Seconds += dt;
-                MyUniforms u;
-                u.Color = (sin(state->Seconds * 2.32325) + 1) / 2;
-                u.Time = state->Seconds;
 
                 Mat4x4 r1 = (Euler{90.0f * (float)Deg2Rad, 0, state->Seconds}).ToMatrix();
                 Mat4x4 s = Mat4x4::Scale(ModelScale);
-                u.ModelMatrix = r1 * s;
+                Mat4x4 modelMatrix = r1 * s;
 
                 Mat4x4 r2 = (Euler{-45.0f * (float)Deg2Rad, 0, 0}).ToMatrix();
                 Mat4x4 t2 = Mat4x4::Transform(0.0f, 0.0f, -4.0f);
-                u.ViewMatrix = t2 * r2;
+                Mat4x4 viewMatrix = t2 * r2;
 
                 float near = 0.01f;
                 float far = 100.0f;
-                u.ProjectionMatrix = Mat4x4::Perspective(near, far, 60.0f * Deg2Rad, 640.0 / 480.0);
-                application.WriteBuf(*state->UniformBuffer, u);
+                Mat4x4 projectionMatrix = Mat4x4::Perspective(near, far, 60.0f * Deg2Rad, 640.0 / 480.0);
 
-                CommandBuffer commandBuffer(application.Device.get());
-                RenderPassCommand command(
-                    application.Device.get(),
-                    targetView,
-                    state->ModelPipeline->WgpuDepthStencilAttachment);
-                std::vector<Buffer *> bufs = {state->Vertices.get()};
-
-                auto cmd = commandBuffer.AddCommand(command);
-                cmd->SetPipeline(*state->ModelPipeline)
-                .SetVertexBuffers(bufs)
-                .SetBindGroup(state->ModelBindGroup.get(), 0, {0})
-                .DrawIndexed(*state->Indices, state->IndexCount, state->IndexFormat);
-                cmd->Finish();
-
-                commandBuffer.Finish();
-                application.SubmitCommandBuffer(commandBuffer); });
+                state->Renderer->UpdateMVP(modelMatrix, viewMatrix, projectionMatrix);
+                state->Renderer->Render(targetView);
+            });
     }
 
     int LoadModel()

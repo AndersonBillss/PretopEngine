@@ -41,6 +41,7 @@ set(PRETOP_ENGINE_SOURCES
   source/RHI/Shader.cpp
   source/RHI/VertexBufferLayout.cpp
   source/RHI/VertexLayout.cpp
+  source/Rendering/Renderer.cpp
   source/StbImage.cpp
   source/Window/WindowFactory.cpp
 )

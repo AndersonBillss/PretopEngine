@@ -14,13 +14,13 @@ namespace Pretop::Rendering
         };
     }
 
-    Renderer::Renderer(Pretop::Asset::AssetManager *assetManager, Core::GraphicsContext ctx, WGPUSurface windowSurface, WGPUTextureFormat windowFormat)
+    Renderer::Renderer(Pretop::Asset::AssetManager *assetManager, Core::GraphicsContext ctx, WGPUTextureFormat windowFormat)
     {
         this->_ctx = ctx;
-        this->_windowSurface = windowSurface;
         this->_windowFormat = windowFormat;
         this->_assetManager = assetManager;
         this->_shaderRef = assetManager->LoadShaderModule(Pretop::Utils::GetAssetId("shaders/shader.wgsl"));
+        this->_shaderLoaded = false;
     }
 
     void Renderer::AddObject(GpuMesh object)
@@ -28,7 +28,7 @@ namespace Pretop::Rendering
         this->_objects.push_back(object);
     }
 
-    void Renderer::Render()
+    void Renderer::Render(WGPUTextureView windowView)
     {
         WGPUCommandEncoderDescriptor encoderDescriptor = {
             /*.nextInChain=*/nullptr,
@@ -38,7 +38,7 @@ namespace Pretop::Rendering
 
         WGPURenderPassColorAttachment renderPassColorAttachment = {
             /*.nextInChain=*/nullptr,
-            /*.view=*/this->_windowView,
+            /*.view=*/windowView,
             /*.depthSlice=*/WGPU_DEPTH_SLICE_UNDEFINED,
             /*.resolveTarget=*/nullptr,
             /*.loadOp=*/WGPULoadOp_Clear,
@@ -75,7 +75,7 @@ namespace Pretop::Rendering
         };
         WGPUCommandBuffer commandBuffer = wgpuCommandEncoderFinish(encoder, &cmdBufferDescriptor);
 
-        wgpuQueueSubmit(this->_queue, 1, &commandBuffer);
+        wgpuQueueSubmit(this->_ctx.Queue, 1, &commandBuffer);
 
         wgpuCommandEncoderRelease(encoder);
     }
@@ -86,7 +86,7 @@ namespace Pretop::Rendering
         this->_uniforms.ViewMatrix = View;
         this->_uniforms.ProjectionMatrix = Projection;
         wgpuQueueWriteBuffer(
-            this->_queue,
+            this->_ctx.Queue,
             this->_uniformBuffer,
             0,
             &this->_uniforms,
@@ -95,6 +95,10 @@ namespace Pretop::Rendering
 
     bool Renderer::PollReady()
     {
+        if(this->_shaderLoaded == true) {
+            return true;
+        }
+        std::cout << "PollReady" << std::endl;
         Pretop::RHI::Shader *shader;
         auto result = this->_assetManager->GetShaderModule(this->_shaderRef, &shader);
         if (result != Asset::AssetManager::AssetResult::Success)
@@ -106,10 +110,13 @@ namespace Pretop::Rendering
             return false;
         }
         this->_afterShadersLoadedStep(shader->WgpuShader);
+        this->_shaderLoaded = true;
+        return true;
     }
 
     void Renderer::_afterShadersLoadedStep(WGPUShaderModule shaderModule)
     {
+        std::cout << "_afterShadersLoadedStep" << std::endl;
         WGPUVertexAttribute vertexAttributes[2];
         vertexAttributes[0] = {
             /*.nextInChain=*/nullptr,
@@ -143,7 +150,15 @@ namespace Pretop::Rendering
         bindGroupLayoutDesc.entryCount = 1;
         bindGroupLayoutDesc.entries = &bindingLayoutEntry;
 
+        WGPUBufferDescriptor bufferDesc = WGPU_BUFFER_DESCRIPTOR_INIT;
+        bufferDesc.label = wgpuStr("Uniform Buffer");
+        bufferDesc.usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_Uniform;
+        bufferDesc.size = sizeof(MyUniforms);
+        bufferDesc.mappedAtCreation = false;
+        this->_uniformBuffer = wgpuDeviceCreateBuffer(this->_ctx.Device, &bufferDesc);
+
         WGPUBindGroupLayout bindGroupLayout = wgpuDeviceCreateBindGroupLayout(this->_ctx.Device, &bindGroupLayoutDesc);
+        std::cout << "_afterShadersLoadedStep 1" << std::endl;
 
         WGPUPipelineLayoutDescriptor pipelineLayoutDesc = {
             /*.nextInChain=*/nullptr,
@@ -164,14 +179,9 @@ namespace Pretop::Rendering
         bindGroupDesc.layout = bindGroupLayout;
         bindGroupDesc.entryCount = 1;
         bindGroupDesc.entries = &bindings;
+        std::cout << "_afterShadersLoadedStep 1.5" << std::endl;
         this->_bindGroup = wgpuDeviceCreateBindGroup(_ctx.Device, &bindGroupDesc);
-
-        WGPUBufferDescriptor bufferDesc = WGPU_BUFFER_DESCRIPTOR_INIT;
-        bufferDesc.label = wgpuStr("Uniform Buffer");
-        bufferDesc.usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_Uniform;
-        bufferDesc.size = sizeof(MyUniforms);
-        bufferDesc.mappedAtCreation = false;
-        this->_uniformBuffer = wgpuDeviceCreateBuffer(this->_ctx.Device, &bufferDesc);
+        std::cout << "_afterShadersLoadedStep 2" << std::endl;
 
         _uniforms.ProjectionMatrix = Math::Mat4x4::Identity();
         _uniforms.ViewMatrix = Math::Mat4x4::Identity();
@@ -179,12 +189,13 @@ namespace Pretop::Rendering
         _uniforms.Color = 0;
         _uniforms.Time = 0;
         wgpuQueueWriteBuffer(
-            this->_queue,
+            this->_ctx.Queue,
             this->_uniformBuffer,
             0,
             &this->_uniforms,
             sizeof(MyUniforms));
 
+        std::cout << "_afterShadersLoadedStep 3" << std::endl;
         WGPUTextureFormat depthTextureFormat = WGPUTextureFormat_Depth24Plus;
         WGPUDepthStencilState depthStencilState = {
             /*.nextInChain=*/nullptr,
@@ -213,6 +224,7 @@ namespace Pretop::Rendering
             /*.viewFormats=*/&depthTextureFormat,
         };
         WGPUTexture depthTexture = wgpuDeviceCreateTexture(this->_ctx.Device, &depthTextureDesc);
+        std::cout << "_afterShadersLoadedStep 4" << std::endl;
 
         WGPUTextureViewDescriptor depthTextureViewDesc = {
             /*.nextInChain=*/nullptr,
@@ -241,6 +253,7 @@ namespace Pretop::Rendering
             /*.stencilReadOnly=*/false,
         };
 
+        std::cout << "_afterShadersLoadedStep 5" << std::endl;
         WGPUColorTargetState colorTargetState = {
             /*.nextInChain=*/nullptr,
             /*.format=*/this->_windowFormat,
@@ -288,5 +301,6 @@ namespace Pretop::Rendering
             /*.fragment=*/&fragmentState,
         };
         this->_pipeline = wgpuDeviceCreateRenderPipeline(this->_ctx.Device, &pipelineDesc);
+        std::cout << "end _afterShadersLoadedStep" << std::endl;
     }
 }

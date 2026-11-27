@@ -14,9 +14,9 @@ namespace Pretop::Rendering
             WGPUIndexFormat indexFormat;
         };
 
-        Renderer(Pretop::Asset::AssetManager *assetManager, Core::GraphicsContext ctx, WGPUSurface windowSurface, WGPUTextureFormat windowFormat);
+        Renderer(Pretop::Asset::AssetManager *assetManager, Core::GraphicsContext ctx, WGPUTextureFormat windowFormat);
         void AddObject(GpuMesh object);
-        void Render();
+        void Render(WGPUTextureView windowView);
         void UpdateMVP(Math::Mat4x4 Model, Math::Mat4x4 View, Math::Mat4x4 Projection);
         bool PollReady();
 
@@ -37,14 +37,13 @@ namespace Pretop::Rendering
         Core::GraphicsContext _ctx;
         Asset::AssetManager *_assetManager;
         Asset::AssetManager::AssetReference<RHI::Shader> _shaderRef;
-        WGPUSurface _windowSurface;
         WGPUTextureView _windowView;
         WGPURenderPassDepthStencilAttachment _depthStencilAttachment;
-        WGPUQueue _queue;
         WGPUBindGroup _bindGroup;
         WGPUBuffer _uniformBuffer;
         WGPURenderPipeline _pipeline;
         WGPUTextureFormat _windowFormat;
         std::vector<GpuMesh> _objects;
+        bool _shaderLoaded;
     };
 }
