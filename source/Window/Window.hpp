@@ -1,4 +1,5 @@
 #pragma once
+#include "InputManager.hpp"
 #include <string>
 #include <functional>
 #include <webgpu/webgpu.h>
@@ -26,6 +27,8 @@ namespace Pretop::Window
 
         unsigned int Width = 0;
         unsigned int Height = 0;
+
+        std::unique_ptr<InputManager> Input;
 
     protected:
         std::string _title;

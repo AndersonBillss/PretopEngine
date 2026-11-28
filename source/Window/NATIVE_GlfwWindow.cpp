@@ -6,6 +6,7 @@
 #endif // PRETOP_PLATFORM_WINDOWS
 
 #include "NATIVE_GlfwWindow.hpp"
+#include "NATIVE_GlfwInputManager.hpp"
 #include "../Core/Platform.hpp"
 
 #ifdef PRETOP_PLATFORM_WINDOWS
@@ -26,7 +27,8 @@ namespace Pretop::Window
         glfwTerminate();
     }
 
-    GlfwWindow::GlfwWindow(unsigned int width, unsigned int height, std::string title) : Window(width, height, title)
+    GlfwWindow::GlfwWindow(unsigned int width, unsigned int height, std::string title)
+        : Window(width, height, title), _window(nullptr)
     {
         this->Width = width;
         this->Height = height;
@@ -36,7 +38,11 @@ namespace Pretop::Window
             std::cerr << "Failed to initialize GLFW" << std::endl;
             exit(-1);
         }
-        _window = glfwCreateWindow(width, height, this->_title.c_str(), nullptr, nullptr);
+        this->_window = glfwCreateWindow(width, height, this->_title.c_str(), nullptr, nullptr);
+        if (_window)
+        {
+            this->Input = std::make_unique<GlfwInputManager>(this->_window);
+        }
     }
 
     GlfwWindow::GlfwWindow(std::string title) : GlfwWindow(DefaultWidth, DefaultHeight, title) {}
@@ -59,6 +65,7 @@ namespace Pretop::Window
             double dtSeconds = std::chrono::duration_cast<std::chrono::duration<double>>(now - last).count();
             last = now;
             glfwPollEvents();
+            this->Input->Pump();
             this->_onTick(dtSeconds);
         }
         this->_onExit();

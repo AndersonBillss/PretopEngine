@@ -6,8 +6,6 @@ namespace Pretop::Window
     namespace
     {
         const std::unordered_map<int, Key> glfwToEngineKey = {
-            {GLFW_KEY_UNKNOWN, Key::Unknown},
-
             {GLFW_KEY_SPACE, Key::Space},
             {GLFW_KEY_APOSTROPHE, Key::Apostrophe},
             {GLFW_KEY_COMMA, Key::Comma},
@@ -135,6 +133,11 @@ namespace Pretop::Window
         };
     }
 
+    GlfwInputManager::GlfwInputManager(GLFWwindow *window)
+    {
+        this->_window = window;
+    }
+
     bool GlfwInputManager::IsDown(Key key)
     {
         return _heldDownThisFrame.find(key) != _heldDownThisFrame.end();
@@ -172,3 +175,4 @@ namespace Pretop::Window
         }
         std::swap(this->_heldDownThisFrame, heldThisFrame);
     }
+}

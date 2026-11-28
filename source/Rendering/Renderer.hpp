@@ -1,3 +1,4 @@
+#pragma once
 #include "../Asset/AssetManager.hpp"
 #include "../Core/GraphicsContext.hpp"
 #include "../Math/Linalg/Mat4x4.hpp"

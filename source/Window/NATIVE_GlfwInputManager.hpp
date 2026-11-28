@@ -1,13 +1,14 @@
+#pragma once
 #include "InputManager.hpp"
 #include <GLFW/glfw3.h>
 
 namespace Pretop::Window
 {
 
-    class GlfwInputManager : InputManager
+    class GlfwInputManager : public InputManager
     {
     public:
-        GlfwInputManager() {};
+        GlfwInputManager(GLFWwindow *window);
 
         bool IsDown(Key key) override;
         bool IsPressed(Key key) override;
