@@ -40,6 +40,8 @@ namespace Pretop::Demos
     using namespace Pretop::RHI;
     using namespace Pretop::Window;
 
+    const float speed = 2;
+
     struct MyUniforms
     {
         Mat4x4 ProjectionMatrix;
@@ -64,6 +66,9 @@ namespace Pretop::Demos
         WGPUIndexFormat IndexFormat = WGPUIndexFormat_Undefined;
 
         std::unique_ptr<Rendering::Renderer> Renderer;
+
+        Pretop::Window::Window *Window;
+        Math::Vec3 CamTransform;
 
         bool ModelReady = false;
 
@@ -136,8 +141,10 @@ namespace Pretop::Demos
         state->ModelRef = state->Assets->LoadModel(
             Pretop::Utils::GetAssetId("models/woolly-mammoth-100k-4096_std.glb"));
 
+        std::unique_ptr<Pretop::Window::Window> window = WindowFactory::CreateWindow("My Window");
+        state->Window = window.get();
+        application.SetWindow(std::move(window));
         application.LogQueueCommands();
-        application.SetWindow(WindowFactory::CreateWindow("My Window"));
 
         state->Renderer = std::make_unique<Rendering::Renderer>(state->Assets.get(), application.GetGraphicsContext(), application.WindowFormat);
 
@@ -156,6 +163,31 @@ namespace Pretop::Demos
                     return;
                 }
 
+                if (state->Window->Input->IsDown(Pretop::Window::Key::D))
+                {
+                    state->CamTransform.X -= speed * dt;
+                }
+                if (state->Window->Input->IsDown(Pretop::Window::Key::A))
+                {
+                    state->CamTransform.X += speed * dt;
+                }
+                if (state->Window->Input->IsDown(Pretop::Window::Key::W))
+                {
+                    state->CamTransform.Y -= speed * dt;
+                }
+                if (state->Window->Input->IsDown(Pretop::Window::Key::S))
+                {
+                    state->CamTransform.Y += speed * dt;
+                }
+                if (state->Window->Input->IsDown(Pretop::Window::Key::Space))
+                {
+                    state->CamTransform.Z -= speed * dt;
+                }
+                if (state->Window->Input->IsDown(Pretop::Window::Key::LeftShift))
+                {
+                    state->CamTransform.Z += speed * dt;
+                }
+
                 state->Seconds += dt;
 
                 Mat4x4 r1 = (Euler{90.0f * (float)Deg2Rad, 0, state->Seconds}).ToMatrix();
@@ -163,8 +195,8 @@ namespace Pretop::Demos
                 Mat4x4 modelMatrix = r1 * s;
 
                 Mat4x4 r2 = (Euler{-45.0f * (float)Deg2Rad, 0, 0}).ToMatrix();
-                Mat4x4 t2 = Mat4x4::Transform(0.0f, 0.0f, -4.0f);
-                Mat4x4 viewMatrix = t2 * r2;
+                Mat4x4 t2 = Mat4x4::Transform(state->CamTransform.X, state->CamTransform.Y, state->CamTransform.Z);
+                Mat4x4 viewMatrix = r2 * t2;
 
                 float near = 0.01f;
                 float far = 100.0f;

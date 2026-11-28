@@ -47,6 +47,7 @@ set(PRETOP_ENGINE_SOURCES
 )
 set(PRETOP_ENGINE_SOURCES_NATIVE
   source/Asset/NATIVE_AssetLoader.cpp
+  source/Window/NATIVE_GlfwInputManager.cpp
   source/Window/NATIVE_GlfwWindow.cpp
 )
 set(PRETOP_ENGINE_SOURCES_PYBIND

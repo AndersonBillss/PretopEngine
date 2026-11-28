@@ -7,3 +7,5 @@
 | 11/26/2026 | Design and integrate simple renderer into demo.                                    | 3           |  
 | 11/27/2026 | Fix invalid state issues in renderer and add iterator to RecordTable.              | 2.5         |  
 | 11/27/2026 | Create and implement InputManager class                                            | 1.5         |  
+| 11/28/2026 | Finish InputManager class and add simple controls to scene                         | 1.5         |  
+| Total      |                                                                                    | 16          |  
