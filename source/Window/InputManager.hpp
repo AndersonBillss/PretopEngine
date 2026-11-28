@@ -137,15 +137,10 @@ namespace Pretop::Window
     public:
         virtual ~InputManager() = default;
 
-        virtual bool isDown(Key key) = 0;
-        virtual bool isPressed(Key key) = 0;
-        virtual bool isReleased(Key key) = 0;
+        virtual bool IsDown(Key key) = 0;
+        virtual bool IsPressed(Key key) = 0;
+        virtual bool IsReleased(Key key) = 0;
 
-        virtual void pump() = 0;
-
-    private:
-        std::unordered_set<Key> _heldDownThisFrame;
-        std::unordered_set<Key> _pressedThisFrame;
-        std::unordered_set<Key> _releasedThisFrame;
+        virtual void Pump() = 0;
     };
 }
